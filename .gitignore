@@ -1,0 +1,7 @@
+target/
+*.o
+/out/
+__pycache__/
+*.pending-snap
+*.snap.new
+.freebuff/

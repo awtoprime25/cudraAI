@@ -1,0 +1,17 @@
+---
+source: crates/cudra-diagnostics/src/lib.rs
+assertion_line: 198
+expression: output
+---
+erro: tipos incompatíveis
+   ╭─[prog.cdr:2:9]
+   │
+ 1 │ x = 1
+   │ ┬  
+   │ ╰── `x` foi definida como `int` aqui
+ 2 │ y = x + verdadeiro
+   │         ─────┬────  
+   │              ╰────── aqui é `bool`
+   │ 
+   │ Note: promove um dos dois operandos para resolver
+───╯
