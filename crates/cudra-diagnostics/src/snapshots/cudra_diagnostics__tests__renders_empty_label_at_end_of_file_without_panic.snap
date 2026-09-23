@@ -1,0 +1,12 @@
+---
+source: crates/cudra-diagnostics/src/lib.rs
+assertion_line: 264
+expression: output
+---
+erro: fim de ficheiro inesperado
+   ╭─[p.cdr:1:6]
+   │
+ 1 │ x = 1
+   │      │ 
+   │      ╰─ esperava-se algo aqui
+───╯

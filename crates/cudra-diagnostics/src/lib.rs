@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fmt;
 
-use ariadne::{Cache, Color, Config, Label as AriadneLabel, Report, ReportKind, Source};
+use ariadne::{Cache, Color, Config, IndexType, Label as AriadneLabel, Report, ReportKind, Source};
 use cudra_span::{FileId, SourceMap, Span};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -92,34 +92,61 @@ impl Cache<FileId> for FileCache {
 fn build_cache(sources: &SourceMap, file_ids: impl IntoIterator<Item = FileId>) -> FileCache {
     let mut files = HashMap::new();
     for id in file_ids {
-        files.entry(id.0).or_insert_with(|| {
-            let name = sources.name(id).to_string();
-            let src = Source::from(sources.source(id).to_string());
-            (name, src)
-        });
+        if files.contains_key(&id.0) {
+            continue;
+        }
+        // Ficheiros desconhecidos (FileId inválido) ficam de fora; o ariadne
+        // salta o grupo em vez de rebentar quando `fetch` falha.
+        if let (Some(name), Some(src)) = (sources.get_name(id), sources.get_source(id)) {
+            files.insert(id.0, (name.to_string(), Source::from(src.to_string())));
+        }
     }
     FileCache { files }
 }
 
+fn level_style(level: Level) -> (&'static str, Color) {
+    match level {
+        Level::Error => ("erro", Color::Red),
+        Level::Warning => ("aviso", Color::Yellow),
+        Level::Note => ("nota", Color::Blue),
+    }
+}
+
+fn append_notes(out: &mut String, notes: &[String]) {
+    for note in notes {
+        out.push_str("   = nota: ");
+        out.push_str(note);
+        out.push('\n');
+    }
+}
+
 pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
-    let (kind, header_color) = match diag.level {
-        Level::Error => (ReportKind::Custom("erro", Color::Red), Color::Red),
-        Level::Warning => (ReportKind::Custom("aviso", Color::Yellow), Color::Yellow),
-        Level::Note => (ReportKind::Custom("nota", Color::Blue), Color::Blue),
-    };
+    let (header, header_color) = level_style(diag.level);
+
+    if diag.labels.is_empty() {
+        let mut out = format!("{}: {}\n", header, diag.message);
+        append_notes(&mut out, &diag.notes);
+        return out;
+    }
 
     let anchor = diag
         .labels
         .iter()
         .find(|l| l.primary)
-        .or_else(|| diag.labels.first());
+        .or_else(|| diag.labels.first())
+        .expect("verificado acima: diag.labels não está vazio");
 
-    let anchor_file = anchor.map(|l| l.span.file).unwrap_or(FileId(0));
-    let anchor_offset = anchor.map(|l| l.span.lo as usize).unwrap_or(0);
-
-    let mut builder = Report::build(kind, anchor_file, anchor_offset)
-        .with_config(Config::default().with_color(color))
-        .with_message(&diag.message);
+    let mut builder = Report::build(
+        ReportKind::Custom(header, header_color),
+        anchor.span.file,
+        anchor.span.lo as usize,
+    )
+    .with_config(
+        Config::default()
+            .with_color(color)
+            .with_index_type(IndexType::Byte),
+    )
+    .with_message(&diag.message);
 
     for label in &diag.labels {
         let range = label.span.lo as usize..label.span.hi as usize;
@@ -132,12 +159,12 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
         builder = builder.with_label(al);
     }
 
-    for note in &diag.notes {
-        builder = builder.with_note(note);
-    }
-
     let report = builder.finish();
-    let file_ids = diag.labels.iter().map(|l| l.span.file).chain([anchor_file]);
+    let file_ids = diag
+        .labels
+        .iter()
+        .map(|l| l.span.file)
+        .chain([anchor.span.file]);
     let mut cache = build_cache(sources, file_ids);
 
     let mut buf = Vec::new();
@@ -148,11 +175,9 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
 
     // ReportKind::Custom não respeita Config::with_color para a cor do cabeçalho
     // (limitação do ariadne 0.4); garantimos saída sem ANSI aqui.
-    if color {
-        text
-    } else {
-        strip_ansi(&text)
-    }
+    let mut out = if color { text } else { strip_ansi(&text) };
+    append_notes(&mut out, &diag.notes);
+    out
 }
 
 fn strip_ansi(s: &str) -> String {
@@ -195,5 +220,84 @@ mod tests {
 
         let output = render(&diag, &sources, false);
         insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn renders_correctly_with_multibyte_chars_before_label_same_line() {
+        let mut sources = SourceMap::new();
+        let src = "é = ç + zzz\n".to_string();
+        let start = src.find("zzz").expect("fixture contém `zzz`") as u32;
+        let file = sources.add("p.cdr".to_string(), src);
+
+        let diag = Diagnostic::error("nome desconhecido: `zzz`")
+            .with_primary(Span::new(file, start, start + 3), "não está definida");
+
+        let output = render(&diag, &sources, false);
+        assert!(output.contains("p.cdr:1:9"));
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn renders_correctly_with_multibyte_chars_before_label_multiline() {
+        let mut sources = SourceMap::new();
+        let src = "# café é bom\nx = 1 + zzz\n".to_string();
+        let start = src.find("zzz").expect("fixture contém `zzz`") as u32;
+        let file = sources.add("p.cdr".to_string(), src);
+
+        let diag = Diagnostic::error("nome desconhecido: `zzz`")
+            .with_primary(Span::new(file, start, start + 3), "não está definida");
+
+        let output = render(&diag, &sources, false);
+        assert!(output.contains("p.cdr:2:9"));
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn renders_empty_label_at_end_of_file_without_panic() {
+        let mut sources = SourceMap::new();
+        let file = sources.add("p.cdr".to_string(), "x = 1".to_string());
+
+        let diag = Diagnostic::error("fim de ficheiro inesperado")
+            .with_primary(Span::new(file, 5, 5), "esperava-se algo aqui");
+
+        let output = render(&diag, &sources, false);
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn crlf_source_output_has_no_carriage_return() {
+        let mut sources = SourceMap::new();
+        let src = "x = 1\r\ny = zzz\r\n".to_string();
+        let start = src.find("zzz").expect("fixture contém `zzz`") as u32;
+        let file = sources.add("p.cdr".to_string(), src);
+
+        let diag = Diagnostic::error("nome desconhecido: `zzz`")
+            .with_primary(Span::new(file, start, start + 3), "não está definida");
+
+        let output = render(&diag, &sources, false);
+        assert!(!output.contains('\r'));
+    }
+
+    #[test]
+    fn render_without_labels_prints_plain_message_with_notes() {
+        let sources = SourceMap::new();
+
+        let diag = Diagnostic::error("ficheiro não encontrado: x.cdr")
+            .with_note("verifica o caminho passado a `cudrac`");
+
+        let output = render(&diag, &sources, false);
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn render_with_label_pointing_to_unknown_file_does_not_panic() {
+        let sources = SourceMap::new();
+
+        let diag = Diagnostic::error("erro interno")
+            .with_primary(Span::new(FileId(0), 0, 1), "aqui")
+            .with_note("isto não devia acontecer");
+
+        // Não pode entrar em panic; o conteúdo exato não é o que importa aqui.
+        let _ = render(&diag, &sources, false);
     }
 }

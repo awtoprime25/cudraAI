@@ -1,6 +1,6 @@
 ---
 source: crates/cudra-diagnostics/src/lib.rs
-assertion_line: 198
+assertion_line: 222
 expression: output
 ---
 erro: tipos incompatíveis
@@ -12,6 +12,5 @@ erro: tipos incompatíveis
  2 │ y = x + verdadeiro
    │         ─────┬────  
    │              ╰────── aqui é `bool`
-   │ 
-   │ Note: promove um dos dois operandos para resolver
 ───╯
+   = nota: promove um dos dois operandos para resolver

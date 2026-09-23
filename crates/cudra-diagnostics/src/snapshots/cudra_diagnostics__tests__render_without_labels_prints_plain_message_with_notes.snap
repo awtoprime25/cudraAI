@@ -1,0 +1,7 @@
+---
+source: crates/cudra-diagnostics/src/lib.rs
+assertion_line: 289
+expression: output
+---
+erro: ficheiro não encontrado: x.cdr
+   = nota: verifica o caminho passado a `cudrac`
