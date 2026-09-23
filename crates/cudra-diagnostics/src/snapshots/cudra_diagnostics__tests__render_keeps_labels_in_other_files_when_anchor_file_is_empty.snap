@@ -1,0 +1,13 @@
+---
+source: crates/cudra-diagnostics/src/lib.rs
+assertion_line: 481
+expression: output
+---
+erro: nome desconhecido: `zzz`
+ --> e:1:1 (vazio)
+   ╭─[p.cdr:1:5]
+   │
+ 1 │ x = zzz
+   │     ─┬─  
+   │      ╰─── válido
+───╯

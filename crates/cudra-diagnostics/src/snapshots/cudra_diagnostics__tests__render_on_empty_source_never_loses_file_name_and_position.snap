@@ -1,7 +1,7 @@
 ---
 source: crates/cudra-diagnostics/src/lib.rs
-assertion_line: 391
+assertion_line: 442
 expression: output
 ---
 erro: ficheiro vazio
- --> p.cdr:1:1
+ --> p.cdr:1:1 (aqui)

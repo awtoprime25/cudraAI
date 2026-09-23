@@ -149,10 +149,26 @@ fn clamp_span(span: Span, sources: &SourceMap) -> Span {
     Span::new(span.file, lo, hi)
 }
 
-fn plain_report(header: &str, message: &str, location: Option<(&str, u32, u32)>) -> String {
-    let mut out = format!("{header}: {message}\n");
-    if let Some((name, line, col)) = location {
-        out.push_str(&format!(" --> {name}:{line}:{col}\n"));
+// Insere `lines` logo a seguir à primeira linha (o cabeçalho) de `text`.
+fn insert_after_header(text: &str, lines: &[String]) -> String {
+    let mut out =
+        String::with_capacity(text.len() + lines.iter().map(|l| l.len() + 1).sum::<usize>());
+    match text.find('\n') {
+        Some(pos) => {
+            out.push_str(&text[..=pos]);
+            for line in lines {
+                out.push_str(line);
+                out.push('\n');
+            }
+            out.push_str(&text[pos + 1..]);
+        }
+        None => {
+            out.push_str(text);
+            for line in lines {
+                out.push_str(line);
+                out.push('\n');
+            }
+        }
     }
     out
 }
@@ -160,57 +176,54 @@ fn plain_report(header: &str, message: &str, location: Option<(&str, u32, u32)>)
 pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
     let (header, header_color) = level_style(diag.level);
 
-    // BUG10: um label cujo FileId não existe no SourceMap nunca é passado ao
-    // ariadne — ele escreveria um aviso em inglês no stderr e perdia o resto
-    // do relatório. Cada um vira antes uma nota própria.
-    let mut usable: Vec<Label> = Vec::new();
+    // Nenhum label pode desaparecer sem aviso. Classificamos cada um:
+    // - `drawable`: ficheiro conhecido e com conteúdo — o ariadne desenha-o;
+    // - `empty_file_lines`: ficheiro conhecido mas vazio (BUG9/BUG11) — vira
+    //   uma linha `--> nome:l:c (mensagem)` logo depois do cabeçalho;
+    // - `unresolved_notes` (BUG10): `FileId` que não existe no SourceMap —
+    //   nunca é passado ao ariadne, vira uma nota.
+    let mut drawable: Vec<Label> = Vec::new();
+    let mut empty_file_lines: Vec<String> = Vec::new();
     let mut unresolved_notes: Vec<String> = Vec::new();
+
     for l in &diag.labels {
-        if sources.get_source(l.span.file).is_some() {
-            usable.push(Label {
+        match sources.get_source(l.span.file) {
+            Some(src) if !src.is_empty() => drawable.push(Label {
                 span: clamp_span(l.span, sources),
                 message: l.message.clone(),
                 primary: l.primary,
-            });
-        } else {
-            unresolved_notes.push(format!("{} (localização indisponível)", l.message));
+            }),
+            Some(_) => {
+                let name = sources.get_name(l.span.file).unwrap_or("<desconhecido>");
+                let (line, col) = sources
+                    .get_line_col(l.span.file, l.span.lo)
+                    .unwrap_or((1, 1));
+                empty_file_lines.push(format!(" --> {name}:{line}:{col} ({})", l.message));
+            }
+            None => unresolved_notes.push(format!("{} (localização indisponível)", l.message)),
         }
     }
 
-    if usable.is_empty() {
-        let mut out = plain_report(header, &diag.message, None);
+    if drawable.is_empty() {
+        let mut out = format!("{header}: {}\n", diag.message);
+        for line in &empty_file_lines {
+            out.push_str(line);
+            out.push('\n');
+        }
         append_notes(&mut out, &unresolved_notes);
         append_notes(&mut out, &diag.notes);
         return out;
     }
 
-    let anchor = usable
+    // A âncora do relatório passa a ser o primeiro label desenhável (o
+    // primário, se algum primário sobreviver à filtragem acima).
+    let anchor = drawable
         .iter()
         .find(|l| l.primary)
-        .or_else(|| usable.first())
-        .expect("verificado acima: usable não está vazio");
+        .or_else(|| drawable.first())
+        .expect("verificado acima: drawable não está vazio");
     let anchor_file = anchor.span.file;
     let anchor_offset = anchor.span.lo;
-
-    // BUG9: decidimos antes de chamar o ariadne se há alguma linha para
-    // desenhar — adivinhar pela presença do nome do ficheiro no texto já
-    // produzido dá falsos positivos (o nome calha por acaso na mensagem, ou
-    // é uma substring de outra palavra do relatório).
-    let anchor_has_drawable_line = sources
-        .get_source(anchor_file)
-        .map(|s| !s.is_empty())
-        .unwrap_or(false);
-
-    if !anchor_has_drawable_line {
-        let name = sources.get_name(anchor_file).unwrap_or("<desconhecido>");
-        let (line, col) = sources
-            .get_line_col(anchor_file, anchor_offset)
-            .unwrap_or((1, 1));
-        let mut out = plain_report(header, &diag.message, Some((name, line, col)));
-        append_notes(&mut out, &unresolved_notes);
-        append_notes(&mut out, &diag.notes);
-        return out;
-    }
 
     let mut builder = Report::build(
         ReportKind::Custom(header, header_color),
@@ -224,7 +237,7 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
     )
     .with_message(&diag.message);
 
-    for label in &usable {
+    for label in &drawable {
         let range = label.span.lo as usize..label.span.hi as usize;
         let mut al = AriadneLabel::new((label.span.file, range)).with_message(&label.message);
         al = if label.primary {
@@ -236,7 +249,7 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
     }
 
     let report = builder.finish();
-    let file_ids = usable.iter().map(|l| l.span.file).chain([anchor_file]);
+    let file_ids = drawable.iter().map(|l| l.span.file).chain([anchor_file]);
     let mut cache = build_cache(sources, file_ids);
 
     let mut buf = Vec::new();
@@ -247,7 +260,13 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
 
     // ReportKind::Custom não respeita Config::with_color para a cor do cabeçalho
     // (limitação do ariadne 0.4); garantimos saída sem ANSI aqui.
-    let mut out = if color { text } else { strip_ansi(&text) };
+    let text = if color { text } else { strip_ansi(&text) };
+
+    let mut out = if empty_file_lines.is_empty() {
+        text
+    } else {
+        insert_after_header(&text, &empty_file_lines)
+    };
 
     append_notes(&mut out, &unresolved_notes);
     append_notes(&mut out, &diag.notes);
@@ -449,6 +468,62 @@ mod tests {
 
         let output = render(&diag, &sources, false);
         insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn render_keeps_labels_in_other_files_when_anchor_file_is_empty() {
+        let mut sources = SourceMap::new();
+        let empty_file = sources.add("e".to_string(), String::new());
+        let valid_file = sources.add("p.cdr".to_string(), "x = zzz\n".to_string());
+
+        let diag = Diagnostic::error("nome desconhecido: `zzz`")
+            .with_primary(Span::new(empty_file, 0, 0), "vazio")
+            .with_secondary(Span::new(valid_file, 4, 7), "válido");
+
+        let output = render(&diag, &sources, false);
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn render_never_drops_a_label_message_regardless_of_file_kind() {
+        let mut sources = SourceMap::new();
+        let empty_file = sources.add("empty.cdr".to_string(), String::new());
+        let valid_file = sources.add("valid.cdr".to_string(), "x = zzz\n".to_string());
+        let unknown_file = FileId(9999);
+
+        // Um label em ficheiro vazio, um em ficheiro com conteúdo e um em
+        // FileId inexistente. Testamos todas as combinações não vazias.
+        let kinds: [(&str, Span); 3] = [
+            ("mensagem-vazia", Span::new(empty_file, 0, 0)),
+            ("mensagem-valida", Span::new(valid_file, 4, 7)),
+            ("mensagem-desconhecida", Span::new(unknown_file, 0, 1)),
+        ];
+
+        for mask in 1u32..(1 << kinds.len()) {
+            let mut diag = Diagnostic::error("erro de teste");
+            let mut first = true;
+            for (i, (msg, span)) in kinds.iter().enumerate() {
+                if mask & (1 << i) == 0 {
+                    continue;
+                }
+                diag = if first {
+                    first = false;
+                    diag.with_primary(*span, *msg)
+                } else {
+                    diag.with_secondary(*span, *msg)
+                };
+            }
+
+            let output = render(&diag, &sources, false);
+            for (i, (msg, _)) in kinds.iter().enumerate() {
+                if mask & (1 << i) != 0 {
+                    assert!(
+                        output.contains(msg),
+                        "mask={mask:#05b}: falta a mensagem '{msg}' no output:\n{output}"
+                    );
+                }
+            }
+        }
     }
 
     #[test]
