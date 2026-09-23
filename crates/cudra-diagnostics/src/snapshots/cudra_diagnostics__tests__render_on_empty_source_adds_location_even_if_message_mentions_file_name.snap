@@ -1,0 +1,7 @@
+---
+source: crates/cudra-diagnostics/src/lib.rs
+assertion_line: 438
+expression: output
+---
+erro: empty source, mensagem cita p.cdr
+ --> p.cdr:1:1

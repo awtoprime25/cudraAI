@@ -77,6 +77,14 @@ impl Cache<FileId> for FileCache {
     type Storage = String;
 
     fn fetch(&mut self, id: &FileId) -> Result<&Source<String>, Box<dyn fmt::Debug + '_>> {
+        // `render` filtra os labels de ficheiro desconhecido antes de chamar o
+        // ariadne, por isso isto nunca devia acontecer; o ariadne escreveria
+        // no stderr (em inglês) se acontecesse.
+        debug_assert!(
+            self.files.contains_key(&id.0),
+            "ariadne pediu um ficheiro que devia ter sido filtrado: {}",
+            id.0
+        );
         self.files.get(&id.0).map(|(_, src)| src).ok_or_else(|| {
             Box::new(format!("ficheiro desconhecido: {}", id.0)) as Box<dyn fmt::Debug>
         })
@@ -95,8 +103,7 @@ fn build_cache(sources: &SourceMap, file_ids: impl IntoIterator<Item = FileId>) 
         if files.contains_key(&id.0) {
             continue;
         }
-        // Ficheiros desconhecidos (FileId inválido) ficam de fora; o ariadne
-        // salta o grupo em vez de rebentar quando `fetch` falha.
+        // `render` só chama isto com ficheiros já confirmados no SourceMap.
         if let (Some(name), Some(src)) = (sources.get_name(id), sources.get_source(id)) {
             files.insert(id.0, (name.to_string(), Source::from(src.to_string())));
         }
@@ -142,32 +149,68 @@ fn clamp_span(span: Span, sources: &SourceMap) -> Span {
     Span::new(span.file, lo, hi)
 }
 
+fn plain_report(header: &str, message: &str, location: Option<(&str, u32, u32)>) -> String {
+    let mut out = format!("{header}: {message}\n");
+    if let Some((name, line, col)) = location {
+        out.push_str(&format!(" --> {name}:{line}:{col}\n"));
+    }
+    out
+}
+
 pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
     let (header, header_color) = level_style(diag.level);
 
-    if diag.labels.is_empty() {
-        let mut out = format!("{}: {}\n", header, diag.message);
+    // BUG10: um label cujo FileId não existe no SourceMap nunca é passado ao
+    // ariadne — ele escreveria um aviso em inglês no stderr e perdia o resto
+    // do relatório. Cada um vira antes uma nota própria.
+    let mut usable: Vec<Label> = Vec::new();
+    let mut unresolved_notes: Vec<String> = Vec::new();
+    for l in &diag.labels {
+        if sources.get_source(l.span.file).is_some() {
+            usable.push(Label {
+                span: clamp_span(l.span, sources),
+                message: l.message.clone(),
+                primary: l.primary,
+            });
+        } else {
+            unresolved_notes.push(format!("{} (localização indisponível)", l.message));
+        }
+    }
+
+    if usable.is_empty() {
+        let mut out = plain_report(header, &diag.message, None);
+        append_notes(&mut out, &unresolved_notes);
         append_notes(&mut out, &diag.notes);
         return out;
     }
 
-    let clamped: Vec<Label> = diag
-        .labels
-        .iter()
-        .map(|l| Label {
-            span: clamp_span(l.span, sources),
-            message: l.message.clone(),
-            primary: l.primary,
-        })
-        .collect();
-
-    let anchor = clamped
+    let anchor = usable
         .iter()
         .find(|l| l.primary)
-        .or_else(|| clamped.first())
-        .expect("verificado acima: diag.labels não está vazio");
+        .or_else(|| usable.first())
+        .expect("verificado acima: usable não está vazio");
     let anchor_file = anchor.span.file;
     let anchor_offset = anchor.span.lo;
+
+    // BUG9: decidimos antes de chamar o ariadne se há alguma linha para
+    // desenhar — adivinhar pela presença do nome do ficheiro no texto já
+    // produzido dá falsos positivos (o nome calha por acaso na mensagem, ou
+    // é uma substring de outra palavra do relatório).
+    let anchor_has_drawable_line = sources
+        .get_source(anchor_file)
+        .map(|s| !s.is_empty())
+        .unwrap_or(false);
+
+    if !anchor_has_drawable_line {
+        let name = sources.get_name(anchor_file).unwrap_or("<desconhecido>");
+        let (line, col) = sources
+            .get_line_col(anchor_file, anchor_offset)
+            .unwrap_or((1, 1));
+        let mut out = plain_report(header, &diag.message, Some((name, line, col)));
+        append_notes(&mut out, &unresolved_notes);
+        append_notes(&mut out, &diag.notes);
+        return out;
+    }
 
     let mut builder = Report::build(
         ReportKind::Custom(header, header_color),
@@ -181,7 +224,7 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
     )
     .with_message(&diag.message);
 
-    for label in &clamped {
+    for label in &usable {
         let range = label.span.lo as usize..label.span.hi as usize;
         let mut al = AriadneLabel::new((label.span.file, range)).with_message(&label.message);
         al = if label.primary {
@@ -193,7 +236,7 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
     }
 
     let report = builder.finish();
-    let file_ids = clamped.iter().map(|l| l.span.file).chain([anchor_file]);
+    let file_ids = usable.iter().map(|l| l.span.file).chain([anchor_file]);
     let mut cache = build_cache(sources, file_ids);
 
     let mut buf = Vec::new();
@@ -206,17 +249,7 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
     // (limitação do ariadne 0.4); garantimos saída sem ANSI aqui.
     let mut out = if color { text } else { strip_ansi(&text) };
 
-    // Uma fonte vazia (ou sem linhas desenháveis) não dá ao ariadne nada para
-    // mostrar; nunca perdemos o nome do ficheiro nem a posição.
-    if let Some(name) = sources.get_name(anchor_file) {
-        if !out.contains(name) {
-            let (line, col) = sources
-                .get_line_col(anchor_file, anchor_offset)
-                .unwrap_or((1, 1));
-            out.push_str(&format!(" --> {name}:{line}:{col}\n"));
-        }
-    }
-
+    append_notes(&mut out, &unresolved_notes);
     append_notes(&mut out, &diag.notes);
     out
 }
@@ -331,15 +364,18 @@ mod tests {
     }
 
     #[test]
-    fn render_with_label_pointing_to_unknown_file_does_not_panic() {
+    fn render_with_label_pointing_to_unknown_file_reports_exact_output() {
         let sources = SourceMap::new();
 
         let diag = Diagnostic::error("erro interno")
-            .with_primary(Span::new(FileId(0), 0, 1), "aqui")
-            .with_note("isto não devia acontecer");
+            .with_primary(Span::new(FileId(9), 0, 1), "aqui")
+            .with_note("nota extra");
 
-        // Não pode entrar em panic; o conteúdo exato não é o que importa aqui.
-        let _ = render(&diag, &sources, false);
+        let output = render(&diag, &sources, false);
+        assert_eq!(
+            output,
+            "erro: erro interno\n   = nota: aqui (localização indisponível)\n   = nota: nota extra\n"
+        );
     }
 
     #[test]
@@ -387,6 +423,31 @@ mod tests {
 
         let output = render(&diag, &sources, false);
         assert!(output.contains("p.cdr:1:1"));
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn render_on_empty_source_adds_location_even_if_message_mentions_file_name() {
+        let mut sources = SourceMap::new();
+        let file = sources.add("p.cdr".to_string(), String::new());
+
+        let diag = Diagnostic::error("empty source, mensagem cita p.cdr")
+            .with_primary(Span::new(file, 0, 0), "aqui");
+
+        let output = render(&diag, &sources, false);
+        insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn render_on_empty_source_with_file_name_substring_of_header() {
+        let mut sources = SourceMap::new();
+        // "e" é uma substring de "erro"; o atalho antigo (procurar o nome no
+        // texto já gerado) marcava isto como "já presente" por engano.
+        let file = sources.add("e".to_string(), String::new());
+
+        let diag = Diagnostic::error("qualquer coisa").with_primary(Span::new(file, 0, 0), "aqui");
+
+        let output = render(&diag, &sources, false);
         insta::assert_snapshot!(output);
     }
 

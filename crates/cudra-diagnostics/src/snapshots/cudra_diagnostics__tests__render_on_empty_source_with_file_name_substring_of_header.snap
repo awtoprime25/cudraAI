@@ -1,0 +1,7 @@
+---
+source: crates/cudra-diagnostics/src/lib.rs
+assertion_line: 452
+expression: output
+---
+erro: qualquer coisa
+ --> e:1:1
