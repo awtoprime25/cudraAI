@@ -1,0 +1,32 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"if x:\\n    y = 1\\nelif w:\\n    pass\\nelse:\\n    y = 2\\n\")"
+---
+If	if	1:1
+Name	x	1:4
+Colon	:	1:5
+Newline	\n	1:6
+Indent		2:5
+Name	y	2:5
+Eq	=	2:7
+Int	1	2:9
+Newline	\n	2:10
+Dedent		3:1
+Elif	elif	3:1
+Name	w	3:6
+Colon	:	3:7
+Newline	\n	3:8
+Indent		4:5
+Pass	pass	4:5
+Newline	\n	4:9
+Dedent		5:1
+Else	else	5:1
+Colon	:	5:5
+Newline	\n	5:6
+Indent		6:5
+Name	y	6:5
+Eq	=	6:7
+Int	2	6:9
+Newline	\n	6:10
+Dedent		7:1
+Eof		7:1

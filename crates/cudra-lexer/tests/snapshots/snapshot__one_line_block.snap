@@ -1,0 +1,12 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"if x: y = 1\\n\")"
+---
+If	if	1:1
+Name	x	1:4
+Colon	:	1:5
+Name	y	1:7
+Eq	=	1:9
+Int	1	1:11
+Newline	\n	1:12
+Eof		2:1

@@ -1,0 +1,33 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"for i in range(3):\\n    for j in range(3):\\n        x = i + j\")"
+---
+For	for	1:1
+Name	i	1:5
+In	in	1:7
+Name	range	1:10
+LParen	(	1:15
+Int	3	1:16
+RParen	)	1:17
+Colon	:	1:18
+Newline	\n	1:19
+Indent		2:5
+For	for	2:5
+Name	j	2:9
+In	in	2:11
+Name	range	2:14
+LParen	(	2:19
+Int	3	2:20
+RParen	)	2:21
+Colon	:	2:22
+Newline	\n	2:23
+Indent		3:9
+Name	x	3:9
+Eq	=	3:11
+Name	i	3:13
+Plus	+	3:15
+Name	j	3:17
+Newline		3:18
+Dedent		3:18
+Dedent		3:18
+Eof		3:18

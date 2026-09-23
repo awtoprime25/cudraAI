@@ -1,0 +1,9 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"x = 1\\n\")"
+---
+Name	x	1:1
+Eq	=	1:3
+Int	1	1:5
+Newline	\n	1:6
+Eof		2:1

@@ -1,0 +1,21 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"class x:\\n    pass\\nlambda_ = 1\\ntry_ = 1\\n\")"
+---
+Reserved	class	1:1
+Name	x	1:7
+Colon	:	1:8
+Newline	\n	1:9
+Indent		2:5
+Pass	pass	2:5
+Newline	\n	2:9
+Dedent		3:1
+Name	lambda_	3:1
+Eq	=	3:9
+Int	1	3:11
+Newline	\n	3:12
+Name	try_	4:1
+Eq	=	4:6
+Int	1	4:8
+Newline	\n	4:9
+Eof		5:1

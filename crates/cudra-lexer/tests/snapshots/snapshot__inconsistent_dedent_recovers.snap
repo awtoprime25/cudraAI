@@ -1,0 +1,20 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"if x:\\n   y = 1\\n  z = 2\\n\")"
+---
+If	if	1:1
+Name	x	1:4
+Colon	:	1:5
+Newline	\n	1:6
+Indent		2:4
+Name	y	2:4
+Eq	=	2:6
+Int	1	2:8
+Newline	\n	2:9
+Dedent		3:3
+Name	z	3:3
+Eq	=	3:5
+Int	2	3:7
+Newline	\n	3:8
+Eof		4:1
+ERROR	indentação inconsistente	3:3

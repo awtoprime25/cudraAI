@@ -1,0 +1,53 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"x += 1\\nx -= 1\\nx *= 1\\nx /= 1\\nx //= 1\\nx %= 1\\nx **= 1\\nx &= 1\\nx |= 1\\nx ^= 1\\nx <<= 1\\nx >>= 1\\n\")"
+---
+Name	x	1:1
+PlusEq	+=	1:3
+Int	1	1:6
+Newline	\n	1:7
+Name	x	2:1
+MinusEq	-=	2:3
+Int	1	2:6
+Newline	\n	2:7
+Name	x	3:1
+StarEq	*=	3:3
+Int	1	3:6
+Newline	\n	3:7
+Name	x	4:1
+SlashEq	/=	4:3
+Int	1	4:6
+Newline	\n	4:7
+Name	x	5:1
+DoubleSlashEq	//=	5:3
+Int	1	5:7
+Newline	\n	5:8
+Name	x	6:1
+PercentEq	%=	6:3
+Int	1	6:6
+Newline	\n	6:7
+Name	x	7:1
+DoubleStarEq	**=	7:3
+Int	1	7:7
+Newline	\n	7:8
+Name	x	8:1
+AmpEq	&=	8:3
+Int	1	8:6
+Newline	\n	8:7
+Name	x	9:1
+PipeEq	|=	9:3
+Int	1	9:6
+Newline	\n	9:7
+Name	x	10:1
+CaretEq	^=	10:3
+Int	1	10:6
+Newline	\n	10:7
+Name	x	11:1
+ShlEq	<<=	11:3
+Int	1	11:7
+Newline	\n	11:8
+Name	x	12:1
+ShrEq	>>=	12:3
+Int	1	12:7
+Newline	\n	12:8
+Eof		13:1

@@ -1,0 +1,22 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"if x:\\n\\ty = 1\\n    z = 2\\n\")"
+---
+If	if	1:1
+Name	x	1:4
+Colon	:	1:5
+Newline	\n	1:6
+Indent		2:2
+Name	y	2:2
+Eq	=	2:4
+Int	1	2:6
+Newline	\n	2:7
+Indent		3:5
+Name	z	3:5
+Eq	=	3:7
+Int	2	3:9
+Newline	\n	3:10
+Dedent		4:1
+Dedent		4:1
+Eof		4:1
+ERROR	tabs na indentação não são suportados, usa espaços	2:1

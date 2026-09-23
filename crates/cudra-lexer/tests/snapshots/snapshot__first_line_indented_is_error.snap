@@ -1,0 +1,10 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"    x = 1\\n\")"
+---
+Name	x	1:5
+Eq	=	1:7
+Int	1	1:9
+Newline	\n	1:10
+Eof		2:1
+ERROR	indentação inesperada	1:1

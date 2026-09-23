@@ -1,0 +1,5 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"# so isto\\n\\n   \\n# mais\\n\")"
+---
+Eof		5:1

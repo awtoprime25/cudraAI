@@ -1,0 +1,15 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"import cudra\\nfrom cudra import arg_int, arg_float\\n\")"
+---
+Import	import	1:1
+Name	cudra	1:8
+Newline	\n	1:13
+From	from	2:1
+Name	cudra	2:6
+Import	import	2:12
+Name	arg_int	2:19
+Comma	,	2:26
+Name	arg_float	2:28
+Newline	\n	2:37
+Eof		3:1

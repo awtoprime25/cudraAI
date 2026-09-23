@@ -1,0 +1,5 @@
+---
+source: crates/cudra-lexer/tests/snapshot.rs
+expression: "dump(\"\")"
+---
+Eof		1:1
