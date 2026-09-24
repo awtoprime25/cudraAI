@@ -743,3 +743,28 @@ int main(void) {{
     );
     assert_eq!(r.code, Some(1));
 }
+
+// ronda 3b: base negativa finita, expoente fracionario, mas o modulo
+// pow(|x|, y) estoura para infinito -> o CPython delega em complex_pow e
+// levanta OverflowError (nao a nossa ValueError generica).
+#[test]
+fn i_complex_pow_overflow() {
+    let dir = unique_dir("i9");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    cudra_rt_init(0, NULL);
+    cudra_print_int(1);
+    cudra_print_end();
+    cudra_fpow(-3.0, 946683.3866556706);
+    return 0;
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "i_complex_pow_overflow", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "1\n");
+    assert_eq!(r.stderr, "OverflowError: complex exponentiation\n");
+    assert_eq!(r.code, Some(1));
+}

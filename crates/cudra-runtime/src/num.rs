@@ -2,9 +2,9 @@
 // com arredondamento correto, divmod de float (float_divmod), potencia de
 // float (float_pow), comparacao exata int/float e conversao float->int.
 use crate::panics::{
-    PANIC_FLOAT_FLOORDIV_ZERO, PANIC_FLOAT_MOD_ZERO, PANIC_FLOAT_TOO_LARGE, PANIC_INF_TO_INT,
-    PANIC_NAN_TO_INT, PANIC_NEG_BASE_FRACTIONAL_POW, PANIC_POW_OVERFLOW, PANIC_ZERO_DIV,
-    PANIC_ZERO_NEG_POWER,
+    PANIC_COMPLEX_POW_OVERFLOW, PANIC_FLOAT_FLOORDIV_ZERO, PANIC_FLOAT_MOD_ZERO,
+    PANIC_FLOAT_TOO_LARGE, PANIC_INF_TO_INT, PANIC_NAN_TO_INT, PANIC_NEG_BASE_FRACTIONAL_POW,
+    PANIC_POW_OVERFLOW, PANIC_ZERO_DIV, PANIC_ZERO_NEG_POWER,
 };
 
 const TWO_POW_53: u64 = 1u64 << 53;
@@ -172,6 +172,14 @@ pub fn fpow(x: f64, y: f64) -> Result<f64, u32> {
         });
     }
     if x < 0.0 && y.fract() != 0.0 {
+        // O CPython delega em complex_pow (_Py_c_pow): len = pow(|x|, y),
+        // phase = atan2(0, x) * y. So o modulo pode estourar para infinito
+        // (nunca gera nan aqui, com x finito != 0 e y finito); nesse caso a
+        // mensagem real e OverflowError. Nao suportamos complex, por isso o
+        // resultado finito fica como a nossa ValueError documentada.
+        if x.abs().powf(y).is_infinite() {
+            return Err(PANIC_COMPLEX_POW_OVERFLOW);
+        }
         return Err(PANIC_NEG_BASE_FRACTIONAL_POW);
     }
     if x == 1.0 {

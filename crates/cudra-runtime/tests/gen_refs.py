@@ -382,6 +382,20 @@ def compute_fpow(x, y):
     # float_pow do CPython como na nossa implementacao — nunca chega a
     # complex, mesmo com expoente fracionario. So x finito negativo diverge.
     if x < 0 and math.isfinite(x) and not math.isnan(y) and not math.isinf(y) and y != math.floor(y):
+        # O CPython delega em complex_pow (_Py_c_pow): len = pow(|x|, y). Se
+        # o modulo estourar para infinito, a mensagem real e
+        # "OverflowError: complex exponentiation" (comparavel); senao o
+        # resultado e um complex genuino (incluindo 0j por underflow), que
+        # continua por comparar (a nossa ValueError documentada). Usamos o
+        # proprio operador ** (nao math.pow) porque e ele que reproduz o
+        # overflow do float_pow do CPython (levanta OverflowError em vez de
+        # devolver inf).
+        try:
+            length_is_inf = math.isinf(abs(x) ** y)
+        except OverflowError:
+            length_is_inf = True
+        if length_is_inf:
+            return {"error": "OverflowError: complex exponentiation"}
         return "DIVERGE"
     try:
         v = x ** y
@@ -516,6 +530,12 @@ def gen_num_lines():
         (10.0, 400.0), (-2.0, 1025.0),
         (0.0, -1.0), (0.0, -1.5), (-0.0, -1.0),
         (-2.0, 0.5), (-8.0, 1.0 / 3.0), (-2.0, -0.5),
+        # ronda 3b: overflow do modulo em complex_pow -> OverflowError real.
+        (-3.0, 946683.3866556706), (-0.1, -83637.9596037151),
+        (-1.7976931348623157e+308, 4.5), (-5e-324, -426738.27163369756),
+        (-6.800000000000001, 4503599627370495.5), (-1.4156629567185994e+206, 39.5),
+        # continuam a dar complex genuino (underflow/subnormal, sem erro real).
+        (-0.5, 1000.5), (-0.5, 5000.5),
     ]
     for x, y in gen_float_pair_cases(fpow_mandatory, 3):
         lines.append(json.dumps({

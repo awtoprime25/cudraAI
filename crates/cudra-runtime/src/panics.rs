@@ -19,6 +19,7 @@ pub const PANIC_FLOAT_MOD_ZERO: u32 = 12;
 pub const PANIC_ZERO_NEG_POWER: u32 = 13;
 pub const PANIC_POW_OVERFLOW: u32 = 14;
 pub const PANIC_NEG_BASE_FRACTIONAL_POW: u32 = 15;
+pub const PANIC_COMPLEX_POW_OVERFLOW: u32 = 16;
 
 fn known_message(code: u32) -> Option<&'static str> {
     match code {
@@ -40,6 +41,7 @@ fn known_message(code: u32) -> Option<&'static str> {
         PANIC_NEG_BASE_FRACTIONAL_POW => Some(
             "ValueError: potência de base negativa com expoente fracionário ainda não é suportada",
         ),
+        PANIC_COMPLEX_POW_OVERFLOW => Some("OverflowError: complex exponentiation"),
         _ => None,
     }
 }

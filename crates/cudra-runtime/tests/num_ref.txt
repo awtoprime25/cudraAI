@@ -85048,6 +85048,14 @@
 {"fn": "fpow", "x": "c000000000000000", "y": "3fe0000000000000", "result": "DIVERGE"}
 {"fn": "fpow", "x": "c020000000000000", "y": "3fd5555555555555", "result": "DIVERGE"}
 {"fn": "fpow", "x": "c000000000000000", "y": "bfe0000000000000", "result": "DIVERGE"}
+{"fn": "fpow", "x": "c008000000000000", "y": "412ce3f6c5f7bb68", "result": {"error": "OverflowError: complex exponentiation"}}
+{"fn": "fpow", "x": "bfb999999999999a", "y": "c0f46b5f5a896cd8", "result": {"error": "OverflowError: complex exponentiation"}}
+{"fn": "fpow", "x": "ffefffffffffffff", "y": "4012000000000000", "result": {"error": "OverflowError: complex exponentiation"}}
+{"fn": "fpow", "x": "8000000000000001", "y": "c11a0bc9162724de", "result": {"error": "OverflowError: complex exponentiation"}}
+{"fn": "fpow", "x": "c01b333333333334", "y": "432fffffffffffff", "result": {"error": "OverflowError: complex exponentiation"}}
+{"fn": "fpow", "x": "eabc386aa6641f0b", "y": "4043c00000000000", "result": {"error": "OverflowError: complex exponentiation"}}
+{"fn": "fpow", "x": "bfe0000000000000", "y": "408f440000000000", "result": "DIVERGE"}
+{"fn": "fpow", "x": "bfe0000000000000", "y": "40b3888000000000", "result": "DIVERGE"}
 {"fn": "fpow", "x": "8000000000000000", "y": "0000000000000000", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "3ff0000000000000", "y": "0000000000000000", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "bff0000000000000", "y": "0000000000000000", "result": "3ff0000000000000"}
@@ -86204,11 +86212,11 @@
 {"fn": "fpow", "x": "0000000000000001", "y": "4016000000000000", "result": "0000000000000000"}
 {"fn": "fpow", "x": "8000000000000001", "y": "4016000000000000", "result": "DIVERGE"}
 {"fn": "fpow", "x": "7fefffffffffffff", "y": "4016000000000000", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "ffefffffffffffff", "y": "4016000000000000", "result": "DIVERGE"}
+{"fn": "fpow", "x": "ffefffffffffffff", "y": "4016000000000000", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "3fb999999999999a", "y": "4016000000000000", "result": "3eca86f0875fcf97"}
 {"fn": "fpow", "x": "bfb999999999999a", "y": "4016000000000000", "result": "DIVERGE"}
 {"fn": "fpow", "x": "7fe1ccf385ebc8a0", "y": "4016000000000000", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "ffe1ccf385ebc8a0", "y": "4016000000000000", "result": "DIVERGE"}
+{"fn": "fpow", "x": "ffe1ccf385ebc8a0", "y": "4016000000000000", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "000730d67819e8d2", "y": "4016000000000000", "result": "0000000000000000"}
 {"fn": "fpow", "x": "800730d67819e8d2", "y": "4016000000000000", "result": "DIVERGE"}
 {"fn": "fpow", "x": "4330000000000000", "y": "4016000000000000", "result": "51d0000000000000"}
@@ -86242,7 +86250,7 @@
 {"fn": "fpow", "x": "fff0000000000000", "y": "c016000000000000", "result": "0000000000000000"}
 {"fn": "fpow", "x": "7ff8000000000000", "y": "c016000000000000", "result": "nan"}
 {"fn": "fpow", "x": "0000000000000001", "y": "c016000000000000", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "8000000000000001", "y": "c016000000000000", "result": "DIVERGE"}
+{"fn": "fpow", "x": "8000000000000001", "y": "c016000000000000", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "7fefffffffffffff", "y": "c016000000000000", "result": "0000000000000000"}
 {"fn": "fpow", "x": "ffefffffffffffff", "y": "c016000000000000", "result": "DIVERGE"}
 {"fn": "fpow", "x": "3fb999999999999a", "y": "c016000000000000", "result": "41134d0f1066b7cb"}
@@ -86250,7 +86258,7 @@
 {"fn": "fpow", "x": "7fe1ccf385ebc8a0", "y": "c016000000000000", "result": "0000000000000000"}
 {"fn": "fpow", "x": "ffe1ccf385ebc8a0", "y": "c016000000000000", "result": "DIVERGE"}
 {"fn": "fpow", "x": "000730d67819e8d2", "y": "c016000000000000", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "800730d67819e8d2", "y": "c016000000000000", "result": "DIVERGE"}
+{"fn": "fpow", "x": "800730d67819e8d2", "y": "c016000000000000", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "4330000000000000", "y": "c016000000000000", "result": "2e10000000000000"}
 {"fn": "fpow", "x": "4340000000000000", "y": "c016000000000000", "result": "2db6a09e667f3bcd"}
 {"fn": "fpow", "x": "43e0000000000000", "y": "c016000000000000", "result": "2a46a09e667f3bcd"}
@@ -92625,7 +92633,7 @@
 {"fn": "fpow", "x": "f43c19252e8d4a54", "y": "10145bfeebb102b7", "result": "DIVERGE"}
 {"fn": "fpow", "x": "3f3ee4e9a44ef6ff", "y": "2cd5ef066709f35d", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "ed76cbe1994923e2", "y": "2ebe8eb652c85840", "result": "DIVERGE"}
-{"fn": "fpow", "x": "d29258c07d3d1929", "y": "4209b2884ea7fb66", "result": "DIVERGE"}
+{"fn": "fpow", "x": "d29258c07d3d1929", "y": "4209b2884ea7fb66", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "d344a616e1a0005b", "y": "5491bd369315fde4", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "5a00e35382fe4daf", "y": "d4472e961f8caf1e", "result": "0000000000000000"}
 {"fn": "fpow", "x": "9b2f9d117e9a608a", "y": "44f8937973128f3f", "result": "0000000000000000"}
@@ -92638,7 +92646,7 @@
 {"fn": "fpow", "x": "36240aff00c7d099", "y": "a1a8dacdce2e11d3", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "c4473e9b895cce42", "y": "ecf6b587c42c6f9f", "result": "0000000000000000"}
 {"fn": "fpow", "x": "3fb529b146b9a0cb", "y": "305c5156d2e96625", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "e4ee787d96794a1e", "y": "418f74538dc243e4", "result": "DIVERGE"}
+{"fn": "fpow", "x": "e4ee787d96794a1e", "y": "418f74538dc243e4", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "0f3945e4edc02011", "y": "c87d64b4f876ab30", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "92e3be8c617c39fa", "y": "265c6ac93b4c2d56", "result": "DIVERGE"}
 {"fn": "fpow", "x": "ab44b3798131f864", "y": "8e789f872ce4f867", "result": "DIVERGE"}
@@ -92650,7 +92658,7 @@
 {"fn": "fpow", "x": "ccb6acbd3c23546b", "y": "6a5eac67f9b673f6", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "3a1f1220074435cb", "y": "542a142c04128154", "result": "0000000000000000"}
 {"fn": "fpow", "x": "e42ad63bb6355e0d", "y": "2612f9e0d78999c3", "result": "DIVERGE"}
-{"fn": "fpow", "x": "e053044aae8678a2", "y": "4245ee9fd17a4cfb", "result": "DIVERGE"}
+{"fn": "fpow", "x": "e053044aae8678a2", "y": "4245ee9fd17a4cfb", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "c09b221a48e889e4", "y": "1276faf29af2ea94", "result": "DIVERGE"}
 {"fn": "fpow", "x": "74d6337e2e43003a", "y": "061c447b10db7f8c", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "04fbd0c51135dbf5", "y": "712c28605509e4a8", "result": "0000000000000000"}
@@ -92815,7 +92823,7 @@
 {"fn": "fpow", "x": "dead8233a8897d3f", "y": "bfcb97713359677f", "result": "DIVERGE"}
 {"fn": "fpow", "x": "ea87c2c17b01033f", "y": "d279258196680dcb", "result": "0000000000000000"}
 {"fn": "fpow", "x": "c8d0c9b75c979c7a", "y": "4809eb08f1d19e74", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "b596cec4fa5dd715", "y": "c2f3c53a07e15266", "result": "DIVERGE"}
+{"fn": "fpow", "x": "b596cec4fa5dd715", "y": "c2f3c53a07e15266", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "120360be360e4b67", "y": "593ac6e3886422a8", "result": "0000000000000000"}
 {"fn": "fpow", "x": "950fd2ed34ebf569", "y": "3aac3a403cfaf136", "result": "DIVERGE"}
 {"fn": "fpow", "x": "9e35d78c53a563d3", "y": "e556649a0db0020f", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -92845,12 +92853,12 @@
 {"fn": "fpow", "x": "262d45a2f2f8e96b", "y": "0e1b97afbab58731", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "025cd1258cc69ea1", "y": "98287ff3745a7296", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "556f5aad3ab880de", "y": "71047ac0486a6065", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "9152788b3c915e6b", "y": "c0f68a7550b4a6c7", "result": "DIVERGE"}
+{"fn": "fpow", "x": "9152788b3c915e6b", "y": "c0f68a7550b4a6c7", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "af8ede52d41397d0", "y": "2c2604947e484fdf", "result": "DIVERGE"}
 {"fn": "fpow", "x": "2b9cc9653bc8d556", "y": "f6abd5ad7e0c4a9a", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "20141522931d3d11", "y": "7dfccf106fcd9967", "result": "0000000000000000"}
 {"fn": "fpow", "x": "1bac0b352c60c1cd", "y": "f9c270191c92c992", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "db04a3170698d28a", "y": "4283a4110ff6f0de", "result": "DIVERGE"}
+{"fn": "fpow", "x": "db04a3170698d28a", "y": "4283a4110ff6f0de", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "bf250cfa23f72973", "y": "eae2e8ca61c6e487", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "9d188f522d68a449", "y": "06a7e06ad1bae007", "result": "DIVERGE"}
 {"fn": "fpow", "x": "123ea3d138505ad2", "y": "a6ce92f51a23c688", "result": "3ff0000000000000"}
@@ -93035,7 +93043,7 @@
 {"fn": "fpow", "x": "60710da650485315", "y": "d3a299a5c977e741", "result": "0000000000000000"}
 {"fn": "fpow", "x": "b0db8ca4f1c7456e", "y": "e6958a472d66a179", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "9c536c3f882e757b", "y": "fecb7d442c5ae995", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "c3bbe376908efccc", "y": "41728402e7756e74", "result": "DIVERGE"}
+{"fn": "fpow", "x": "c3bbe376908efccc", "y": "41728402e7756e74", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "77868d9e9732a95c", "y": "ffa05bb5bc891e20", "result": "0000000000000000"}
 {"fn": "fpow", "x": "74bc0027a89a8662", "y": "6c1066a223051306", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "32d85f79434c3c48", "y": "ff1907655a1d812e", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -93160,7 +93168,7 @@
 {"fn": "fpow", "x": "a5d04ce260503fcc", "y": "7e7db06c1b67746f", "result": "0000000000000000"}
 {"fn": "fpow", "x": "aa026d565aa4ff23", "y": "7aa8c77bffb65170", "result": "0000000000000000"}
 {"fn": "fpow", "x": "01e4a15a1933a0e5", "y": "83b8d15e7b9c229b", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "f3d3c9f520e03058", "y": "417d954d2f00ba8c", "result": "DIVERGE"}
+{"fn": "fpow", "x": "f3d3c9f520e03058", "y": "417d954d2f00ba8c", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "ae47616ca40c6bc1", "y": "39dd1cfde06538e5", "result": "DIVERGE"}
 {"fn": "fpow", "x": "c5f66dac277c1174", "y": "81628630f1d81734", "result": "DIVERGE"}
 {"fn": "fpow", "x": "b9267c2390bfc678", "y": "99f828e3b56ca92b", "result": "DIVERGE"}
@@ -93403,7 +93411,7 @@
 {"fn": "fpow", "x": "6c988aa7185878c0", "y": "b6b684ec50c0a48e", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "e25c086e2c284a80", "y": "c4fd561f14b08eae", "result": "0000000000000000"}
 {"fn": "fpow", "x": "f70222fa88d8d3ca", "y": "b9b4db4f2c05a788", "result": "DIVERGE"}
-{"fn": "fpow", "x": "eb340ff33713ab3f", "y": "41c3d8a07ed13651", "result": "DIVERGE"}
+{"fn": "fpow", "x": "eb340ff33713ab3f", "y": "41c3d8a07ed13651", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "76df6d2ef07549d1", "y": "6ba3069f2a3a9221", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "661946ca9af74b95", "y": "67b23aea18ea0e91", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "f4a55bab46613fe4", "y": "90eda294bcc1bcdf", "result": "DIVERGE"}
@@ -93506,7 +93514,7 @@
 {"fn": "fpow", "x": "6329dac6353617cc", "y": "6660a0fe27d2eb40", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "1c4700227b49b3d9", "y": "d14c5839070cb103", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "996085521b0dd809", "y": "1f06d468c09b05b5", "result": "DIVERGE"}
-{"fn": "fpow", "x": "a8cdfeb9ebd66da2", "y": "c0b975f3242721c3", "result": "DIVERGE"}
+{"fn": "fpow", "x": "a8cdfeb9ebd66da2", "y": "c0b975f3242721c3", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "bdc971d693b835e0", "y": "0cbbfe5fe0605042", "result": "DIVERGE"}
 {"fn": "fpow", "x": "ac5dd6a0981ee7e4", "y": "8a6c7bfa7b37a9d7", "result": "DIVERGE"}
 {"fn": "fpow", "x": "190ee2ebbc81130f", "y": "688352392d958289", "result": "0000000000000000"}
@@ -93896,7 +93904,7 @@
 {"fn": "fpow", "x": "545b4d808262c685", "y": "7b93b1ddd8ea04c5", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "6cb6535a7f233eef", "y": "a06183153f8f8b67", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "0b04bfd60f009355", "y": "34442f5d710390c0", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "9b763bb6346afdd3", "y": "c041ff61260aedf2", "result": "DIVERGE"}
+{"fn": "fpow", "x": "9b763bb6346afdd3", "y": "c041ff61260aedf2", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "451ad0f843472a34", "y": "6be4428d9fb6b012", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "19a2e0ba94ba52e9", "y": "01c98ca0cf284594", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "1503003f94487217", "y": "a8d450ff074f4c8b", "result": "3ff0000000000000"}
@@ -93966,7 +93974,7 @@
 {"fn": "fpow", "x": "8fc2114bf79ab41b", "y": "a2f02261220b3310", "result": "DIVERGE"}
 {"fn": "fpow", "x": "3e668db160ec89ec", "y": "548f718f5967a7f6", "result": "0000000000000000"}
 {"fn": "fpow", "x": "88b71fe714f4cb6a", "y": "45337c359e096128", "result": "0000000000000000"}
-{"fn": "fpow", "x": "fed614aacfefbc6b", "y": "4285a828b9bab72a", "result": "DIVERGE"}
+{"fn": "fpow", "x": "fed614aacfefbc6b", "y": "4285a828b9bab72a", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "61c92c0d9bdf6082", "y": "5ea39e86aadda4d5", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "2fff1b583263be7b", "y": "89dfbd803abe154b", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "6bc72201b78be90a", "y": "facfbb07d8aae929", "result": "0000000000000000"}
@@ -94009,7 +94017,7 @@
 {"fn": "fpow", "x": "a97b0d60244119b5", "y": "2b833ff06bc22a55", "result": "DIVERGE"}
 {"fn": "fpow", "x": "d490a6d6513899b7", "y": "49f219099f2c2722", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "a3f0bf01e5ef2da1", "y": "458437d60895c1d6", "result": "0000000000000000"}
-{"fn": "fpow", "x": "ff4e05afb0d8dcd7", "y": "404cfd47d07a24f6", "result": "DIVERGE"}
+{"fn": "fpow", "x": "ff4e05afb0d8dcd7", "y": "404cfd47d07a24f6", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "1d28f77c90007ddf", "y": "9f3059298754bb21", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "7e5e5a37685af8fe", "y": "e3298d23b8e6598c", "result": "0000000000000000"}
 {"fn": "fpow", "x": "faca396748abcfcf", "y": "c95d7680dbfc59ea", "result": "0000000000000000"}
@@ -94072,7 +94080,7 @@
 {"fn": "fpow", "x": "c78e06947bc384e0", "y": "2caafc2b115d2632", "result": "DIVERGE"}
 {"fn": "fpow", "x": "d8543f72962276c9", "y": "813524d7864fa359", "result": "DIVERGE"}
 {"fn": "fpow", "x": "96d966e83c260095", "y": "3e7c9ce324442271", "result": "DIVERGE"}
-{"fn": "fpow", "x": "ee280729c3d22724", "y": "4118885b06ef895a", "result": "DIVERGE"}
+{"fn": "fpow", "x": "ee280729c3d22724", "y": "4118885b06ef895a", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "c9be973101048025", "y": "5f20c37c0bef77a7", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "e61824811e3d22aa", "y": "ba3f21ce59d94388", "result": "DIVERGE"}
 {"fn": "fpow", "x": "c61151225b0a0069", "y": "e57c59f433ea73f6", "result": "0000000000000000"}
@@ -94241,7 +94249,7 @@
 {"fn": "fpow", "x": "7de71a60f4f3b521", "y": "d2d8927120b03d27", "result": "0000000000000000"}
 {"fn": "fpow", "x": "9332cf9d387c3af7", "y": "6ee0f36d57927615", "result": "0000000000000000"}
 {"fn": "fpow", "x": "48921e702bb5f736", "y": "3df9500261f0f768", "result": "3ff00000097866bc"}
-{"fn": "fpow", "x": "f8266dbce9f096e7", "y": "41c610e1731eee37", "result": "DIVERGE"}
+{"fn": "fpow", "x": "f8266dbce9f096e7", "y": "41c610e1731eee37", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "897b07dce774a045", "y": "9ab6008c986dc6e7", "result": "DIVERGE"}
 {"fn": "fpow", "x": "86b9490e26062e1c", "y": "350ccfac545070ea", "result": "DIVERGE"}
 {"fn": "fpow", "x": "b150184e8a74d053", "y": "9b3e50e2d245f420", "result": "DIVERGE"}
@@ -94306,7 +94314,7 @@
 {"fn": "fpow", "x": "12760235ee30b323", "y": "11cc24ca8f310e75", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "9a47782e4639e8c7", "y": "f7aeb50fd346f56b", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "e88e261e05cbcdbc", "y": "84b112df6d4be02b", "result": "DIVERGE"}
-{"fn": "fpow", "x": "9559b832d70fab0b", "y": "c2ab141dc6855b8c", "result": "DIVERGE"}
+{"fn": "fpow", "x": "9559b832d70fab0b", "y": "c2ab141dc6855b8c", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "7d16e3cb9b93cd9c", "y": "a3da103f8b3b8e00", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "8ab4370d4b43f51f", "y": "6392d2a9c90fc317", "result": "0000000000000000"}
 {"fn": "fpow", "x": "6d876a12b3db65f1", "y": "0be3a44acfe04fd2", "result": "3ff0000000000000"}
@@ -94628,7 +94636,7 @@
 {"fn": "fpow", "x": "3582d2c2446ab2cd", "y": "5c08ed5e66de7e0b", "result": "0000000000000000"}
 {"fn": "fpow", "x": "73ddd9d15f437364", "y": "52d7943d54712bb8", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "cbf3dcd599dfaad2", "y": "8a2366dbd8417ea8", "result": "DIVERGE"}
-{"fn": "fpow", "x": "b67301a2095c463f", "y": "c1a51b014818d90e", "result": "DIVERGE"}
+{"fn": "fpow", "x": "b67301a2095c463f", "y": "c1a51b014818d90e", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "551341346e62c2b6", "y": "4c69d92405d7b5a5", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "77cd642c3ab83a1c", "y": "12c2f4ff3761efe9", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "0bc28d1ac6fdcc1f", "y": "049b4c1fdef04d7b", "result": "3ff0000000000000"}
@@ -94671,7 +94679,7 @@
 {"fn": "fpow", "x": "79f275555c0df8f0", "y": "0f2b4d5aa10ac8c5", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "5736b0b52c327a86", "y": "529b70d4014d9967", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "11ebd050abbcc94c", "y": "ea6da98c49b8c66d", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "95570006734f6cfa", "y": "c24c542a2053e468", "result": "DIVERGE"}
+{"fn": "fpow", "x": "95570006734f6cfa", "y": "c24c542a2053e468", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "df6bea791644a57f", "y": "553aa894bd5efc66", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "47b312e03517423d", "y": "b90e515f4ffc519b", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "f2f1eda1172d1976", "y": "d99f377b3ac64c5b", "result": "0000000000000000"}
@@ -95044,7 +95052,7 @@
 {"fn": "fpow", "x": "27ef42e66eee6875", "y": "cf43f05a84dd0b31", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "ea74454569b9287b", "y": "4ea5091a239b3bb1", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "0468cfbf37257ebc", "y": "e0b4a1b5e8e2cb98", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "e6159ddaf54b9694", "y": "40330b9945885ff2", "result": "DIVERGE"}
+{"fn": "fpow", "x": "e6159ddaf54b9694", "y": "40330b9945885ff2", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "fe8de6770f312c91", "y": "bd86b2af7be663c8", "result": "DIVERGE"}
 {"fn": "fpow", "x": "6228577ba2fc7ada", "y": "882391dc3a4a5af7", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "69555cb62fcdd1ab", "y": "babd1012508b60aa", "result": "3ff0000000000000"}
@@ -95600,7 +95608,7 @@
 {"fn": "fpow", "x": "0af650bb40911f65", "y": "2d0a9a3c4302e4fa", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "cf52e1780e68115d", "y": "326a92814c69df1f", "result": "DIVERGE"}
 {"fn": "fpow", "x": "d37e4108669eccc0", "y": "78429c983028453d", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "dc8217d5634e031c", "y": "42b6f60e0b8aab9c", "result": "DIVERGE"}
+{"fn": "fpow", "x": "dc8217d5634e031c", "y": "42b6f60e0b8aab9c", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "b0006fb4d9bcaa0a", "y": "6d7aee2378f10c69", "result": "0000000000000000"}
 {"fn": "fpow", "x": "2e47d8b584f9e06a", "y": "519e30f1a6d3f5cf", "result": "0000000000000000"}
 {"fn": "fpow", "x": "31563852be7dea51", "y": "58f38188d028378f", "result": "0000000000000000"}
@@ -96038,7 +96046,7 @@
 {"fn": "fpow", "x": "9ec80d3ee4db76a6", "y": "2b64306a326f5e93", "result": "DIVERGE"}
 {"fn": "fpow", "x": "b5f91d8bc805683b", "y": "8ec362c7edaaca18", "result": "DIVERGE"}
 {"fn": "fpow", "x": "4b7a4c37ba49943a", "y": "7c54ce92eb5dd44a", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "e7386bd55ac1782c", "y": "409ff952682c71f2", "result": "DIVERGE"}
+{"fn": "fpow", "x": "e7386bd55ac1782c", "y": "409ff952682c71f2", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "1c34245a98c48fce", "y": "a5560993748df568", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "a6f5924348a874fc", "y": "1129f587a921909e", "result": "DIVERGE"}
 {"fn": "fpow", "x": "f7714612b7d8bbb0", "y": "cc35d45e17303763", "result": "0000000000000000"}
@@ -96046,7 +96054,7 @@
 {"fn": "fpow", "x": "fcb236bebaa13d19", "y": "89ce2f3bd13de277", "result": "DIVERGE"}
 {"fn": "fpow", "x": "41e196fd5c83f4aa", "y": "a32dcc4be949c88a", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "bbbdf87f1af065d1", "y": "a3ae5fc7d5091709", "result": "DIVERGE"}
-{"fn": "fpow", "x": "ce91fdf669df0608", "y": "42c4362392c4ece5", "result": "DIVERGE"}
+{"fn": "fpow", "x": "ce91fdf669df0608", "y": "42c4362392c4ece5", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "ad6762b448619f28", "y": "750330a162bccf5f", "result": "0000000000000000"}
 {"fn": "fpow", "x": "1314dbf1bdfed0fa", "y": "8b389425b86af3a1", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "8d30912df839094a", "y": "9cb3d60b9f4902cb", "result": "DIVERGE"}
@@ -96144,7 +96152,7 @@
 {"fn": "fpow", "x": "e521e15f39e98df9", "y": "b9452b9c4139f81f", "result": "DIVERGE"}
 {"fn": "fpow", "x": "301ea061fbe2df91", "y": "84d6d57e14704679", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "3df80cdf42fa0d7b", "y": "7e983d329aa07e06", "result": "0000000000000000"}
-{"fn": "fpow", "x": "bb664ab0b5acd9b4", "y": "c11d156a8148ae90", "result": "DIVERGE"}
+{"fn": "fpow", "x": "bb664ab0b5acd9b4", "y": "c11d156a8148ae90", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "46cdf42279aef4c9", "y": "921db0493da89de8", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "d2e470635f784016", "y": "32e5f2caff12e644", "result": "DIVERGE"}
 {"fn": "fpow", "x": "f4ab13d77a4f56d5", "y": "cc53103c27ab5071", "result": "0000000000000000"}
@@ -96308,11 +96316,11 @@
 {"fn": "fpow", "x": "37f8098e23404679", "y": "fe9a0624dc462104", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "d154f7d31fef12b9", "y": "31ac7d0a8947c585", "result": "DIVERGE"}
 {"fn": "fpow", "x": "4d0904e06305a9ef", "y": "861ddc499b3443c4", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "c87567de4116c4c3", "y": "4125eb8e8cde489a", "result": "DIVERGE"}
+{"fn": "fpow", "x": "c87567de4116c4c3", "y": "4125eb8e8cde489a", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "131d6790da65f084", "y": "bf03b303ad50e9b9", "result": "3ff04d37e7cdef88"}
 {"fn": "fpow", "x": "3419457c138de9d4", "y": "9a2ea84d2c76c80f", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "542045d72debe976", "y": "c033c78b6635751d", "result": "0000000000000000"}
-{"fn": "fpow", "x": "9c5f60d1dca02c62", "y": "c27712fd3d381890", "result": "DIVERGE"}
+{"fn": "fpow", "x": "9c5f60d1dca02c62", "y": "c27712fd3d381890", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "f1eadf144dba5b63", "y": "71e78fc20cdc28bf", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "5dd260fd743ddbdd", "y": "8847a0f2fac246df", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "76e80bf222bbee7b", "y": "927b559fcd5606b2", "result": "3ff0000000000000"}
@@ -96693,7 +96701,7 @@
 {"fn": "fpow", "x": "b7387a580ef621b0", "y": "a7eeb23f6e4d7161", "result": "DIVERGE"}
 {"fn": "fpow", "x": "1516d112ed788aa7", "y": "ed435aefd3f88fbe", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "6f65b745fd716aab", "y": "03c6014fabdccb16", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "b8c8596d11a014a1", "y": "c14c08f79ca2f257", "result": "DIVERGE"}
+{"fn": "fpow", "x": "b8c8596d11a014a1", "y": "c14c08f79ca2f257", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "074b370dcb1124a0", "y": "bd0deaef1d4e00ab", "result": "3ff00000000092d2"}
 {"fn": "fpow", "x": "f66d594baaabc8de", "y": "6b3ef14029596589", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "7aa40cfd6c14412a", "y": "fa0d9bedf99c6fd1", "result": "0000000000000000"}
@@ -96776,7 +96784,7 @@
 {"fn": "fpow", "x": "83b4d6e7fcfdbacf", "y": "096b3f70cad9592e", "result": "DIVERGE"}
 {"fn": "fpow", "x": "7ac19a2db0978a87", "y": "d6ad8557c387f7ea", "result": "0000000000000000"}
 {"fn": "fpow", "x": "429d307bbe71240f", "y": "2fb6c1fbc013701d", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "ea0ef355533a5ac3", "y": "41900f0808ca02cb", "result": "DIVERGE"}
+{"fn": "fpow", "x": "ea0ef355533a5ac3", "y": "41900f0808ca02cb", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "79f17e4f7f289131", "y": "5b615f21fa315a8c", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "8070b0bbea1e91a5", "y": "0406006cfa0d740a", "result": "DIVERGE"}
 {"fn": "fpow", "x": "aeec4e8a39237a77", "y": "e484bd090c25c418", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -96814,7 +96822,7 @@
 {"fn": "fpow", "x": "c50e3d23a7d6298a", "y": "ce6d97e111d00e4d", "result": "0000000000000000"}
 {"fn": "fpow", "x": "1fded8c1d10077aa", "y": "9fc432439331dad1", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "c087d025fa27a962", "y": "d4e9135c265f8dc6", "result": "0000000000000000"}
-{"fn": "fpow", "x": "8c78c22b317faeea", "y": "c2f3ea79715c1978", "result": "DIVERGE"}
+{"fn": "fpow", "x": "8c78c22b317faeea", "y": "c2f3ea79715c1978", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "684aed0e928b8fe6", "y": "ff43c0d2450f536a", "result": "0000000000000000"}
 {"fn": "fpow", "x": "e4899a557c4fb6ad", "y": "d1ce93edfba1c4bf", "result": "0000000000000000"}
 {"fn": "fpow", "x": "ee21c350ff2cbb2d", "y": "8a0b012274da691e", "result": "DIVERGE"}
@@ -97031,7 +97039,7 @@
 {"fn": "fpow", "x": "ce852459bb1fdd55", "y": "cdb9770f16fef561", "result": "0000000000000000"}
 {"fn": "fpow", "x": "0e026df9ea689d91", "y": "7ee4834cca6441e0", "result": "0000000000000000"}
 {"fn": "fpow", "x": "2647adf930c57f39", "y": "3e277f3e76175f8e", "result": "3feffffe5e34b14b"}
-{"fn": "fpow", "x": "e8d2d0a6a0cc6b29", "y": "400e8113732874c6", "result": "DIVERGE"}
+{"fn": "fpow", "x": "e8d2d0a6a0cc6b29", "y": "400e8113732874c6", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "fd4b010fc11f939b", "y": "2488ea331dff47cc", "result": "DIVERGE"}
 {"fn": "fpow", "x": "ddcbb370100a8bb1", "y": "f0db8a8327246997", "result": "0000000000000000"}
 {"fn": "fpow", "x": "59d555e3a1c79a47", "y": "61b65e40d801ba8b", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -97378,7 +97386,7 @@
 {"fn": "fpow", "x": "efcd8fe9e212a206", "y": "4496b1923d15df45", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "c1ebd737bd611a75", "y": "23bc4513aca7ac90", "result": "DIVERGE"}
 {"fn": "fpow", "x": "3f15ad32f274ffe9", "y": "d66b7b86dc426be0", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "9993fa3f81d80e31", "y": "c129d7cb16eb6d38", "result": "DIVERGE"}
+{"fn": "fpow", "x": "9993fa3f81d80e31", "y": "c129d7cb16eb6d38", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "a7d601c7119a96fc", "y": "b37dba2e7affe00a", "result": "DIVERGE"}
 {"fn": "fpow", "x": "4b9df733a4c7db1a", "y": "9e07a085afaeca9e", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "421f875afc48097d", "y": "4fbe9b35711424ca", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -97511,7 +97519,7 @@
 {"fn": "fpow", "x": "e2fd4afbaec8ec69", "y": "69076fa4b8b804ff", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "f8606a0e5137ea1d", "y": "fe0b9dbe803be0af", "result": "0000000000000000"}
 {"fn": "fpow", "x": "4c9017397295b73d", "y": "6baae0c59d62ecf5", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "e7f2189445939367", "y": "413690239febf696", "result": "DIVERGE"}
+{"fn": "fpow", "x": "e7f2189445939367", "y": "413690239febf696", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "78fdb8e2caec5081", "y": "14e4b691bbb0d693", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "ce196877c00a9a04", "y": "06565db3d439722e", "result": "DIVERGE"}
 {"fn": "fpow", "x": "35488f1d31efbfac", "y": "2bd15bb5bf4a65a6", "result": "3ff0000000000000"}
@@ -97679,7 +97687,7 @@
 {"fn": "fpow", "x": "92694dc96406d49d", "y": "5ee12513710ed31e", "result": "0000000000000000"}
 {"fn": "fpow", "x": "ed7bf4634097f1cd", "y": "7bd9b7359e47f7b0", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "8f63ecc788fc314c", "y": "8c4eaabfced80b3b", "result": "DIVERGE"}
-{"fn": "fpow", "x": "b601c23f797ab613", "y": "c2972a834a3640b8", "result": "DIVERGE"}
+{"fn": "fpow", "x": "b601c23f797ab613", "y": "c2972a834a3640b8", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "0c711609f1744b05", "y": "0760379171e1dcfa", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "b7e3c4c750f35a7c", "y": "ba2115fca6499f70", "result": "DIVERGE"}
 {"fn": "fpow", "x": "f9f943b984b8f33a", "y": "1f849a9d2b430cd3", "result": "DIVERGE"}
@@ -97696,7 +97704,7 @@
 {"fn": "fpow", "x": "0d2878077d3aad90", "y": "da9c5a2350728a37", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "53de4478de2bd7d8", "y": "d6e381c83c808c6b", "result": "0000000000000000"}
 {"fn": "fpow", "x": "00c6f51ed47071df", "y": "5a9e364bcb64ed6e", "result": "0000000000000000"}
-{"fn": "fpow", "x": "c100919af67a7cb1", "y": "42b96ac7d0476ce5", "result": "DIVERGE"}
+{"fn": "fpow", "x": "c100919af67a7cb1", "y": "42b96ac7d0476ce5", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "ae6db3f57cf6ebac", "y": "9c73b8ec86f244f1", "result": "DIVERGE"}
 {"fn": "fpow", "x": "ed6a79bcb31aa731", "y": "7647b372cfa3aa31", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "9ed9789c38e93972", "y": "e08c5356a7d0377a", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -97788,7 +97796,7 @@
 {"fn": "fpow", "x": "e21eca3129e36793", "y": "d59abe9e695f0251", "result": "0000000000000000"}
 {"fn": "fpow", "x": "4c26ee4b0254b62b", "y": "9ea7cfcea2aca4b4", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "f153e47636012756", "y": "2bef4b6ca8ac6831", "result": "DIVERGE"}
-{"fn": "fpow", "x": "bab4ba2b5e1e10ba", "y": "c0445892765e11c3", "result": "DIVERGE"}
+{"fn": "fpow", "x": "bab4ba2b5e1e10ba", "y": "c0445892765e11c3", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "8e46e96c9cea9a8d", "y": "08c1da73d202755a", "result": "DIVERGE"}
 {"fn": "fpow", "x": "0c287ef0acdfb4a8", "y": "fc3df39d491cd521", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "ddfeb8168190b615", "y": "9579a0869f59235e", "result": "DIVERGE"}
@@ -97926,7 +97934,7 @@
 {"fn": "fpow", "x": "419e0364f90a130a", "y": "aa0ddbb639ba2b9c", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "fcd00cf6a00b69f0", "y": "ba11922e7b222e00", "result": "DIVERGE"}
 {"fn": "fpow", "x": "45b6e62f4d0159bb", "y": "f4664fe56a1b2780", "result": "0000000000000000"}
-{"fn": "fpow", "x": "b701a42bc81b28ba", "y": "c2e8e38765b99045", "result": "DIVERGE"}
+{"fn": "fpow", "x": "b701a42bc81b28ba", "y": "c2e8e38765b99045", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "e03dd21d586da4ce", "y": "6656fc445eb30221", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "21909178a609537c", "y": "17ba3c706d1ed3b0", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "4cd42e66f8250bae", "y": "9131ab58d94ceea2", "result": "3ff0000000000000"}
@@ -98039,7 +98047,7 @@
 {"fn": "fpow", "x": "f0e1140dd3f8585c", "y": "a3628009493a9425", "result": "DIVERGE"}
 {"fn": "fpow", "x": "058df7f0d79d6586", "y": "302f5e8e6d599ef5", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "aaca746a371d63ba", "y": "bf7185c8fea50027", "result": "DIVERGE"}
-{"fn": "fpow", "x": "8021bc7d16af8baf", "y": "c07407e4e4fc755c", "result": "DIVERGE"}
+{"fn": "fpow", "x": "8021bc7d16af8baf", "y": "c07407e4e4fc755c", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "e5f7430e03a77bdf", "y": "7a1d787d1d131d52", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "ca1cc3f4cacd4cba", "y": "fcb87652ec541340", "result": "0000000000000000"}
 {"fn": "fpow", "x": "47a6f8861d4785ba", "y": "ea850bd5b96d6eda", "result": "0000000000000000"}
@@ -98142,7 +98150,7 @@
 {"fn": "fpow", "x": "8e434a16a9e55c13", "y": "3a3adf18a34f833e", "result": "DIVERGE"}
 {"fn": "fpow", "x": "94ec98c4933b790f", "y": "1cda00bf89983ba6", "result": "DIVERGE"}
 {"fn": "fpow", "x": "e45e71b4f2a17e21", "y": "1774fb4e9e2a5eae", "result": "DIVERGE"}
-{"fn": "fpow", "x": "d4dfe09c256c94b1", "y": "4219968684686291", "result": "DIVERGE"}
+{"fn": "fpow", "x": "d4dfe09c256c94b1", "y": "4219968684686291", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "ac91871a98335b64", "y": "d6aa6689f057ccdd", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "2cfdfc5aa0d0df78", "y": "f06327d43ac94af6", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "781151406a9b1378", "y": "4bd4dd1624f5d852", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -98437,7 +98445,7 @@
 {"fn": "fpow", "x": "9dabce9bcbf862f5", "y": "68b9b1a24458a73f", "result": "0000000000000000"}
 {"fn": "fpow", "x": "650a004bb167d723", "y": "318f7c0fe6607edb", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "8e5aa5494114f2d4", "y": "790670a7d4833cce", "result": "0000000000000000"}
-{"fn": "fpow", "x": "87132f4dc1a8e07e", "y": "c21f3dc0bae05718", "result": "DIVERGE"}
+{"fn": "fpow", "x": "87132f4dc1a8e07e", "y": "c21f3dc0bae05718", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "53864f10cfbdf5f8", "y": "4f3befbe301bacbf", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "e2ba9382681a69b8", "y": "aaddb10e121cad62", "result": "DIVERGE"}
 {"fn": "fpow", "x": "c790d016ca45e343", "y": "1c26056a7e919052", "result": "DIVERGE"}
@@ -98479,7 +98487,7 @@
 {"fn": "fpow", "x": "2678653afdb83f11", "y": "8d4b31a4050f9ff6", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "e5645fe407596f5b", "y": "7cdebe2483b91d90", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "2809689312b2c745", "y": "3b019d45cf84c8a4", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "fb02b71660bcd65c", "y": "41d0b9954cefab7f", "result": "DIVERGE"}
+{"fn": "fpow", "x": "fb02b71660bcd65c", "y": "41d0b9954cefab7f", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "faf20febf449996a", "y": "b8ff4f12d5ab98b1", "result": "DIVERGE"}
 {"fn": "fpow", "x": "33109789d8a0daa2", "y": "e0854bc1023ab51d", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "f793e811c47348da", "y": "d24676e1dc286680", "result": "0000000000000000"}
@@ -98890,7 +98898,7 @@
 {"fn": "fpow", "x": "81cfc610adf35e59", "y": "9b19eb69268a8d09", "result": "DIVERGE"}
 {"fn": "fpow", "x": "cb2b12199daa4cf2", "y": "59b4e2691464282c", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "92364abfcebe849e", "y": "0aba41f8cfda9816", "result": "DIVERGE"}
-{"fn": "fpow", "x": "c83a64043466ed9b", "y": "419eb03427117158", "result": "DIVERGE"}
+{"fn": "fpow", "x": "c83a64043466ed9b", "y": "419eb03427117158", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "3ed91ba26a5fa447", "y": "f427d7f27fa3db61", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "2d281d5fbc5638ce", "y": "794b89cad15952cf", "result": "0000000000000000"}
 {"fn": "fpow", "x": "fa9db53ebf65dc07", "y": "11347e696e656202", "result": "DIVERGE"}
@@ -98931,7 +98939,7 @@
 {"fn": "fpow", "x": "2ed8e49bea02c7f1", "y": "758442b98e0cc261", "result": "0000000000000000"}
 {"fn": "fpow", "x": "6a4c5143a2a83824", "y": "4fc71e813267c898", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "4140f1e025b09621", "y": "541de088c42d7a7d", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "fc5917e0770d9271", "y": "432f3b33d395a229", "result": "DIVERGE"}
+{"fn": "fpow", "x": "fc5917e0770d9271", "y": "432f3b33d395a229", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "dbe0d8bb21ca04f5", "y": "e1e9797f902a5c5b", "result": "0000000000000000"}
 {"fn": "fpow", "x": "d0e512a84315974f", "y": "b56c40f3366d7efe", "result": "DIVERGE"}
 {"fn": "fpow", "x": "68d064fed7ffc4be", "y": "8071ab13acfe8273", "result": "3ff0000000000000"}
@@ -99073,7 +99081,7 @@
 {"fn": "fpow", "x": "a843485110af4647", "y": "fb60c43aabb37cbe", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "79595e6eeeb54749", "y": "ce765ed74202e1ed", "result": "0000000000000000"}
 {"fn": "fpow", "x": "89bf73ca99d0316b", "y": "3e179b1708e8efec", "result": "DIVERGE"}
-{"fn": "fpow", "x": "e39cfe64ad46a88d", "y": "400b7b388d9abf4c", "result": "DIVERGE"}
+{"fn": "fpow", "x": "e39cfe64ad46a88d", "y": "400b7b388d9abf4c", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "a0f0d6063bc388d5", "y": "0bd884ae71b62ac8", "result": "DIVERGE"}
 {"fn": "fpow", "x": "182719ed3db0b6ba", "y": "84b3edb20db8cb6f", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "701896a69640665f", "y": "55a7077e5a07c0f6", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -99270,7 +99278,7 @@
 {"fn": "fpow", "x": "185c9084c7a471ab", "y": "c09aeed57b1c3bb5", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "b57748f56fcb74e4", "y": "1a48a6d09dba7897", "result": "DIVERGE"}
 {"fn": "fpow", "x": "8389a76372f273af", "y": "7076f29ef960217e", "result": "0000000000000000"}
-{"fn": "fpow", "x": "fd13f9a47715dc6e", "y": "41f24a0663147528", "result": "DIVERGE"}
+{"fn": "fpow", "x": "fd13f9a47715dc6e", "y": "41f24a0663147528", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "53642ae9054f798d", "y": "f247db8a83d09599", "result": "0000000000000000"}
 {"fn": "fpow", "x": "8a2a508728f401c8", "y": "7907134b684ae45d", "result": "0000000000000000"}
 {"fn": "fpow", "x": "f2b8d551b23beb19", "y": "5f6b1b030ca2bfc8", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -99384,7 +99392,7 @@
 {"fn": "fpow", "x": "c58ebd542a5ce132", "y": "f303c1d87b43205d", "result": "0000000000000000"}
 {"fn": "fpow", "x": "d1627046baa5338d", "y": "d79d7b8cadb10e0f", "result": "0000000000000000"}
 {"fn": "fpow", "x": "f9074a90c8aaca93", "y": "f56ceff23a8049ec", "result": "0000000000000000"}
-{"fn": "fpow", "x": "ee7fc96c75ba1312", "y": "41935fd43536832d", "result": "DIVERGE"}
+{"fn": "fpow", "x": "ee7fc96c75ba1312", "y": "41935fd43536832d", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "926ec0aa5d064b8b", "y": "0d900de7ea2a50d6", "result": "DIVERGE"}
 {"fn": "fpow", "x": "9191d11c14a023a7", "y": "b23357c3862a0a68", "result": "DIVERGE"}
 {"fn": "fpow", "x": "75f12182f35e675e", "y": "b7f3cab2dce7adc7", "result": "3ff0000000000000"}
@@ -99683,7 +99691,7 @@
 {"fn": "fpow", "x": "a78a26f20031a64f", "y": "36de8e39ff6fdf45", "result": "DIVERGE"}
 {"fn": "fpow", "x": "d741a1cf369a2be4", "y": "0a5e47da646fbb8b", "result": "DIVERGE"}
 {"fn": "fpow", "x": "c201e592486d9d6e", "y": "c29223e2f19ba4aa", "result": "DIVERGE"}
-{"fn": "fpow", "x": "88adc30efc01bbc2", "y": "c2006462d585d29c", "result": "DIVERGE"}
+{"fn": "fpow", "x": "88adc30efc01bbc2", "y": "c2006462d585d29c", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "b3535ca89f58549f", "y": "ec4a82b031b35495", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "5afcbe43039fbf7b", "y": "9289c4ad56c68c9e", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "3cfd2f4796a4ef5e", "y": "6e4304ad5ed82e60", "result": "0000000000000000"}
@@ -99737,7 +99745,7 @@
 {"fn": "fpow", "x": "2e2f6ced4d368bc8", "y": "22135dbd101f5c8a", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "223f2a565bab0120", "y": "76e2e946bff75193", "result": "0000000000000000"}
 {"fn": "fpow", "x": "4da13a8a112e547a", "y": "bfec5c773e2a750f", "result": "33cc058f28b0c2ad"}
-{"fn": "fpow", "x": "bffee98f4a776e20", "y": "41ac3c07d97dc816", "result": "DIVERGE"}
+{"fn": "fpow", "x": "bffee98f4a776e20", "y": "41ac3c07d97dc816", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "71b8887d871b094f", "y": "1042ce0e8c7a51d9", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "6159f680a81a93d1", "y": "591edddc85860e2a", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "0905037d7ddfddc0", "y": "b0cb4a9bd1dc5098", "result": "3ff0000000000000"}
@@ -99815,7 +99823,7 @@
 {"fn": "fpow", "x": "18f8b8bdf81e9af4", "y": "d1e57a7c16c3575d", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "61260c7fac53b588", "y": "57ff6922a43a38e2", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "4fc2bd778b2137e5", "y": "e3f11eab388da617", "result": "0000000000000000"}
-{"fn": "fpow", "x": "b273c8d7a503ef14", "y": "c1c2e4b967267b41", "result": "DIVERGE"}
+{"fn": "fpow", "x": "b273c8d7a503ef14", "y": "c1c2e4b967267b41", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "3e34fcd327b2326b", "y": "de12024364ef5e2d", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "5c6f3bd07332a0b5", "y": "197e5c544ff3e7e2", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "385b637e399bd4b6", "y": "f51ebf911e97c41e", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -99834,7 +99842,7 @@
 {"fn": "fpow", "x": "1238052ee4793d88", "y": "a5bc8895b4c5635b", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "c63ecad952df8bee", "y": "e02ca0a0cc025515", "result": "0000000000000000"}
 {"fn": "fpow", "x": "54933a8acafb1ed1", "y": "2087ecf6163376b9", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "8857e7f408a796fb", "y": "bff389525c29bb19", "result": "DIVERGE"}
+{"fn": "fpow", "x": "8857e7f408a796fb", "y": "bff389525c29bb19", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "7775ebf70b4d9339", "y": "c44cb2fbc59bd97c", "result": "0000000000000000"}
 {"fn": "fpow", "x": "4bb81e50b9f15a9c", "y": "d34f512317cde311", "result": "0000000000000000"}
 {"fn": "fpow", "x": "9a6d735b006531d7", "y": "b95a0eda155ad4e6", "result": "DIVERGE"}
@@ -100331,7 +100339,7 @@
 {"fn": "fpow", "x": "4c5fbd07ba32c355", "y": "856f3d793ea4568d", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "1eaf3edc35b088e2", "y": "4f327bf408c7df8b", "result": "0000000000000000"}
 {"fn": "fpow", "x": "f4ec2101567a69cb", "y": "d61a215a3ba91f0f", "result": "0000000000000000"}
-{"fn": "fpow", "x": "dc779775dbbb0811", "y": "403455ee22112a9d", "result": "DIVERGE"}
+{"fn": "fpow", "x": "dc779775dbbb0811", "y": "403455ee22112a9d", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "a88ee49603c133d3", "y": "ed1dfe27ce9464ff", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "84242809474a6319", "y": "0074796374b71a9c", "result": "DIVERGE"}
 {"fn": "fpow", "x": "4fd9c083f3aac63f", "y": "223b53982bd6eed8", "result": "3ff0000000000000"}
@@ -100722,7 +100730,7 @@
 {"fn": "fpow", "x": "07c6f822e6f83322", "y": "aef489e1887a3f08", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "a2dd7204f02f54af", "y": "83f2ed416e53ed57", "result": "DIVERGE"}
 {"fn": "fpow", "x": "69fed6a9d8484ac6", "y": "bfe1fca396b2e34d", "result": "284aca1d9d7aa0ab"}
-{"fn": "fpow", "x": "b3088e95be5017ca", "y": "c04f64e96346677f", "result": "DIVERGE"}
+{"fn": "fpow", "x": "b3088e95be5017ca", "y": "c04f64e96346677f", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "469d27227b311aba", "y": "6085fcf23f03ad7b", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "dcd61d1d0551d30d", "y": "f89c5e718593d2d6", "result": "0000000000000000"}
 {"fn": "fpow", "x": "d22c0367fe2946ca", "y": "45d8097e3d3d1562", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -100875,7 +100883,7 @@
 {"fn": "fpow", "x": "b1a28cd1946db351", "y": "128c790f29acd040", "result": "DIVERGE"}
 {"fn": "fpow", "x": "ca2ad4046e3534cb", "y": "93a497958552c92b", "result": "DIVERGE"}
 {"fn": "fpow", "x": "44c49782b37bb1bd", "y": "1da71802f5bf7c4f", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "9f366c890b62a8a6", "y": "c2c4625bdac7fff2", "result": "DIVERGE"}
+{"fn": "fpow", "x": "9f366c890b62a8a6", "y": "c2c4625bdac7fff2", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "a4f652dc3142f3f1", "y": "1feeab2567247f2e", "result": "DIVERGE"}
 {"fn": "fpow", "x": "d26dab736db23a79", "y": "225cbbea20cccd5c", "result": "DIVERGE"}
 {"fn": "fpow", "x": "e85f5dfab97f3de3", "y": "c26dcbada0b010c5", "result": "DIVERGE"}
@@ -101111,7 +101119,7 @@
 {"fn": "fpow", "x": "912f46060b46a54b", "y": "b67da6b83ba92001", "result": "DIVERGE"}
 {"fn": "fpow", "x": "67459fbf891bcce7", "y": "e6667046755cf920", "result": "0000000000000000"}
 {"fn": "fpow", "x": "149b9da263366b17", "y": "4b17f7c2628b8e6a", "result": "0000000000000000"}
-{"fn": "fpow", "x": "9b3c26815b3eb695", "y": "c006a2d108b30510", "result": "DIVERGE"}
+{"fn": "fpow", "x": "9b3c26815b3eb695", "y": "c006a2d108b30510", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "6d1bb6ac732052b9", "y": "03066935bc6c627d", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "374b3e94c3a5717d", "y": "5cf7a3ff1fc94caf", "result": "0000000000000000"}
 {"fn": "fpow", "x": "11a6b6428f62f0aa", "y": "10402ab3bb83917e", "result": "3ff0000000000000"}
@@ -101126,7 +101134,7 @@
 {"fn": "fpow", "x": "6c5dbb897875db2b", "y": "2b55b373ad5d989c", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "f2d419ea1682d950", "y": "db95b7bacd4d3278", "result": "0000000000000000"}
 {"fn": "fpow", "x": "58de263903b6ec70", "y": "41e42d115d029571", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "abafb69f3c30c4a8", "y": "c15829cf25e76c60", "result": "DIVERGE"}
+{"fn": "fpow", "x": "abafb69f3c30c4a8", "y": "c15829cf25e76c60", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "ad20f26425ce106f", "y": "b8cc35ab3a15d0c8", "result": "DIVERGE"}
 {"fn": "fpow", "x": "c54118523332e0fe", "y": "ed0c1c29111477cb", "result": "0000000000000000"}
 {"fn": "fpow", "x": "c155a422dba196dc", "y": "f1b45d3d3ee1bfe6", "result": "0000000000000000"}
@@ -101240,7 +101248,7 @@
 {"fn": "fpow", "x": "a33e61a92fcb4328", "y": "0c279653650f6dbd", "result": "DIVERGE"}
 {"fn": "fpow", "x": "f10221521ee0ef99", "y": "1a403f2069bcd309", "result": "DIVERGE"}
 {"fn": "fpow", "x": "e80391225bb108d9", "y": "33334fd2d1ecf0df", "result": "DIVERGE"}
-{"fn": "fpow", "x": "a02b30520ff40965", "y": "c2a87f64ff09b491", "result": "DIVERGE"}
+{"fn": "fpow", "x": "a02b30520ff40965", "y": "c2a87f64ff09b491", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "01886090b73c6865", "y": "0584502f5fc23552", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "8c355e65acceeb62", "y": "ea49448a9cad1abd", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "9e6f5631edd41719", "y": "62b2580a05bc1b81", "result": "0000000000000000"}
@@ -101459,7 +101467,7 @@
 {"fn": "fpow", "x": "7da131430f5e8adf", "y": "82d99c12d8185553", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "76d4194efbec0f9b", "y": "8973972b127e88c6", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "6bc81d554b806a4e", "y": "834256ea07090b47", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "9bd1f500e9869377", "y": "c28b06aba2a512c4", "result": "DIVERGE"}
+{"fn": "fpow", "x": "9bd1f500e9869377", "y": "c28b06aba2a512c4", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "6eba35fb95673e77", "y": "7f35505b868a5692", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "027a9c55bdb8f999", "y": "a65c004157dd2909", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "e240d3c7c533dc1f", "y": "5744376fa125b9fc", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -101476,7 +101484,7 @@
 {"fn": "fpow", "x": "f31ec1d6055cd5fa", "y": "1ba2130c7f663876", "result": "DIVERGE"}
 {"fn": "fpow", "x": "b31de2ddef365b81", "y": "840226ed34ffb2c8", "result": "DIVERGE"}
 {"fn": "fpow", "x": "84dd2e1aed43d58b", "y": "e3e2e6f7133cd7f5", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
-{"fn": "fpow", "x": "f28efbda8b271f69", "y": "41f1354e67f9053c", "result": "DIVERGE"}
+{"fn": "fpow", "x": "f28efbda8b271f69", "y": "41f1354e67f9053c", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "a7e5c3dea4e34c4d", "y": "ed6f9ec61177ba69", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "2d766597ec93c769", "y": "dc9bf87da170beab", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "eabbc573623944ed", "y": "7f7f2942c2f04b5e", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -101565,7 +101573,7 @@
 {"fn": "fpow", "x": "54d4863c9259ff0d", "y": "1be5f1aa954327bd", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "1c90f0538fddd3d4", "y": "bf30706a93cf09ff", "result": "3ff1a7866b590c6d"}
 {"fn": "fpow", "x": "afdc9354d19c139e", "y": "77a972aa10c83371", "result": "0000000000000000"}
-{"fn": "fpow", "x": "ac09461881597590", "y": "c0ce2ba56016caff", "result": "DIVERGE"}
+{"fn": "fpow", "x": "ac09461881597590", "y": "c0ce2ba56016caff", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "3f32688522c82b13", "y": "38c7756d7f40a01c", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "0b0e477ffa2f4945", "y": "325f9070d54248a9", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "43a473ccfde4697d", "y": "a893b753d15960d5", "result": "3ff0000000000000"}
@@ -101896,7 +101904,7 @@
 {"fn": "fpow", "x": "640279df0193439a", "y": "e3d13d499a85f31f", "result": "0000000000000000"}
 {"fn": "fpow", "x": "be50d39ed9c691d0", "y": "83d9611e98099b70", "result": "DIVERGE"}
 {"fn": "fpow", "x": "e36fc91655fa1635", "y": "138068c431c934a0", "result": "DIVERGE"}
-{"fn": "fpow", "x": "e44f5670a884e2e7", "y": "43049ad70c53e734", "result": "DIVERGE"}
+{"fn": "fpow", "x": "e44f5670a884e2e7", "y": "43049ad70c53e734", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "b50111d9ea94d316", "y": "4416f80f2cc6088d", "result": "0000000000000000"}
 {"fn": "fpow", "x": "fff073db7b68faf2", "y": "cb31b35fcf3e81de", "result": "nan"}
 {"fn": "fpow", "x": "df4dca2509af9ba0", "y": "d3f59f9e5c1cec38", "result": "0000000000000000"}
@@ -102042,7 +102050,7 @@
 {"fn": "fpow", "x": "73fa9f442b3bf6ea", "y": "097a5eb87082fe1d", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "f874cd648ed83739", "y": "6f709415e8dbbc64", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "fe4596f9a9d270d8", "y": "e5bca5af3ef6be1a", "result": "0000000000000000"}
-{"fn": "fpow", "x": "dc3e4b75081c528d", "y": "4203c0933b6c8e3c", "result": "DIVERGE"}
+{"fn": "fpow", "x": "dc3e4b75081c528d", "y": "4203c0933b6c8e3c", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "d200f1f348d7b65f", "y": "cef392e34cda5936", "result": "0000000000000000"}
 {"fn": "fpow", "x": "10d332f05b8b6232", "y": "563ec32ae759cac9", "result": "0000000000000000"}
 {"fn": "fpow", "x": "cb2cf26dc4a7ec69", "y": "f3e8585c1e989a84", "result": "0000000000000000"}
@@ -102228,7 +102236,7 @@
 {"fn": "fpow", "x": "7142dc6edfd78fff", "y": "1e10844c2927a883", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "74ace72e0e6b05a2", "y": "ee2f1b3e48e6cbf8", "result": "0000000000000000"}
 {"fn": "fpow", "x": "5d07be2ec3f27811", "y": "ba2c149da9638616", "result": "3ff0000000000000"}
-{"fn": "fpow", "x": "bea20958571d7627", "y": "c2ae7960162a62e6", "result": "DIVERGE"}
+{"fn": "fpow", "x": "bea20958571d7627", "y": "c2ae7960162a62e6", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "ea58e508b4f15f7c", "y": "91fa74dc0e57071e", "result": "DIVERGE"}
 {"fn": "fpow", "x": "253f46e8ec2c37ae", "y": "948b8c3836640caa", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "e527207ddc40e375", "y": "71c52a72458be5f0", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
@@ -102264,7 +102272,7 @@
 {"fn": "fpow", "x": "84cd78fedb3294b5", "y": "6ed3415c28133938", "result": "0000000000000000"}
 {"fn": "fpow", "x": "29f9e6985fb4feab", "y": "8812e7768b68d915", "result": "3ff0000000000000"}
 {"fn": "fpow", "x": "9d2694e60bf3873e", "y": "2964b37e307b7af6", "result": "DIVERGE"}
-{"fn": "fpow", "x": "e07a307d49a0583c", "y": "425cf8e5a6650c9a", "result": "DIVERGE"}
+{"fn": "fpow", "x": "e07a307d49a0583c", "y": "425cf8e5a6650c9a", "result": {"error": "OverflowError: complex exponentiation"}}
 {"fn": "fpow", "x": "b8f80ea52f740507", "y": "7ff38da928054162", "result": "nan"}
 {"fn": "fpow", "x": "25d7b7d46143a57b", "y": "e91b9cd52ac57d3e", "result": {"error": "OverflowError: (34, 'Numerical result out of range')"}}
 {"fn": "fpow", "x": "391a66f60dbae8e7", "y": "146fd1ccd704a919", "result": "3ff0000000000000"}
