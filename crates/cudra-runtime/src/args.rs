@@ -43,12 +43,20 @@ fn argv() -> &'static [Vec<u8>] {
 
 fn arg_codepoints(i: i64) -> Vec<u32> {
     let args = argv();
-    if i < 0 || i as usize >= args.len() {
-        exit_with_error("IndexError: argument index out of range");
+    let len = args.len() as i64;
+    // Indice negativo conta a partir do fim, tal como sys.argv[i] (lista
+    // normal do Python): i < 0 -> i += len.
+    let idx = if i < 0 {
+        i.checked_add(len).unwrap_or(-1)
+    } else {
+        i
+    };
+    if idx < 0 || idx >= len {
+        exit_with_error("IndexError: list index out of range");
     }
     // Bytes nao-UTF-8 tornam-se surrogates altos (0xDC00 + byte), tal como o
     // codec surrogateescape do Python usa para descodificar argv.
-    utf8_surrogateescape_decode(&args[i as usize])
+    utf8_surrogateescape_decode(&args[idx as usize])
 }
 
 #[no_mangle]

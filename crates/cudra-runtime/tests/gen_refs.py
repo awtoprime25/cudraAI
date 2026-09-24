@@ -6,6 +6,7 @@ import math
 import random
 import re
 import struct
+import subprocess
 import unicodedata
 from pathlib import Path
 
@@ -110,6 +111,7 @@ def write_unicode_tables(zero_cps, ranges):
     out_path = SRC / 'unicode_tables.rs'
     with open(out_path, 'w', encoding='ascii', newline='\n') as f:
         f.write("\n".join(lines) + "\n")
+    subprocess.run(['rustfmt', '--edition', '2021', str(out_path)], check=True)
     print(f"unicode_tables.rs: {len(zero_cps)} pontos Nd, {len(ranges)} intervalos nao-imprimiveis")
 
 
@@ -218,6 +220,324 @@ def gen_arg_parse_cases():
     return lines
 
 
+I64_MAX = 2**63 - 1
+I64_MIN = -(2**63)
+
+
+def clamp_i64(v):
+    return max(I64_MIN, min(I64_MAX, v))
+
+
+def f64_from_hex(h):
+    return struct.unpack('>d', bytes.fromhex(h))[0]
+
+
+def encode_float_result(x):
+    if isinstance(x, float) and math.isnan(x):
+        return "nan"
+    return bits_hex(x)
+
+
+def build_interesting_int_pool():
+    vals = [
+        0, 1, -1, 2, -2, 3, -3,
+        (1 << 53), (1 << 53) + 1, (1 << 53) - 1,
+        -(1 << 53), -((1 << 53) + 1), -((1 << 53) - 1),
+        I64_MAX, I64_MIN, I64_MAX - 1, I64_MIN + 1,
+        1285, -1285, 100, -100,
+    ]
+    for k in range(0, 63):
+        vals.append(clamp_i64(1 << k))
+        vals.append(clamp_i64(-(1 << k)))
+        vals.append(clamp_i64((1 << k) + 1))
+        vals.append(clamp_i64((1 << k) - 1))
+    return vals
+
+
+def build_interesting_float_pool():
+    import sys
+    vals = [
+        0.0, -0.0, 1.0, -1.0, 2.0, -2.0, 0.5, -0.5,
+        float('inf'), float('-inf'), float('nan'),
+        5e-324, -5e-324, sys.float_info.max, -sys.float_info.max,
+        0.1, -0.1, 1e308, -1e308, 1e-308, -1e-308,
+        2.0 ** 52, 2.0 ** 53, 2.0 ** 63, -(2.0 ** 63), 2.0 ** 52 + 1, 2.0 ** 53 + 2,
+        3.0, -3.0, 5.5, -5.5, 100.0, -100.0, 10.0, -10.0, 1285.0, -1285.0,
+    ]
+    for k in range(-20, 21):
+        vals.append(2.0 ** k)
+        vals.append(-(2.0 ** k))
+    for k in range(0, 20):
+        vals.append(2.0 ** k + 1)
+        vals.append(2.0 ** k - 1)
+        vals.append(-(2.0 ** k) - 1)
+        vals.append(-(2.0 ** k) + 1)
+    for v in [1, 2, 3, 4, 5, 7, 10, 100, 1000, 123456]:
+        vals.append(float(v))
+        vals.append(-float(v))
+    return vals
+
+
+def gen_uniform_f64_bits(rnd):
+    n = rnd.getrandbits(64)
+    return struct.unpack('>d', n.to_bytes(8, 'big'))[0]
+
+
+def gen_uniform_i64(rnd):
+    return rnd.randint(I64_MIN, I64_MAX)
+
+
+def compute_int_truediv(a, b):
+    if b == 0:
+        return {"error": "ZeroDivisionError: division by zero"}
+    return encode_float_result(a / b)
+
+
+def gen_int_truediv_cases():
+    cases = []
+    seen = set()
+
+    def add(a, b):
+        key = (a, b)
+        if key not in seen:
+            seen.add(key)
+            cases.append(key)
+
+    mandatory = [
+        (9223372036854775807, 1285),
+        (-9223372036854775808, 3),
+        (9007199254740993, 1),
+        (-9223372036854775807, -1),
+        (0, -5), (0, 5), (0, -1), (0, 1),
+        (0, 0), (1, 0), (-1, 0), (I64_MAX, 0), (I64_MIN, 0),
+    ]
+    for a, b in mandatory:
+        add(a, b)
+
+    pool = build_interesting_int_pool()
+    for b in pool:
+        for a in pool[:40]:
+            add(a, b)
+
+    rnd = random.Random(SEED + 1)
+    for _ in range(20000):
+        a = gen_uniform_i64(rnd)
+        b = gen_uniform_i64(rnd)
+        add(a, b)
+
+    for _ in range(5000):
+        a = clamp_i64(rnd.randint((1 << 53) + 1, I64_MAX) * rnd.choice([1, -1]))
+        b = clamp_i64(rnd.randint((1 << 53) + 1, I64_MAX) * rnd.choice([1, -1]))
+        add(a, b)
+
+    for _ in range(5000):
+        a = clamp_i64(rnd.randint((1 << 53) - 1000, (1 << 53) + 1000) * rnd.choice([1, -1]))
+        b = clamp_i64(rnd.randint((1 << 53) - 1000, (1 << 53) + 1000) * rnd.choice([1, -1]))
+        add(a, b)
+
+    return cases
+
+
+def compute_float_floordiv(a, b):
+    if b == 0.0:
+        return {"error": "ZeroDivisionError: float floor division by zero"}
+    return encode_float_result(a // b)
+
+
+def compute_float_mod(a, b):
+    if b == 0.0:
+        return {"error": "ZeroDivisionError: float modulo"}
+    return encode_float_result(a % b)
+
+
+def gen_float_pair_cases(extra_mandatory, seed_offset):
+    cases = []
+    seen = set()
+
+    def add(a, b):
+        key = (bits_hex(a), bits_hex(b))
+        if key not in seen:
+            seen.add(key)
+            cases.append((a, b))
+
+    for a, b in extra_mandatory:
+        add(a, b)
+
+    pool = build_interesting_float_pool()
+    for b in pool:
+        for a in pool[:40]:
+            add(a, b)
+
+    rnd = random.Random(SEED + seed_offset)
+    for _ in range(10000):
+        add(gen_uniform_f64_bits(rnd), gen_uniform_f64_bits(rnd))
+    for _ in range(10000):
+        add(rnd.choice(pool), rnd.choice(pool))
+
+    return cases
+
+
+def compute_fpow(x, y):
+    # x infinito e tratado por um caso especial mais cedo, tanto no
+    # float_pow do CPython como na nossa implementacao — nunca chega a
+    # complex, mesmo com expoente fracionario. So x finito negativo diverge.
+    if x < 0 and math.isfinite(x) and not math.isnan(y) and not math.isinf(y) and y != math.floor(y):
+        return "DIVERGE"
+    try:
+        v = x ** y
+    except ZeroDivisionError:
+        return {"error": "ZeroDivisionError: 0.0 cannot be raised to a negative power"}
+    except OverflowError:
+        return {"error": "OverflowError: (34, 'Numerical result out of range')"}
+    if isinstance(v, complex):
+        return "DIVERGE"
+    return encode_float_result(v)
+
+
+def compute_cmp_int_float(i, f):
+    if math.isnan(f):
+        return 2
+    if i < f:
+        return -1
+    if i > f:
+        return 1
+    return 0
+
+
+def gen_cmp_int_float_cases():
+    cases = []
+    seen = set()
+
+    def add(i, f):
+        key = (i, bits_hex(f))
+        if key not in seen:
+            seen.add(key)
+            cases.append((i, f))
+
+    mandatory = [
+        (2 ** 53 + 1, 9007199254740992.0),
+        (9223372036854775807, 9.223372036854776e18),
+        (I64_MIN, -9.223372036854776e18),
+        (I64_MIN, -0.0),
+        (I64_MIN, float('inf')),
+        (I64_MIN, float('-inf')),
+        (0, 0.0), (0, -0.0), (0, float('nan')),
+    ]
+    for i, f in mandatory:
+        add(i, f)
+
+    int_pool = build_interesting_int_pool()
+    float_pool = build_interesting_float_pool()
+    for i in int_pool:
+        for f in float_pool[:30]:
+            add(i, f)
+
+    rnd = random.Random(SEED + 5)
+    for _ in range(10000):
+        add(gen_uniform_i64(rnd), gen_uniform_f64_bits(rnd))
+    for _ in range(10000):
+        add(rnd.choice(int_pool), rnd.choice(float_pool))
+
+    return cases
+
+
+def compute_float_to_int(f):
+    if math.isnan(f):
+        return {"error": "ValueError: cannot convert float NaN to integer"}
+    if math.isinf(f):
+        return {"error": "OverflowError: cannot convert float infinity to integer"}
+    t = math.trunc(f)
+    if not (I64_MIN <= t <= I64_MAX):
+        return {"error": "OverflowError: float too large to convert to int"}
+    return t
+
+
+def gen_float_to_int_cases():
+    cases = []
+    seen = set()
+
+    def add(f):
+        key = bits_hex(f)
+        if key not in seen:
+            seen.add(key)
+            cases.append(f)
+
+    mandatory = [
+        -9223372036854775808.0, 9223372036854775808.0, 9223372036854775807.0,
+        -9223372036854775809.0, float('nan'), float('inf'), float('-inf'),
+        0.0, -0.0, 1.5, -1.5,
+    ]
+    for f in mandatory:
+        add(f)
+
+    pool = build_interesting_float_pool()
+    for f in pool:
+        add(f)
+
+    rnd = random.Random(SEED + 6)
+    for _ in range(10000):
+        add(gen_uniform_f64_bits(rnd))
+    for _ in range(10000):
+        add(rnd.choice(pool))
+
+    return cases
+
+
+def gen_num_lines():
+    lines = []
+
+    for a, b in gen_int_truediv_cases():
+        result = compute_int_truediv(a, b)
+        lines.append(json.dumps(
+            {"fn": "int_truediv", "a": a, "b": b, "result": result}, ensure_ascii=True))
+
+    floordiv_mod_mandatory = [
+        (1.0, 0.1), (-4.0, 2.0), (4.0, -2.0), (-0.0, 1.0), (0.0, -1.0), (-7.0, 2.0),
+        (float('inf'), 1.0), (1.0, float('inf')), (-1.0, float('inf')),
+        (1e308, 1e-308), (-1e-300, 1e300),
+        (1.0, 0.0), (1.0, -0.0), (-5.0, 0.0),
+    ]
+    for a, b in gen_float_pair_cases(floordiv_mod_mandatory, 2):
+        lines.append(json.dumps({
+            "fn": "float_floordiv", "a": bits_hex(a), "b": bits_hex(b),
+            "result": compute_float_floordiv(a, b),
+        }, ensure_ascii=True))
+        lines.append(json.dumps({
+            "fn": "float_mod", "a": bits_hex(a), "b": bits_hex(b),
+            "result": compute_float_mod(a, b),
+        }, ensure_ascii=True))
+
+    fpow_mandatory = [
+        (-1.0, float('inf')), (0.5, float('inf')), (0.5, float('-inf')), (-0.5, float('-inf')),
+        (1.5, float('-inf')), (-1.5, float('inf')), (float('inf'), -1.0), (0.0, 0.0),
+        (float('nan'), 0.0), (1.0, float('nan')),
+        (float('-inf'), 0.5), (float('-inf'), 3.0), (float('-inf'), -3.0), (float('-inf'), -2.0),
+        (-0.0, 3.0), (-0.0, 2.0), (2.0, -1080.0),
+        (10.0, 400.0), (-2.0, 1025.0),
+        (0.0, -1.0), (0.0, -1.5), (-0.0, -1.0),
+        (-2.0, 0.5), (-8.0, 1.0 / 3.0), (-2.0, -0.5),
+    ]
+    for x, y in gen_float_pair_cases(fpow_mandatory, 3):
+        lines.append(json.dumps({
+            "fn": "fpow", "x": bits_hex(x), "y": bits_hex(y),
+            "result": compute_fpow(x, y),
+        }, ensure_ascii=True))
+
+    for i, f in gen_cmp_int_float_cases():
+        lines.append(json.dumps({
+            "fn": "cmp_int_float", "i": i, "f": bits_hex(f),
+            "result": compute_cmp_int_float(i, f),
+        }, ensure_ascii=True))
+
+    for f in gen_float_to_int_cases():
+        lines.append(json.dumps({
+            "fn": "float_to_int", "f": bits_hex(f),
+            "result": compute_float_to_int(f),
+        }, ensure_ascii=True))
+
+    return lines
+
+
 def main():
     zero_cps, ranges = gen_unicode_tables()
     write_unicode_tables(zero_cps, ranges)
@@ -233,6 +553,12 @@ def main():
         for line in arg_lines:
             f.write(line + '\n')
     print(f"arg_parse_ref.txt: {len(arg_lines)} casos")
+
+    num_lines = gen_num_lines()
+    with open(HERE / 'num_ref.txt', 'w', encoding='ascii', newline='\n') as f:
+        for line in num_lines:
+            f.write(line + '\n')
+    print(f"num_ref.txt: {len(num_lines)} casos")
 
 
 if __name__ == '__main__':

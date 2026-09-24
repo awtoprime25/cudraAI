@@ -11,6 +11,14 @@ pub const PANIC_RANGE_STEP_ZERO: u32 = 4;
 pub const PANIC_NAN_TO_INT: u32 = 5;
 pub const PANIC_INF_TO_INT: u32 = 6;
 pub const PANIC_FLOAT_TOO_LARGE: u32 = 7;
+pub const PANIC_FLOAT_DIV_ZERO: u32 = 8;
+pub const PANIC_INT_FLOORDIV_ZERO: u32 = 9;
+pub const PANIC_INT_MOD_ZERO: u32 = 10;
+pub const PANIC_FLOAT_FLOORDIV_ZERO: u32 = 11;
+pub const PANIC_FLOAT_MOD_ZERO: u32 = 12;
+pub const PANIC_ZERO_NEG_POWER: u32 = 13;
+pub const PANIC_POW_OVERFLOW: u32 = 14;
+pub const PANIC_NEG_BASE_FRACTIONAL_POW: u32 = 15;
 
 fn known_message(code: u32) -> Option<&'static str> {
     match code {
@@ -22,6 +30,16 @@ fn known_message(code: u32) -> Option<&'static str> {
         PANIC_NAN_TO_INT => Some("ValueError: cannot convert float NaN to integer"),
         PANIC_INF_TO_INT => Some("OverflowError: cannot convert float infinity to integer"),
         PANIC_FLOAT_TOO_LARGE => Some("OverflowError: float too large to convert to int"),
+        PANIC_FLOAT_DIV_ZERO => Some("ZeroDivisionError: float division by zero"),
+        PANIC_INT_FLOORDIV_ZERO => Some("ZeroDivisionError: integer division or modulo by zero"),
+        PANIC_INT_MOD_ZERO => Some("ZeroDivisionError: integer modulo by zero"),
+        PANIC_FLOAT_FLOORDIV_ZERO => Some("ZeroDivisionError: float floor division by zero"),
+        PANIC_FLOAT_MOD_ZERO => Some("ZeroDivisionError: float modulo"),
+        PANIC_ZERO_NEG_POWER => Some("ZeroDivisionError: 0.0 cannot be raised to a negative power"),
+        PANIC_POW_OVERFLOW => Some("OverflowError: (34, 'Numerical result out of range')"),
+        PANIC_NEG_BASE_FRACTIONAL_POW => Some(
+            "ValueError: potência de base negativa com expoente fracionário ainda não é suportada",
+        ),
         _ => None,
     }
 }

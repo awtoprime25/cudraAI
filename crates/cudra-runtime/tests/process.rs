@@ -71,6 +71,12 @@ extern int64_t cudra_ipow(int64_t base, int64_t exp, bool checked);
 extern int64_t cudra_arg_int(int64_t i);
 extern double cudra_arg_float(int64_t i);
 extern void cudra_panic(uint32_t code);
+extern double cudra_int_truediv(int64_t a, int64_t b);
+extern double cudra_float_floordiv(double a, double b);
+extern double cudra_float_mod(double a, double b);
+extern double cudra_fpow(double x, double y);
+extern int32_t cudra_cmp_int_float(int64_t i, double f);
+extern int64_t cudra_float_to_int(double f);
 "#;
 
 struct RunResult {
@@ -236,7 +242,81 @@ int main(int argc, char** argv) {{
     let bin = compile_c(&src, &dir, "d_arg_int_idx", &lib);
     let r = run(&bin, &["  -42 "]);
     assert_eq!(r.stdout, "");
-    assert_eq!(r.stderr, "IndexError: argument index out of range\n");
+    assert_eq!(r.stderr, "IndexError: list index out of range\n");
+    assert_eq!(r.code, Some(1));
+}
+
+// d) indices negativos em cudra_arg_int seguem sys.argv[i] do Python:
+// i < 0 conta a partir do fim (i += argc); -1 e o ultimo argumento, -argc e
+// o proprio nome do programa (argv[0]), e -(argc+1) fica fora do intervalo.
+#[test]
+fn d_arg_int_negative_index_last_arg() {
+    let dir = unique_dir("d4");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(int argc, char** argv) {{
+    cudra_rt_init(argc, (const char**)argv);
+    cudra_print_int(cudra_arg_int(-1));
+    cudra_print_end();
+    return cudra_rt_exit();
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "d_arg_int_neg1", &lib);
+    let r = run(&bin, &["-1"]);
+    assert_eq!(r.stdout, "-1\n");
+    assert_eq!(r.stderr, "");
+    assert_eq!(r.code, Some(0));
+}
+
+#[test]
+fn d_arg_int_negative_index_wraps_to_program_name() {
+    let dir = unique_dir("d5");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(int argc, char** argv) {{
+    cudra_rt_init(argc, (const char**)argv);
+    cudra_print_int(cudra_arg_int(-2));
+    cudra_print_end();
+    return cudra_rt_exit();
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "d_arg_int_neg_argc", &lib);
+    // com argc=2 (programa + "-1"), -2 aponta para argv[0]: o nome do
+    // programa, que nao e um inteiro valido -> ValueError.
+    let r = run(&bin, &["-1"]);
+    assert_eq!(r.stdout, "");
+    assert!(
+        r.stderr
+            .starts_with("ValueError: invalid literal for int() with base 10: "),
+        "stderr inesperado: {:?}",
+        r.stderr
+    );
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn d_arg_int_negative_index_out_of_range() {
+    let dir = unique_dir("d6");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(int argc, char** argv) {{
+    cudra_rt_init(argc, (const char**)argv);
+    cudra_print_int(cudra_arg_int(-3));
+    cudra_print_end();
+    return cudra_rt_exit();
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "d_arg_int_neg_oor", &lib);
+    // argc=2 (programa + "-1"): -(argc+1) = -3 fica fora do intervalo.
+    let r = run(&bin, &["-1"]);
+    assert_eq!(r.stdout, "");
+    assert_eq!(r.stderr, "IndexError: list index out of range\n");
     assert_eq!(r.code, Some(1));
 }
 
@@ -465,4 +545,201 @@ int main(void) {{
         !stderr_text.contains("RUST_BACKTRACE"),
         "stderr continha uma mensagem de panic do Rust: {stderr_text:?}"
     );
+}
+
+// i) mensagens de panico novas dos helpers numericos (codigos 8 a 15):
+// stdout parcial e sempre completo (flush antes do erro), stderr exato,
+// exit 1. Para os codigos sem wrapper dedicado nesta ronda (division float
+// pura, floordiv/mod de inteiros) chama-se cudra_panic diretamente, tal
+// como o teste `b` ja fazia para o codigo 0; os restantes disparam o
+// panico atraves do proprio wrapper com um input real que o provoca.
+#[test]
+fn i_float_div_zero() {
+    let dir = unique_dir("i1");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    cudra_rt_init(0, NULL);
+    cudra_print_int(1);
+    cudra_print_end();
+    cudra_panic(8);
+    return 0;
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "i_float_div_zero", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "1\n");
+    assert_eq!(r.stderr, "ZeroDivisionError: float division by zero\n");
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn i_int_floordiv_zero() {
+    let dir = unique_dir("i2");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    cudra_rt_init(0, NULL);
+    cudra_print_int(1);
+    cudra_print_end();
+    cudra_panic(9);
+    return 0;
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "i_int_floordiv_zero", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "1\n");
+    assert_eq!(
+        r.stderr,
+        "ZeroDivisionError: integer division or modulo by zero\n"
+    );
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn i_int_mod_zero() {
+    let dir = unique_dir("i3");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    cudra_rt_init(0, NULL);
+    cudra_print_int(1);
+    cudra_print_end();
+    cudra_panic(10);
+    return 0;
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "i_int_mod_zero", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "1\n");
+    assert_eq!(r.stderr, "ZeroDivisionError: integer modulo by zero\n");
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn i_float_floordiv_zero() {
+    let dir = unique_dir("i4");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    cudra_rt_init(0, NULL);
+    cudra_print_int(1);
+    cudra_print_end();
+    cudra_float_floordiv(1.0, 0.0);
+    return 0;
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "i_float_floordiv_zero", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "1\n");
+    assert_eq!(
+        r.stderr,
+        "ZeroDivisionError: float floor division by zero\n"
+    );
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn i_float_mod_zero() {
+    let dir = unique_dir("i5");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    cudra_rt_init(0, NULL);
+    cudra_print_int(1);
+    cudra_print_end();
+    cudra_float_mod(1.0, 0.0);
+    return 0;
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "i_float_mod_zero", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "1\n");
+    assert_eq!(r.stderr, "ZeroDivisionError: float modulo\n");
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn i_zero_neg_power() {
+    let dir = unique_dir("i6");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    cudra_rt_init(0, NULL);
+    cudra_print_int(1);
+    cudra_print_end();
+    cudra_fpow(0.0, -1.0);
+    return 0;
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "i_zero_neg_power", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "1\n");
+    assert_eq!(
+        r.stderr,
+        "ZeroDivisionError: 0.0 cannot be raised to a negative power\n"
+    );
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn i_pow_overflow() {
+    let dir = unique_dir("i7");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    cudra_rt_init(0, NULL);
+    cudra_print_int(1);
+    cudra_print_end();
+    cudra_fpow(10.0, 400.0);
+    return 0;
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "i_pow_overflow", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "1\n");
+    assert_eq!(
+        r.stderr,
+        "OverflowError: (34, 'Numerical result out of range')\n"
+    );
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn i_neg_base_fractional_pow() {
+    let dir = unique_dir("i8");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    cudra_rt_init(0, NULL);
+    cudra_print_int(1);
+    cudra_print_end();
+    cudra_fpow(-2.0, 0.5);
+    return 0;
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "i_neg_base_fractional_pow", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "1\n");
+    assert_eq!(
+        r.stderr,
+        "ValueError: potência de base negativa com expoente fracionário ainda não é suportada\n"
+    );
+    assert_eq!(r.code, Some(1));
 }
