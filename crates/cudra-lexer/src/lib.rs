@@ -24,6 +24,7 @@ enum FScan {
 pub fn lex(file: FileId, src: &str) -> (Vec<Token>, Vec<Diagnostic>) {
     let mut lx = Lexer::new(file, src);
     lx.skip_bom();
+    lx.check_null_bytes();
     lx.run();
     (lx.tokens, lx.diags)
 }
@@ -43,7 +44,10 @@ struct Lexer<'a> {
     is_first_content_line: bool,
     tokens: Vec<Token>,
     diags: Vec<Diagnostic>,
+    diag_limit_hit: bool,
 }
+
+const MAX_DIAGS: usize = 1000;
 
 // CPython MAXLEVEL: medido empiricamente no WSL — 200 parênteses/colchetes/
 // chavetas abertos ao mesmo tempo cabem (partilhado entre os três tipos, e
@@ -68,12 +72,22 @@ impl<'a> Lexer<'a> {
             is_first_content_line: true,
             tokens: Vec::new(),
             diags: Vec::new(),
+            diag_limit_hit: false,
         }
     }
 
     fn skip_bom(&mut self) {
         if self.bytes.starts_with(&[0xEF, 0xBB, 0xBF]) {
             self.pos = 3;
+        }
+    }
+
+    fn check_null_bytes(&mut self) {
+        if let Some(pos) = self.bytes.iter().position(|&b| b == 0) {
+            self.push_error(
+                Span::new(self.file, pos as u32, pos as u32 + 1),
+                "o ficheiro contém bytes nulos (0x00)",
+            );
         }
     }
 
@@ -100,8 +114,21 @@ impl<'a> Lexer<'a> {
 
     fn push_error(&mut self, span: Span, message: impl Into<String>) {
         let message = message.into();
-        self.diags
-            .push(Diagnostic::error(message.clone()).with_primary(span, message));
+        self.push_diag(Diagnostic::error(message.clone()).with_primary(span, message));
+    }
+
+    fn push_diag(&mut self, diag: Diagnostic) {
+        if self.diag_limit_hit {
+            return;
+        }
+        if self.diags.len() + 1 >= MAX_DIAGS {
+            self.diags.push(Diagnostic::error(format!(
+                "demasiados erros léxicos ({MAX_DIAGS}); os restantes foram omitidos"
+            )));
+            self.diag_limit_hit = true;
+            return;
+        }
+        self.diags.push(diag);
     }
 
     fn push_token(&mut self, kind: TokenKind, lo: usize) {
@@ -116,7 +143,7 @@ impl<'a> Lexer<'a> {
     fn skip_inline_whitespace(&mut self) {
         while matches!(
             self.bytes.get(self.pos),
-            Some(b' ') | Some(b'\t') | Some(b'\x0c')
+            Some(b' ') | Some(b'\t') | Some(b'\x0c') | Some(b'\0')
         ) {
             self.pos += 1;
         }
@@ -170,7 +197,7 @@ impl<'a> Lexer<'a> {
         let mut tab_pos = None;
         loop {
             match self.bytes.get(self.pos) {
-                Some(b' ') => {
+                Some(b' ') | Some(b'\0') => {
                     cols += 1;
                     self.pos += 1;
                 }
@@ -495,7 +522,7 @@ impl<'a> Lexer<'a> {
                                         Span::new(self.file, open_pos as u32, open_pos as u32 + 1),
                                         "aberto aqui",
                                     );
-                                self.diags.push(diag);
+                                self.push_diag(diag);
                             }
                         }
                     }
@@ -511,6 +538,10 @@ impl<'a> Lexer<'a> {
         let start = self.pos;
         let Some(c) = self.peek() else { return };
         self.pos += c.len_utf8();
+        while self.is_unexpected_char_start(self.pos) {
+            let Some(next) = self.peek() else { break };
+            self.pos += next.len_utf8();
+        }
         let cp = c as u32;
         let is_control = (cp < 0x20 && !matches!(c, '\t' | '\n' | '\r')) || cp == 0x7f;
         let message = if is_control {
@@ -521,6 +552,32 @@ impl<'a> Lexer<'a> {
         self.push_error(self.span_from(start), message);
     }
 
+    fn is_unexpected_char_start(&self, pos: usize) -> bool {
+        if pos >= self.len {
+            return false;
+        }
+        match self.bytes[pos] {
+            b' ' | b'\t' | b'\x0c' | b'\0' | b'\n' | b'\r' => false,
+            b'0'..=b'9' => false,
+            b'.' if matches!(self.bytes.get(pos + 1), Some(d) if d.is_ascii_digit()) => false,
+            b'\'' | b'"' => false,
+            b'r' | b'R' | b'b' | b'B' | b'f' | b'F' | b'u' | b'U'
+                if self.string_prefix_len_at(pos).is_some() =>
+            {
+                false
+            }
+            b'A'..=b'Z' | b'a'..=b'z' | b'_' => false,
+            b if b.is_ascii() => {
+                let mut sub = Base::lexer(&self.src[pos..]);
+                !matches!(sub.next(), Some(Ok(base)) if base != Base::Ident)
+            }
+            _ => match self.src[pos..].chars().next() {
+                Some(c) => !c.is_alphabetic(),
+                None => false,
+            },
+        }
+    }
+
     // --- strings ---------------------------------------------------------
 
     // Se, a partir de `self.pos`, houver um prefixo válido de string ("",
@@ -529,19 +586,17 @@ impl<'a> Lexer<'a> {
     // bytes do prefixo. Qualquer outra combinação de letras não conta como
     // prefixo (fica para `lex_ident` e a aspa começa uma string à parte).
     fn string_prefix_len(&self) -> Option<usize> {
+        self.string_prefix_len_at(self.pos)
+    }
+
+    fn string_prefix_len_at(&self, pos: usize) -> Option<usize> {
         let is_prefix_char =
             |b: u8| matches!(b, b'r' | b'R' | b'b' | b'B' | b'f' | b'F' | b'u' | b'U');
         let mut n = 0usize;
-        while n < 2
-            && self
-                .bytes
-                .get(self.pos + n)
-                .copied()
-                .is_some_and(is_prefix_char)
-        {
+        while n < 2 && self.bytes.get(pos + n).copied().is_some_and(is_prefix_char) {
             n += 1;
         }
-        if !matches!(self.bytes.get(self.pos + n), Some(b'\'') | Some(b'"')) {
+        if !matches!(self.bytes.get(pos + n), Some(b'\'') | Some(b'"')) {
             return None;
         }
         if n == 0 {
@@ -549,7 +604,7 @@ impl<'a> Lexer<'a> {
         }
         let mut lower = [0u8; 2];
         for (i, l) in lower.iter_mut().enumerate().take(n) {
-            *l = self.bytes[self.pos + i].to_ascii_lowercase();
+            *l = self.bytes[pos + i].to_ascii_lowercase();
         }
         let valid = match n {
             1 => matches!(lower[0], b'r' | b'u' | b'b' | b'f'),
@@ -683,10 +738,47 @@ impl<'a> Lexer<'a> {
         raw: bool,
         in_format_spec: bool,
     ) -> FScan {
-        let _ = raw; // '\' consome sempre o char seguinte, mesmo em raw f-strings.
         loop {
             match self.bytes.get(self.pos) {
                 None => return FScan::Eof,
+                Some(b'\\') if matches!(self.bytes.get(self.pos + 1), Some(b'{') | Some(b'}')) => {
+                    self.pos += 1;
+                }
+                Some(b'\\')
+                    if !raw
+                        && self.bytes.get(self.pos + 1) == Some(&b'N')
+                        && self.bytes.get(self.pos + 2) == Some(&b'{') =>
+                {
+                    self.pos += 3;
+                    loop {
+                        match self.bytes.get(self.pos) {
+                            None => break,
+                            Some(b'}') => {
+                                self.pos += 1;
+                                break;
+                            }
+                            Some(&b) if !in_format_spec && b == quote => {
+                                if !triple {
+                                    break;
+                                }
+                                if self.bytes.get(self.pos + 1) == Some(&quote)
+                                    && self.bytes.get(self.pos + 2) == Some(&quote)
+                                {
+                                    break;
+                                }
+                                self.pos += 1;
+                            }
+                            Some(b'\n') | Some(b'\r') if !triple && !in_format_spec => break,
+                            Some(_) => {
+                                if let Some(c) = self.peek() {
+                                    self.pos += c.len_utf8();
+                                } else {
+                                    self.pos += 1;
+                                }
+                            }
+                        }
+                    }
+                }
                 Some(b'\\') => {
                     self.pos += 1;
                     match self.bytes.get(self.pos) {
@@ -794,6 +886,18 @@ impl<'a> Lexer<'a> {
                     }
                     self.skip_ident_run();
                     continue;
+                }
+                Some(b'\\') if !in_format_spec => {
+                    let bs_pos = self.pos;
+                    if matches!(self.bytes.get(self.pos + 1), Some(b'\n') | Some(b'\r')) {
+                        self.pos += 1;
+                    } else {
+                        self.pos += 1;
+                        self.push_error(
+                            Span::new(self.file, bs_pos as u32, bs_pos as u32 + 1),
+                            "carácter inesperado '\\'",
+                        );
+                    }
                 }
                 Some(b'(') | Some(b'[') if !in_format_spec => {
                     let ch = self.bytes[self.pos];

@@ -156,6 +156,123 @@ fn fstring_with_100k_fields_lexes_in_under_one_second_debug() {
 }
 
 #[test]
+fn one_million_open_parens_lexes_in_under_one_second_debug() {
+    let src = "(".repeat(1_000_000);
+    let start = Instant::now();
+    let (_, diags) = cudra_lexer::lex(FileId(0), &src);
+    let elapsed = start.elapsed();
+    assert!(
+        !diags.is_empty(),
+        "esperava erros (limite L8 + '(' nunca foi fechado)"
+    );
+    assert!(elapsed.as_secs_f64() < 1.0, "1M '(' demoraram {elapsed:?}");
+}
+
+#[test]
+fn five_hundred_k_a_plus_lexes_in_under_one_second_debug() {
+    let src = "a+".repeat(500_000);
+    let start = Instant::now();
+    let (_, diags) = cudra_lexer::lex(FileId(0), &src);
+    let elapsed = start.elapsed();
+    assert!(
+        diags.is_empty(),
+        "não devia haver erros: {:?}",
+        &diags[..diags.len().min(3)]
+    );
+    assert!(
+        elapsed.as_secs_f64() < 1.0,
+        "'a+' x 500k demoraram {elapsed:?}"
+    );
+}
+
+#[test]
+fn one_million_dollar_signs_lexes_in_under_one_second_debug() {
+    let src = "$".repeat(1_000_000);
+    let start = Instant::now();
+    let (_, diags) = cudra_lexer::lex(FileId(0), &src);
+    let elapsed = start.elapsed();
+    assert_eq!(
+        diags.len(),
+        1,
+        "corrida de '$' devia dar 1 só erro: {diags:?}"
+    );
+    assert!(elapsed.as_secs_f64() < 1.0, "1M '$' demoraram {elapsed:?}");
+}
+
+#[test]
+fn run_of_unexpected_chars_without_whitespace_is_one_diagnostic() {
+    let src = "x = $$$ 1\n";
+    let (_, diags) = cudra_lexer::lex(FileId(0), src);
+    assert_eq!(diags.len(), 1, "'$$$' devia dar 1 só erro: {diags:?}");
+    assert!(diags[0].message.contains('$'));
+}
+
+#[test]
+fn unexpected_chars_separated_by_space_are_separate_diagnostics() {
+    let src = "x = $ $ $\n";
+    let (_, diags) = cudra_lexer::lex(FileId(0), src);
+    assert_eq!(
+        diags.len(),
+        3,
+        "'$'s separados por espaço: 1 erro cada: {diags:?}"
+    );
+}
+
+#[test]
+fn lexer_stops_accumulating_diagnostics_after_the_limit() {
+    let src = "$".repeat(2000) + " " + &"$ ".repeat(2000);
+    let (_, diags) = cudra_lexer::lex(FileId(0), &src);
+    assert_eq!(
+        diags.len(),
+        1000,
+        "esperava exatamente 1000 diagnósticos: {}",
+        diags.len()
+    );
+    assert_eq!(
+        diags.last().unwrap().message,
+        "demasiados erros léxicos (1000); os restantes foram omitidos"
+    );
+}
+
+#[test]
+fn three_hundred_k_mismatched_paren_bracket_pairs_lexes_in_under_one_second_debug() {
+    let src = "(]".repeat(300_000);
+    let start = Instant::now();
+    let (_, diags) = cudra_lexer::lex(FileId(0), &src);
+    let elapsed = start.elapsed();
+    assert_eq!(
+        diags.len(),
+        1000,
+        "esperava o limite global de 1000 diagnósticos"
+    );
+    assert!(
+        elapsed.as_secs_f64() < 1.0,
+        "'(]' x 300k demoraram {elapsed:?}"
+    );
+}
+
+#[test]
+fn one_million_dots_lexes_in_under_one_second_debug() {
+    let src = ".".repeat(1_000_000);
+    let start = Instant::now();
+    let (_, diags) = cudra_lexer::lex(FileId(0), &src);
+    let elapsed = start.elapsed();
+    assert!(diags.is_empty(), "não devia haver erros: {diags:?}");
+    assert!(elapsed.as_secs_f64() < 1.0, "1M '.' demoraram {elapsed:?}");
+}
+
+#[test]
+fn one_million_null_bytes_lexes_in_under_one_second_debug() {
+    let src = "\0".repeat(1_000_000);
+    let start = Instant::now();
+    let (_, diags) = cudra_lexer::lex(FileId(0), &src);
+    let elapsed = start.elapsed();
+    assert_eq!(diags.len(), 1, "esperava exatamente 1 erro: {diags:?}");
+    assert_eq!(diags[0].message, "o ficheiro contém bytes nulos (0x00)");
+    assert!(elapsed.as_secs_f64() < 1.0, "1M NUL demoraram {elapsed:?}");
+}
+
+#[test]
 fn lexes_100k_tokens_of_varied_content_in_under_one_second_debug() {
     let lines = 25_000;
     let mut src = String::new();

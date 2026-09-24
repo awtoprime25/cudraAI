@@ -404,3 +404,37 @@ fn indent_and_dedent_counts_always_match_even_with_errors() {
         .count();
     assert_eq!(indents, dedents);
 }
+
+#[test]
+fn null_byte_in_comment_reports_exactly_one_error() {
+    let src = "# a\0b\nx = 1\n";
+    let (tokens, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "o ficheiro contém bytes nulos (0x00)");
+    let lo = src.find('\0').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
+    // o resto da lexagem continua normalmente.
+    assert!(tokens
+        .iter()
+        .any(|t| t.kind == cudra_lexer::TokenKind::Name));
+}
+
+#[test]
+fn null_byte_in_string_reports_exactly_one_error() {
+    let src = "x = 'a\0b'\n";
+    let (tokens, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "o ficheiro contém bytes nulos (0x00)");
+    let lo = src.find('\0').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
+    assert!(tokens.iter().any(|t| t.kind == cudra_lexer::TokenKind::Str));
+}
+
+#[test]
+fn null_byte_alone_reports_exactly_one_error() {
+    let src = "\0";
+    let (_, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "o ficheiro contém bytes nulos (0x00)");
+    assert_eq!(primary_span(d), Span::new(FileId(0), 0, 1));
+}
