@@ -178,9 +178,9 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
 
     // Nenhum label pode desaparecer sem aviso. Classificamos cada um:
     // - `drawable`: ficheiro conhecido e com conteúdo — o ariadne desenha-o;
-    // - `empty_file_lines`: ficheiro conhecido mas vazio (BUG9/BUG11) — vira
+    // - `empty_file_lines`: ficheiro conhecido mas vazio — vira
     //   uma linha `--> nome:l:c (mensagem)` logo depois do cabeçalho;
-    // - `unresolved_notes` (BUG10): `FileId` que não existe no SourceMap —
+    // - `unresolved_notes`: `FileId` que não existe no SourceMap —
     //   nunca é passado ao ariadne, vira uma nota.
     let mut drawable: Vec<Label> = Vec::new();
     let mut empty_file_lines: Vec<String> = Vec::new();

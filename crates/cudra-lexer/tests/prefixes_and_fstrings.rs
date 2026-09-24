@@ -12,8 +12,6 @@ fn only_diag(diags: &[Diagnostic]) -> &Diagnostic {
     &diags[0]
 }
 
-// --- BUG L4: prefixos de string inválidos ----------------------------------
-
 #[test]
 fn invalid_two_letter_prefixes_lex_as_name_plus_str() {
     for bad in ["ub", "bu", "uR", "ur", "ff", "rr", "bf"] {
@@ -62,8 +60,6 @@ fn valid_two_letter_prefixes_in_any_case_lex_as_one_str() {
         );
     }
 }
-
-// --- BUG L5: f-strings PEP 701 ----------------------------------------------
 
 fn assert_one_str_no_errors(src: &str) {
     let (tokens, diags) = lex_src(src);

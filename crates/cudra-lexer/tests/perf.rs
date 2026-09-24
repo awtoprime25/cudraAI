@@ -21,10 +21,6 @@ fn lexes_100k_lines_in_under_one_second_debug() {
     );
 }
 
-// BUG L8: CPython limita a indentação a MAXINDENT=100 (99 níveis reais,
-// medido empiricamente). Acima disso, 500 níveis não devem provocar stack
-// overflow nem pânico — só 1 erro de limite, e a contagem de Indent/Dedent
-// continua consistente (pára nos 99 níveis que couberam).
 #[test]
 fn handles_500_indentation_levels_without_stack_overflow() {
     let depth = 500;
@@ -55,8 +51,6 @@ fn handles_500_indentation_levels_without_stack_overflow() {
     assert_eq!(dedents, 99);
 }
 
-// BUG L8: 1000 níveis de indentação de 1 espaço só cabem 99 vezes; o
-// excesso dá exatamente 1 erro (não um por cada nível a mais).
 #[test]
 fn handles_1000_levels_of_one_space_indentation_with_a_single_limit_error() {
     let depth = 1000;
@@ -83,9 +77,6 @@ fn handles_1000_levels_of_one_space_indentation_with_a_single_limit_error() {
     );
 }
 
-// BUG L8: 100 000 '(' consecutivos não devem provocar pânico nem
-// recursão descontrolada — devem terminar depressa, com exatamente 1 erro
-// de limite (mais o "nunca foi fechado" do parêntese mais exterior).
 #[test]
 fn handles_100k_consecutive_open_parens_without_panic() {
     let n = 100_000;
@@ -128,8 +119,6 @@ fn handles_a_single_huge_line_without_quadratic_blowup() {
     );
 }
 
-// BUG L5: o varrimento de f-strings tem de ser linear no nº de campos, não
-// quadrático (nem recursivo sem limite) — 100k campos bem abaixo de 1s.
 #[test]
 fn fstring_with_100k_fields_lexes_in_under_one_second_debug() {
     let fields = 100_000;

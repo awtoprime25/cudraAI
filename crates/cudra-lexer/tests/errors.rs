@@ -192,8 +192,6 @@ fn invalid_digit_in_octal_literal_is_rejected() {
 
 #[test]
 fn invalid_first_digit_in_octal_literal_is_rejected() {
-    // BUG L9: '0o8' não tinha nenhum dígito octal válido antes do '8', e o
-    // round 1 só apanhava o caso em que já havia um dígito válido.
     let src = "x = 0o8\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
