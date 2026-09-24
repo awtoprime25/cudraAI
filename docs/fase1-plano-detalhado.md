@@ -113,7 +113,7 @@ Mensagem padrão: `erro: <construção> ainda não é suportado(a) na Fase 1`.
     - **Casos de teste obrigatórios:** `0.1`, `1.0`, `-0.0`, `1e16`, `1e15`, `123456789012345678.0`, `0.0001`, `0.00001`, `1/3`, `2.5e-5`, `1e308*10` (→ `inf`), `-(1e308*10)`, `inf - inf` (→ `nan`; `0.0/0.0` não serve, dá ZeroDivisionError). Valores verificados no CPython: `1e+16`, `1000000000000000.0`, `1.2345678901234568e+17`, `0.0001`, `1e-05`, `2.5e-05`, `0.3333333333333333`.
 16. `print` de `bool` → `True`/`False`; de `None` → `None`; de `int` → decimal.
 17. Funções sem `return` explícito devolvem `None`. Usar esse valor em aritmética dá erro de tipo.
-18. `arg_int(i)` / `arg_float(i)`: lêem `argv[i]` (`i` é `int`, `argv[0]` é o programa). Índice em falta → `IndexError` + exit 1; valor inválido → `ValueError` + exit 1.
+18. `arg_int(i)` / `arg_float(i)`: lêem `argv[i]` (`i` é `int`, `argv[0]` é o programa), com índices negativos como no `sys.argv[i]` do Python. Índice em falta → `IndexError` + exit 1; valor inválido → `ValueError` + exit 1.
 
 ---
 
@@ -369,7 +369,8 @@ Driver `cudrac` (clap):
    - blocos numa só linha.
 3. **`tests/run-expect/`:** casos com divergência documentada face ao Python, com o stdout e o exit code esperados em ficheiro. Por exemplo: overflow em debug → exit 1; o mesmo em release → valor com wrapping; `1 << 64` (debug → exit 1, release → 0); `2 ** -1` → exit 1.
 4. **`tests/ui/`:** ≥ 25 programas inválidos com o stderr esperado. Cobrir cada erro da §1.2 e da §6 (tipo incompatível, pode não estar definida, global em função, uso antes de `def`, retorno inconsistente, tab, indentação inconsistente, string, `class`, parâmetro sem anotação, recursão sem anotar o retorno, etc.). Atualizar com `BLESS=1 cargo test`.
-5. `scripts/check.sh`: `cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test --workspace`. Tem de passar a verde no fim.
+5. `tests/oracle/run_attack.py <cudrac>`: cerca de 80 programas escritos à mão sobre os casos numéricos e de controlo difíceis (validados contra o CPython; as divergências estão descritas por modo). Tem de dar 0 falhas, em debug e em release.
+6. `scripts/check.sh`: `cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test --workspace`. Tem de passar a verde no fim.
 
 ## 10. Benchmarks (`bench/`)
 
