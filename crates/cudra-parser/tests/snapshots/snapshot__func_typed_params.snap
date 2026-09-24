@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"def f(a: int, b: float) -> float:\\n    return a / b\\n\")"
+---
+(def f (decos) (params (p a (ty int)) (p b (ty float))) (ty float) (body (return (bin div (name a) (name b)))))

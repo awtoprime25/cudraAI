@@ -1,0 +1,16 @@
+---
+source: crates/cudra-driver/tests/driver.rs
+expression: stdout(&out)
+---
+Func f 1:1
+  Param a 1:7
+    Type int 1:10
+  Param b 1:15
+    Type float 1:18
+  Ret
+    Type float 1:28
+  Body
+    Return 2:5
+      Binary Add 2:12
+        Name a 2:12
+        Name b 2:16

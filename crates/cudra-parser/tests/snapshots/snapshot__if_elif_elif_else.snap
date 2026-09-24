@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"if a:\\n    x = 1\\nelif b:\\n    x = 2\\nelif c:\\n    x = 3\\nelse:\\n    x = 4\\n\")"
+---
+(if (name a) (body (assign (name x) _ (int 1))) (else (if (name b) (body (assign (name x) _ (int 2))) (else (if (name c) (body (assign (name x) _ (int 3))) (else (assign (name x) _ (int 4))))))))

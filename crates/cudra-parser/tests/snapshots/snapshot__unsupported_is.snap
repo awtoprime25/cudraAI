@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = a is b\\n\")"
+---
+ERROR	'is' ainda não é suportado(a) na Fase 1	1:7

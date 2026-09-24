@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"f(*a)\\n\")"
+---
+ERROR	argumentos com '*'/'**' ainda não é suportado(a) na Fase 1	1:3

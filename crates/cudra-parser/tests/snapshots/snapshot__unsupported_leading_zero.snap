@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = 007\\n\")"
+---
+ERROR	zeros à esquerda em literais decimais não são permitidos; usa 0o para octal	1:5

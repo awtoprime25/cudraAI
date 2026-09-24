@@ -1,0 +1,9 @@
+---
+source: crates/cudra-driver/tests/driver.rs
+expression: stdout(&out)
+---
+Name	x	1:1
+Eq	=	1:3
+Int	1	1:5
+Newline	\n	1:6
+Eof		2:1

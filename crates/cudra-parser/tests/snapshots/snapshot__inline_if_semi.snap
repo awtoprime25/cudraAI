@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"if a: x = 1; y = 2\\n\")"
+---
+(if (name a) (body (assign (name x) _ (int 1)) (assign (name y) _ (int 2))))

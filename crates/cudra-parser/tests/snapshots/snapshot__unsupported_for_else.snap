@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"for x in y:\\n    pass\\nelse:\\n    pass\\n\")"
+---
+ERROR	'for ... else' ainda não é suportado(a) na Fase 1	3:1

@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = (a and b) and c\\n\")"
+---
+(assign (name x) _ (and (name a) (name b) (name c)))

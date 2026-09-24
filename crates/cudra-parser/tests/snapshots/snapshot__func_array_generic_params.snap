@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"def f(a: Array[Array[f32]],) -> Array[int,]:\\n    pass\\n\")"
+---
+(def f (decos) (params (p a (ty Array (ty Array (ty f32))))) (ty Array (ty int)) (body (pass)))
