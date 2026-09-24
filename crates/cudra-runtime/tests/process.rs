@@ -1,9 +1,14 @@
 // Testes de comportamento de processo: compila pequenos programas C que
-// ligam a libcudra_runtime.a e verifica stdout/stderr/exit code exatos.
+// ligam a libcudra_runtime.a e verifica stdout/stderr/exit code exatos. A
+// staticlib e compilada pelo proprio harness (ver tests/common/mod.rs), nao
+// reaproveitada de target/debug ou target/release.
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
+
+mod common;
+use common::find_static_lib;
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -19,21 +24,6 @@ fn unique_dir(tag: &str) -> PathBuf {
     ));
     std::fs::create_dir_all(&dir).expect("criar diretorio temporario");
     dir
-}
-
-fn find_static_lib() -> PathBuf {
-    let tmp = PathBuf::from(env!("CARGO_TARGET_TMPDIR"));
-    let target_dir = tmp.parent().expect("CARGO_TARGET_TMPDIR sem pai");
-    for profile in ["debug", "release"] {
-        let candidate = target_dir.join(profile).join("libcudra_runtime.a");
-        if candidate.exists() {
-            return candidate;
-        }
-    }
-    panic!(
-        "libcudra_runtime.a nao encontrada em {target_dir:?}/{{debug,release}}; \
-         corre `cargo build -p cudra-runtime` primeiro"
-    );
 }
 
 fn compile_c(source: &str, dir: &Path, name: &str, lib_path: &Path) -> PathBuf {
