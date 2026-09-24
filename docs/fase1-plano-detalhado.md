@@ -143,7 +143,8 @@ pub enum TokenKind {
     And, Or, Not, Import, From,
     // palavras reservadas do Python que não suportamos → token próprio para dar erro claro
     Reserved,                                // class lambda global nonlocal try except finally raise with as yield async await del assert is
-    LParen, RParen, LBracket, RBracket, Colon, Comma, Dot, Arrow, At,
+    LParen, RParen, LBracket, RBracket, LBrace, RBrace, Colon, Comma, Semi, Dot, Ellipsis, Arrow, At,
+    AtEq, ColonEq,                           // @= e := : maximal munch igual ao CPython, para erros claros no parser
     Plus, Minus, Star, Slash, DoubleSlash, Percent, DoubleStar,
     Amp, Pipe, Caret, Tilde, Shl, Shr,
     Lt, Le, Gt, Ge, EqEq, NotEq, Eq,
@@ -167,6 +168,13 @@ Regras e casos limite (**cada um com teste**):
 - Um `Int` com `_` duplo ou no fim (`1__0`, `10_`) dá erro. Um literal `Int` que não cabe em u64 dá erro na sema, não no lexer.
 - Identificadores: ASCII `[A-Za-z_][A-Za-z0-9_]*`. Não-ASCII dá erro `identificadores não-ASCII ainda não são suportados`.
 - Snapshot tests com `insta`: listas de `(kind, texto)` para ≥ 15 programas pequenos, incluindo ciclos aninhados com vários dedents seguidos no EOF.
+- Adições da revisão adversarial (A2, validadas contra o CPython 3.12):
+  - Uma linha só com espaços e `\` começa uma linha lógica. `\` antes do EOF e parênteses por fechar no EOF dão erro.
+  - Prefixos de string válidos: `r u b f rb br fr rf`, com qualquer capitalização. Qualquer outro prefixo é `Name` + `Str`.
+  - f-strings PEP 701: um só `Str`, com aspas iguais aninhadas, campos multi-linha, comentários e format specs aninhados.
+  - `{ } ;` também são tokens. `(`/`[`/`{` têm de fechar com o par certo.
+  - Limites do CPython: 100 níveis de indentação e 200 parênteses aninhados.
+  - Diagnósticos próprios para dígitos inválidos em literais com base.
 
 ## 4. AST e parser (`cudra-ast`, `cudra-parser`)
 
@@ -184,9 +192,21 @@ Parser:
 - As instruções usam descida recursiva. As expressões usam Pratt, com esta tabela (da mais fraca para a mais forte):
   `or` < `and` < `not` (prefixo) < comparações (em cadeia, não associativas) < `|` < `^` < `&` < `<< >>` < `+ -` < `* / // %` < unário `- + ~` < `**` (associa à direita; o operando direito é um unário) < chamada/atributo/índice (postfix).
 - `x: T = e` com o alvo `Name` dá `Assign` com `ty`. `x: T` sem valor → erro.
-- Um alvo de atribuição tem de ser `Name` (o `Index` fica reservado para a Fase 2 e dá erro).
+- Um alvo de atribuição é `Name` ou `Index`. O parser aceita `Target::Index`, e é a sema que o rejeita na Fase 1, como aos decoradores. Atributos, tuplos, listas e `*x` como alvo → `ainda não é suportado`. Literais, chamadas e operações como alvo → erro de sintaxe (o CPython também rejeita).
+- `parse(file, src, tokens, interner)` recebe o texto fonte para ler nomes e literais pelos spans.
+- Aceites pelo parser e rejeitados só na sema (o `ast.parse` do CPython também os aceita): `return` fora de função, `break`/`continue` fora de ciclo, imports dentro de funções, parâmetros sem anotação, parâmetros repetidos, decoradores e alvos `Index`.
+- Tipos: `Nome`, `None` (como `TypeExprKind::Name("None")`) e `Nome[T, …]`, com vírgula final opcional. Qualquer outra expressão que o CPython aceite como anotação → `anotação de tipo ainda não é suportada`.
+- Soft keywords: uma linha lógica que começa com o nome `match` e acaba em `:` é uma instrução `match` → não suportada (salta-se o bloco). `type` seguido de um nome e depois de `=` ou `[` é um alias de tipo → não suportado. Em todos os outros casos, `match`, `case` e `type` são nomes normais.
+- Recuperação de construções não suportadas: reporta **um** erro, salta a instrução inteira (o cabeçalho, o bloco indentado e as cláusulas de continuação `elif`/`else`/`except`/`finally` ao mesmo nível) e continua. Nunca pode gerar erros em cascata.
+- Se o lexer reportou erros, o driver e o `dump_ast` mostram só os erros do lexer. O parser corre na mesma, para garantir que não rebenta.
 - Blocos: `:` `Newline` `Indent` stmt+ `Dedent`. Blocos numa só linha (`if x: y = 1`) → suportar (uma instrução simples depois do `:`).
 - Recuperação: se uma instrução falha, reporta, avança até ao próximo `Newline` ou `Dedent` e continua. Nunca entrar em ciclo infinito: garantir avanço de pelo menos um token por iteração.
+- `;` separa instruções simples na mesma linha, como no Python (`x = 1; y = 2`, `if c: a = 1; b = 2`, e um `;` final é permitido).
+- `Str` (incluindo f-strings), `{`/`}`, `...`, `:=`, o operador binário `@` e `@=` → erro `… ainda não é suportado(a) na Fase 1`, com span. Os decoradores (`@nome`, `@a.b`, `@a.b(args)` antes de `def`) são parseados para `FuncDef.decorators`, porque a Fase 3 precisa deles para `@gpu.kernel`, e é a sema que os rejeita na Fase 1.
+- **Contrato:** tudo o que o CPython aceita e nós rejeitamos por estar fora do subconjunto usa uma mensagem com `ainda não é suportad`. O oráculo do parser usa isto para distinguir uma divergência intencional de um bug.
+- Profundidade: o lexer já limita os parênteses (200) e a indentação (100). O CPython 3.12 aguenta cerca de 3000 unários e 3000 `a+a+…`. O nosso parser limita a **profundidade da AST de expressões a 1000** (incluindo cadeias associativas à esquerda) → erro `expressão demasiado aninhada (máximo 1000 níveis)`. Isto é uma divergência intencional. Teste: 100 000 `-` seguidos e 100 000 `a+` seguidos terminam sem stack overflow e com 1 só erro.
+- O `cudrac` corre o pipeline todo numa thread com uma stack de 256 MiB (`std::thread::Builder::stack_size`), porque as fases recursivas (sema, codegen, `Drop` da AST) têm de aguentar 1000 níveis mesmo no Windows, onde a stack da thread principal é de 1 MiB.
+- Factos do CPython que o parser tem de replicar: `(x) = 1`, `((x)) += 1` e `for (a) in b:` são válidos; `if a: pass; pass` e `x = 1;` são válidos; `x = 1;;`, `;` sozinho, `if a: if b: pass`, `from a import b,` e `from a import ()` são inválidos; `def f(a,)`, `f(a,)` e `from a import (b,)` são válidos.
 - `NodeId` atribuídos sequencialmente pelo parser.
 - `cudrac --emit=ast` imprime a AST em árvore legível. Esse formato é o dos snapshots.
 
