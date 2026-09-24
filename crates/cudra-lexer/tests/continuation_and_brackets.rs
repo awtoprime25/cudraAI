@@ -160,3 +160,90 @@ fn closed_brackets_report_nothing() {
     let (_, diags) = lex_src("x = (1, [2, 3])\n");
     assert!(diags.is_empty(), "não devia dar erro: {diags:?}");
 }
+
+// --- BUG L6: fecho não corresponde ao tipo de abertura ---------------------
+
+fn secondary_span(diag: &Diagnostic) -> Span {
+    diag.labels
+        .iter()
+        .find(|l| !l.primary)
+        .expect("diagnóstico sem label secundário")
+        .span
+}
+
+#[test]
+fn mismatched_close_bracket_after_open_paren_reports_both_positions() {
+    let src = "x = (1]\n";
+    let (tokens, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "']' não corresponde a '('");
+    let rb = src.find(']').unwrap() as u32;
+    let lp = src.find('(').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), rb, rb + 1));
+    assert_eq!(secondary_span(d), Span::new(FileId(0), lp, lp + 1));
+    // o fecho é consumido na mesma (recupera e continua).
+    assert!(tokens.iter().any(|t| t.kind == TokenKind::RBracket));
+}
+
+#[test]
+fn mismatched_close_paren_after_open_bracket_reports_both_positions() {
+    let src = "x = [1)\n";
+    let (tokens, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "')' não corresponde a '['");
+    let rp = src.find(')').unwrap() as u32;
+    let lb = src.find('[').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), rp, rp + 1));
+    assert_eq!(secondary_span(d), Span::new(FileId(0), lb, lb + 1));
+    assert!(tokens.iter().any(|t| t.kind == TokenKind::RParen));
+}
+
+// --- BUG L8: limite de parênteses/colchetes/chavetas aninhados (MAXLEVEL) --
+
+#[test]
+fn exactly_200_nested_parens_is_accepted() {
+    let src = format!("{}{}", "(".repeat(200), ")".repeat(200));
+    let (_, diags) = lex_src(&src);
+    assert!(diags.is_empty(), "200 não devia dar erro: {diags:?}");
+}
+
+#[test]
+fn two_hundred_and_one_nested_parens_reports_the_limit_once() {
+    let src = format!("{}{}", "(".repeat(201), ")".repeat(201));
+    let (_, diags) = lex_src(&src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "demasiados parênteses aninhados (máximo 200)");
+}
+
+// --- BUG L8: limite de indentação (MAXINDENT), fronteira exata -------------
+
+fn indent_chain(levels: usize) -> String {
+    let mut src = String::new();
+    for i in 0..levels {
+        src.push_str(&" ".repeat(i));
+        src.push_str("if x:\n");
+    }
+    src.push_str(&" ".repeat(levels));
+    src.push_str("y = 1\n");
+    src
+}
+
+#[test]
+fn ninety_nine_indent_levels_is_accepted() {
+    let src = indent_chain(99);
+    let (tokens, diags) = lex_src(&src);
+    assert!(diags.is_empty(), "99 níveis não deviam dar erro: {diags:?}");
+    let indents = tokens
+        .iter()
+        .filter(|t| t.kind == TokenKind::Indent)
+        .count();
+    assert_eq!(indents, 99);
+}
+
+#[test]
+fn hundredth_indent_level_reports_the_limit_once() {
+    let src = indent_chain(100);
+    let (_, diags) = lex_src(&src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "demasiados níveis de indentação (máximo 99)");
+}

@@ -9,6 +9,18 @@ use logos::Logos;
 use token::{classify_ident, Base};
 pub use token::{Token, TokenKind};
 
+fn is_ident_start(b: u8) -> bool {
+    b.is_ascii_alphabetic() || b == b'_'
+}
+
+// Resultado de uma varredura de texto literal de f-string (parte "de fora",
+// ou o texto literal de um format spec).
+enum FScan {
+    Closed,
+    FieldOpen,
+    Eof,
+}
+
 pub fn lex(file: FileId, src: &str) -> (Vec<Token>, Vec<Diagnostic>) {
     let mut lx = Lexer::new(file, src);
     lx.skip_bom();
@@ -23,13 +35,21 @@ struct Lexer<'a> {
     pos: usize,
     len: usize,
     open_brackets: Vec<(u8, usize)>,
+    bracket_over_limit: bool,
     indent_stack: IndentStack,
+    indent_over_limit: bool,
     at_line_start: bool,
     line_has_content: bool,
     is_first_content_line: bool,
     tokens: Vec<Token>,
     diags: Vec<Diagnostic>,
 }
+
+// CPython MAXLEVEL: medido empiricamente no WSL — 200 parênteses/colchetes/
+// chavetas abertos ao mesmo tempo cabem (partilhado entre os três tipos, e
+// também pelos que estão dentro da parte de expressão de uma f-string), o
+// 201º dá "too many nested parentheses".
+const MAXLEVEL: usize = 200;
 
 impl<'a> Lexer<'a> {
     fn new(file: FileId, src: &'a str) -> Self {
@@ -40,7 +60,9 @@ impl<'a> Lexer<'a> {
             pos: 0,
             len: src.len(),
             open_brackets: Vec::new(),
+            bracket_over_limit: false,
             indent_stack: IndentStack::new(),
+            indent_over_limit: false,
             at_line_start: true,
             line_has_content: false,
             is_first_content_line: true,
@@ -189,10 +211,23 @@ impl<'a> Lexer<'a> {
         }
         let top = self.indent_stack.top();
         if level > top {
-            self.indent_stack.push(level);
-            self.push_token(TokenKind::Indent, self.pos);
+            if self.indent_stack.push(level) {
+                self.push_token(TokenKind::Indent, self.pos);
+            } else if !self.indent_over_limit {
+                self.indent_over_limit = true;
+                self.push_error(
+                    self.span_from(self.pos),
+                    format!(
+                        "demasiados níveis de indentação (máximo {})",
+                        indent::MAXINDENT - 1
+                    ),
+                );
+            }
         } else if level < top {
             let (count, inconsistent) = self.indent_stack.dedent_to(level);
+            if count > 0 {
+                self.indent_over_limit = false;
+            }
             for _ in 0..count {
                 self.push_token(TokenKind::Dedent, self.pos);
             }
@@ -384,6 +419,40 @@ impl<'a> Lexer<'a> {
         );
     }
 
+    // Regista a abertura de um parêntese/colchete/chaveta (a nível de topo
+    // ou dentro da parte de expressão de uma f-string) e verifica o limite
+    // do L8 (MAXLEVEL), reportando uma única vez por excesso.
+    fn push_bracket_depth(&mut self, ch: u8, pos: usize) {
+        self.open_brackets.push((ch, pos));
+        if self.open_brackets.len() > MAXLEVEL {
+            if !self.bracket_over_limit {
+                self.bracket_over_limit = true;
+                self.push_error(
+                    Span::new(self.file, pos as u32, pos as u32 + 1),
+                    format!("demasiados parênteses aninhados (máximo {MAXLEVEL})"),
+                );
+            }
+        } else {
+            self.bracket_over_limit = false;
+        }
+    }
+
+    fn pop_bracket_depth(&mut self) -> Option<(u8, usize)> {
+        let popped = self.open_brackets.pop();
+        if self.open_brackets.len() <= MAXLEVEL {
+            self.bracket_over_limit = false;
+        }
+        popped
+    }
+
+    fn opener_for_closer(ch: u8) -> u8 {
+        match ch {
+            b')' => b'(',
+            b']' => b'[',
+            _ => b'{',
+        }
+    }
+
     fn lex_operator(&mut self) {
         let start = self.pos;
         let mut sub = Base::lexer(&self.src[start..]);
@@ -393,23 +462,41 @@ impl<'a> Lexer<'a> {
                 self.pos = end;
                 let kind = base.to_token_kind();
                 match kind {
-                    TokenKind::LParen | TokenKind::LBracket => {
-                        let ch = if kind == TokenKind::LParen {
-                            b'('
-                        } else {
-                            b'['
+                    TokenKind::LParen | TokenKind::LBracket | TokenKind::LBrace => {
+                        let ch = match kind {
+                            TokenKind::LParen => b'(',
+                            TokenKind::LBracket => b'[',
+                            _ => b'{',
                         };
-                        self.open_brackets.push((ch, start));
+                        self.push_bracket_depth(ch, start);
                     }
-                    TokenKind::RParen | TokenKind::RBracket => {
+                    TokenKind::RParen | TokenKind::RBracket | TokenKind::RBrace => {
+                        let close_ch = match kind {
+                            TokenKind::RParen => b')',
+                            TokenKind::RBracket => b']',
+                            _ => b'}',
+                        };
                         if self.open_brackets.is_empty() {
-                            let ch = if kind == TokenKind::RParen { ')' } else { ']' };
                             self.push_error(
                                 self.span_from(start),
-                                format!("'{ch}' sem correspondência"),
+                                format!("'{}' sem correspondência", close_ch as char),
                             );
                         } else {
-                            self.open_brackets.pop();
+                            let (open_ch, open_pos) = self.pop_bracket_depth().unwrap();
+                            let expected = Self::opener_for_closer(close_ch);
+                            if open_ch != expected {
+                                let msg = format!(
+                                    "'{}' não corresponde a '{}'",
+                                    close_ch as char, open_ch as char
+                                );
+                                let diag = Diagnostic::error(msg.clone())
+                                    .with_primary(self.span_from(start), msg)
+                                    .with_secondary(
+                                        Span::new(self.file, open_pos as u32, open_pos as u32 + 1),
+                                        "aberto aqui",
+                                    );
+                                self.diags.push(diag);
+                            }
                         }
                     }
                     _ => {}
@@ -436,9 +523,11 @@ impl<'a> Lexer<'a> {
 
     // --- strings ---------------------------------------------------------
 
-    // Se, a partir de `self.pos`, houver um prefixo válido (0-2 letras de
-    // r/R/b/B/f/F/u/U) seguido logo de uma aspa, devolve o nº de bytes do
-    // prefixo.
+    // Se, a partir de `self.pos`, houver um prefixo válido de string ("",
+    // r, u, b, f, rb, br, fr, rf — em qualquer combinação de maiúsculas e
+    // minúsculas; sem t-strings) seguido logo de uma aspa, devolve o nº de
+    // bytes do prefixo. Qualquer outra combinação de letras não conta como
+    // prefixo (fica para `lex_ident` e a aspa começa uma string à parte).
     fn string_prefix_len(&self) -> Option<usize> {
         let is_prefix_char =
             |b: u8| matches!(b, b'r' | b'R' | b'b' | b'B' | b'f' | b'F' | b'u' | b'U');
@@ -452,28 +541,66 @@ impl<'a> Lexer<'a> {
         {
             n += 1;
         }
-        match self.bytes.get(self.pos + n) {
-            Some(b'\'') | Some(b'"') => Some(n),
-            _ => None,
+        if !matches!(self.bytes.get(self.pos + n), Some(b'\'') | Some(b'"')) {
+            return None;
         }
+        if n == 0 {
+            return Some(0);
+        }
+        let mut lower = [0u8; 2];
+        for (i, l) in lower.iter_mut().enumerate().take(n) {
+            *l = self.bytes[self.pos + i].to_ascii_lowercase();
+        }
+        let valid = match n {
+            1 => matches!(lower[0], b'r' | b'u' | b'b' | b'f'),
+            2 => matches!(&lower[..2], b"rb" | b"br" | b"fr" | b"rf"),
+            _ => false,
+        };
+        valid.then_some(n)
+    }
+
+    fn string_prefix_is_f(prefix: &str) -> bool {
+        prefix.bytes().any(|b| b == b'f' || b == b'F')
+    }
+
+    fn string_prefix_is_raw(prefix: &str) -> bool {
+        prefix.bytes().any(|b| b == b'r' || b == b'R')
     }
 
     fn lex_string(&mut self) {
         let start = self.pos;
         let prefix_len = self.string_prefix_len().unwrap_or(0);
+        let prefix = &self.src[self.pos..self.pos + prefix_len];
+        let is_f = Self::string_prefix_is_f(prefix);
+        let is_raw = Self::string_prefix_is_raw(prefix);
         self.pos += prefix_len;
         let quote = self.bytes[self.pos];
         let triple = self.bytes.get(self.pos + 1) == Some(&quote)
             && self.bytes.get(self.pos + 2) == Some(&quote);
         self.pos += if triple { 3 } else { 1 };
 
+        if is_f {
+            if !self.fstring_scan(quote, triple, is_raw) {
+                self.push_error(self.span_from(start), "string sem fecho");
+            }
+            self.push_token(TokenKind::Str, start);
+            return;
+        }
+
+        if !self.scan_plain_string_body(quote, triple) {
+            self.push_error(self.span_from(start), "string sem fecho");
+        }
+        self.push_token(TokenKind::Str, start);
+    }
+
+    // Varre o corpo de uma string normal (sem 'f'), a partir de logo depois
+    // da(s) aspa(s) de abertura. Devolve true se fechou corretamente, false
+    // se chegou ao EOF (ou a uma newline não permitida) sem fechar — quem
+    // chama é responsável por reportar o erro e emitir o token.
+    fn scan_plain_string_body(&mut self, quote: u8, triple: bool) -> bool {
         loop {
             match self.bytes.get(self.pos) {
-                None => {
-                    self.push_error(self.span_from(start), "string sem fecho");
-                    self.push_token(TokenKind::Str, start);
-                    return;
-                }
+                None => return false,
                 Some(b'\\') => {
                     self.pos += 1;
                     match self.bytes.get(self.pos) {
@@ -494,22 +621,127 @@ impl<'a> Lexer<'a> {
                 Some(&b) if b == quote => {
                     if !triple {
                         self.pos += 1;
-                        self.push_token(TokenKind::Str, start);
-                        return;
+                        return true;
                     }
                     if self.bytes.get(self.pos + 1) == Some(&quote)
                         && self.bytes.get(self.pos + 2) == Some(&quote)
                     {
                         self.pos += 3;
-                        self.push_token(TokenKind::Str, start);
-                        return;
+                        return true;
                     }
                     self.pos += 1;
                 }
-                Some(b'\n') | Some(b'\r') if !triple => {
-                    self.push_error(self.span_from(start), "string sem fecho");
-                    self.push_token(TokenKind::Str, start);
-                    return;
+                Some(b'\n') | Some(b'\r') if !triple => return false,
+                Some(_) => {
+                    if let Some(c) = self.peek() {
+                        self.pos += c.len_utf8();
+                    } else {
+                        self.pos += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    // --- f-strings (PEP 701) ---------------------------------------------
+    //
+    // Uma f-string é UM só token Str, do prefixo até à aspa de fecho. O
+    // varrimento é feito à mão (não gera tokens internos): a parte literal
+    // segue as mesmas regras de `scan_plain_string_body` (com `\`, e mais
+    // `{{`/`}}` como escapes literais e um `}` sozinho como erro), e um `{`
+    // não duplicado abre um campo de substituição, tratado por
+    // `fstring_field`. Strings aninhadas (de qualquer prefixo válido,
+    // incluindo a mesma aspa e f-strings aninhadas) são saltadas por
+    // `skip_nested_string`. A profundidade de parênteses/colchetes/chavetas
+    // dentro da expressão soma-se à pilha `open_brackets` (partilha o
+    // limite do L8 e evita recursão ilimitada: `fstring_field` só recursa
+    // por cada `{` real, que está sujeito a esse limite de 200).
+
+    // Devolve true se a f-string fechou corretamente (aspa de fecho
+    // encontrada), false se chegou ao EOF sem fechar.
+    fn fstring_scan(&mut self, quote: u8, triple: bool, raw: bool) -> bool {
+        loop {
+            match self.fstring_literal(quote, triple, raw, /*in_format_spec*/ false) {
+                FScan::Closed => return true,
+                FScan::Eof => return false,
+                FScan::FieldOpen => {
+                    if !self.fstring_field(raw) {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    // Varre texto literal: ou a parte literal "de fora" de uma f-string
+    // (termina na aspa de fecho), ou, quando `in_format_spec` é true, o
+    // texto literal de um format spec (termina no '}' que fecha o campo).
+    fn fstring_literal(
+        &mut self,
+        quote: u8,
+        triple: bool,
+        raw: bool,
+        in_format_spec: bool,
+    ) -> FScan {
+        let _ = raw; // '\' consome sempre o char seguinte, mesmo em raw f-strings.
+        loop {
+            match self.bytes.get(self.pos) {
+                None => return FScan::Eof,
+                Some(b'\\') => {
+                    self.pos += 1;
+                    match self.bytes.get(self.pos) {
+                        Some(b'\r') => {
+                            self.pos += 1;
+                            if self.bytes.get(self.pos) == Some(&b'\n') {
+                                self.pos += 1;
+                            }
+                        }
+                        Some(_) => {
+                            if let Some(c) = self.peek() {
+                                self.pos += c.len_utf8();
+                            }
+                        }
+                        None => {}
+                    }
+                }
+                Some(&b) if !in_format_spec && b == quote => {
+                    if !triple {
+                        self.pos += 1;
+                        return FScan::Closed;
+                    }
+                    if self.bytes.get(self.pos + 1) == Some(&quote)
+                        && self.bytes.get(self.pos + 2) == Some(&quote)
+                    {
+                        self.pos += 3;
+                        return FScan::Closed;
+                    }
+                    self.pos += 1;
+                }
+                Some(b'\n') | Some(b'\r') if !triple && !in_format_spec => return FScan::Eof,
+                Some(b'{') => {
+                    if self.bytes.get(self.pos + 1) == Some(&b'{') {
+                        self.pos += 2;
+                        continue;
+                    }
+                    self.pos += 1;
+                    return FScan::FieldOpen;
+                }
+                Some(b'}') => {
+                    if in_format_spec {
+                        // fecha o campo (o '{' correspondente já foi
+                        // registado por quem chamou `fstring_field`).
+                        self.pos += 1;
+                        return FScan::Closed;
+                    }
+                    if self.bytes.get(self.pos + 1) == Some(&b'}') {
+                        self.pos += 2;
+                        continue;
+                    }
+                    self.push_error(
+                        Span::new(self.file, self.pos as u32, self.pos as u32 + 1),
+                        "'}' sozinho não é permitido numa f-string",
+                    );
+                    self.pos += 1;
                 }
                 Some(_) => {
                     if let Some(c) = self.peek() {
@@ -518,6 +750,147 @@ impl<'a> Lexer<'a> {
                         self.pos += 1;
                     }
                 }
+            }
+        }
+    }
+
+    // Trata o conteúdo de um campo `{...}` de uma f-string, desde logo a
+    // seguir ao '{' de abertura (já consumido por quem chamou) até
+    // (incluindo) o '}' de fecho. Devolve false se chegou ao EOF antes do
+    // fecho.
+    fn fstring_field(&mut self, outer_raw: bool) -> bool {
+        let open_pos = self.pos - 1;
+        self.push_bracket_depth(b'{', open_pos);
+        let mut depth = 0u32;
+        let mut in_format_spec = false;
+        loop {
+            if !in_format_spec {
+                self.skip_inline_whitespace();
+            }
+            match self.bytes.get(self.pos) {
+                None => {
+                    self.pop_bracket_depth();
+                    return false;
+                }
+                Some(b'#') if !in_format_spec => {
+                    self.skip_to_line_end();
+                    continue;
+                }
+                Some(b'\n') | Some(b'\r') if !in_format_spec => {
+                    self.consume_newline_bytes();
+                    continue;
+                }
+                Some(b'\'') | Some(b'"') if !in_format_spec => {
+                    if !self.skip_nested_string() {
+                        self.pop_bracket_depth();
+                        return false;
+                    }
+                    continue;
+                }
+                Some(&b) if !in_format_spec && is_ident_start(b) => {
+                    if let Some(n) = self.string_prefix_len() {
+                        self.pos += n;
+                        continue;
+                    }
+                    self.skip_ident_run();
+                    continue;
+                }
+                Some(b'(') | Some(b'[') if !in_format_spec => {
+                    let ch = self.bytes[self.pos];
+                    let p = self.pos;
+                    self.pos += 1;
+                    depth += 1;
+                    self.push_bracket_depth(ch, p);
+                }
+                Some(b'{') if !in_format_spec => {
+                    let p = self.pos;
+                    self.pos += 1;
+                    depth += 1;
+                    self.push_bracket_depth(b'{', p);
+                }
+                Some(b')') | Some(b']') if !in_format_spec && depth > 0 => {
+                    self.pos += 1;
+                    depth -= 1;
+                    self.pop_bracket_depth();
+                }
+                Some(b'}') if !in_format_spec && depth > 0 => {
+                    self.pos += 1;
+                    depth -= 1;
+                    self.pop_bracket_depth();
+                }
+                Some(b'}') if !in_format_spec && depth == 0 => {
+                    self.pos += 1;
+                    self.pop_bracket_depth();
+                    return true;
+                }
+                Some(b'!')
+                    if !in_format_spec
+                        && depth == 0
+                        && self.bytes.get(self.pos + 1) != Some(&b'=') =>
+                {
+                    self.pos += 1;
+                }
+                Some(b':') if !in_format_spec && depth == 0 => {
+                    self.pos += 1;
+                    in_format_spec = true;
+                }
+                Some(_) if !in_format_spec => {
+                    if let Some(c) = self.peek() {
+                        self.pos += c.len_utf8();
+                    } else {
+                        self.pos += 1;
+                    }
+                }
+                _ => {
+                    // format spec: texto literal, com campos '{...}' aninhados.
+                    match self.fstring_literal(0, false, outer_raw, true) {
+                        FScan::Closed => {
+                            self.pop_bracket_depth();
+                            return true;
+                        }
+                        FScan::Eof => {
+                            self.pop_bracket_depth();
+                            return false;
+                        }
+                        FScan::FieldOpen => {
+                            if !self.fstring_field(outer_raw) {
+                                self.pop_bracket_depth();
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Salta uma string (ou f-string) aninhada inteira, dentro da parte de
+    // expressão de um campo — sem emitir tokens. Devolve false em EOF.
+    fn skip_nested_string(&mut self) -> bool {
+        let prefix_len = self.string_prefix_len().unwrap_or(0);
+        let prefix = &self.src[self.pos..self.pos + prefix_len];
+        let is_f = Self::string_prefix_is_f(prefix);
+        let is_raw = Self::string_prefix_is_raw(prefix);
+        self.pos += prefix_len;
+        let Some(&quote) = self.bytes.get(self.pos) else {
+            return false;
+        };
+        let triple = self.bytes.get(self.pos + 1) == Some(&quote)
+            && self.bytes.get(self.pos + 2) == Some(&quote);
+        self.pos += if triple { 3 } else { 1 };
+        if is_f {
+            self.fstring_scan(quote, triple, is_raw)
+        } else {
+            self.scan_plain_string_body(quote, triple)
+        }
+    }
+
+    fn skip_ident_run(&mut self) {
+        while let Some(c) = self.peek() {
+            if c == '_' || c.is_alphanumeric() {
+                self.pos += c.len_utf8();
+            } else {
+                break;
             }
         }
     }
@@ -579,11 +952,12 @@ impl<'a> Lexer<'a> {
             b'o' => |b| (b'0'..=b'7').contains(&b),
             _ => |b| b == b'0' || b == b'1',
         };
+        let radix_name = match radix {
+            b'x' => "hexadecimal",
+            b'o' => "octal",
+            _ => "binário",
+        };
         let (saw_digit, ok) = self.scan_digit_run(is_digit);
-        if !saw_digit {
-            self.push_error(self.span_from(start), "número inválido: dígitos em falta");
-            return;
-        }
         if !ok {
             self.push_error(
                 self.span_from(start),
@@ -592,18 +966,44 @@ impl<'a> Lexer<'a> {
             return;
         }
         if let Some(&b) = self.bytes.get(self.pos) {
-            if b.is_ascii_digit() {
-                // dígito decimal que não é válido nesta base (ex.: '6' em 0b10106).
+            if b.is_ascii_digit() && !is_digit(b) {
+                // dígito decimal que não é válido nesta base (ex.: '8' em 0o8).
                 let bad_pos = self.pos;
                 let ch = b as char;
                 self.scan_digit_run(|b| b.is_ascii_digit());
-                let radix_name = if radix == b'o' { "octal" } else { "binário" };
                 self.push_error(
                     Span::new(self.file, bad_pos as u32, bad_pos as u32 + 1),
                     format!("dígito inválido '{ch}' em literal {radix_name}"),
                 );
                 return;
             }
+        }
+        if let Some(c) = self.peek() {
+            if c == '_' || c.is_alphabetic() {
+                // letras coladas ao literal (ex.: '0x1g'): não é "falta um
+                // espaço", é o literal inteiro que é inválido.
+                let mut end = self.pos;
+                for c in self.src[self.pos..].chars() {
+                    if c == '_' || c.is_alphanumeric() {
+                        end += c.len_utf8();
+                    } else {
+                        break;
+                    }
+                }
+                self.pos = end;
+                self.push_error(
+                    self.span_from(start),
+                    format!("literal {radix_name} inválido"),
+                );
+                return;
+            }
+        }
+        if !saw_digit {
+            self.push_error(
+                self.span_from(start),
+                format!("literal {radix_name} inválido: dígitos em falta"),
+            );
+            return;
         }
         self.finish_number(start, TokenKind::Int, false);
     }

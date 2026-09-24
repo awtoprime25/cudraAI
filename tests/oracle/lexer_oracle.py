@@ -20,6 +20,7 @@ OPS = {
     "==": "EqEq", "!=": "NotEq", "=": "Eq", "+=": "PlusEq", "-=": "MinusEq", "*=": "StarEq",
     "/=": "SlashEq", "//=": "DoubleSlashEq", "%=": "PercentEq", "**=": "DoubleStarEq",
     "&=": "AmpEq", "|=": "PipeEq", "^=": "CaretEq", "<<=": "ShlEq", ">>=": "ShrEq",
+    "@=": "AtEq", ":=": "ColonEq", "...": "Ellipsis", ";": "Semi", "{": "LBrace", "}": "RBrace",
 }
 
 

@@ -14,6 +14,20 @@ INTENTIONAL = [
     "carácter inesperado",
 ]
 
+# Erros que o compile() dá ao nível do tokenizer C mas que o módulo tokenize
+# não reporta: se o compile() rejeita com um destes e nós aceitamos, é falha.
+LEXICAL_COMPILE_MSGS = [
+    "closing parenthesis", "unmatched", "too many nested parentheses",
+    "too many levels of indentation", "invalid digit", "invalid decimal literal",
+    "invalid hexadecimal literal", "invalid octal literal", "invalid binary literal",
+    "leading zeros", "unterminated", "invalid non-printable character",
+    "unindent does not match", "unexpected EOF", "was never closed", "invalid character",
+]
+
+
+class LegacyDiamond(Exception):
+    pass
+
 
 def unescape(s):
     out, i = [], 0
@@ -57,6 +71,8 @@ def py_tokens(src):
         elif t == tokenize.NUMBER:
             k = "Float" if L.is_float(tok.string) else "Int"
         elif t == tokenize.OP:
+            if tok.string == "<>":
+                raise LegacyDiamond()
             if tok.string not in L.OPS:
                 raise SyntaxError(f"op desconhecido {tok.string!r}")
             k = L.OPS[tok.string]
@@ -112,6 +128,10 @@ STRS = [
     "'abc'", '"x y"', "'''a\nb'''", '"""multi\n  linha\n"""', "r'\\d+'", "b'\\x00'", "f'fixo'",
     "'esc\\'aped'", '"tab\tdentro"', "'café 🙂'", "Rb'raw'", "u'uni'", "''", '""', "'''\n'''",
     "'a' 'b'", "'\\\n'",
+    "f'{d['k']}'", "f'{a +\n b}'", "f'{a # c\n}'", "f'{a:>{w}}'", "f'{{a}}'",
+    "f\"{'x' if a else \"y\"}\"", "f'''{'''a'''}'''", "f'{f'{a}'}'", "rf'\\d{a}'",
+    "f'{a!r}'", "f'{a=}'", "f'{a}}}'", "F'{(a,\n b)}'", "f'x{a}y{b:{c}.{d}}z'",
+    "ub'a'", "ur'a'", "ff'a'", "bf'a'", "uR'a'", "Br'a'", "fR'a'", "rB'a'",
 ]
 COMMENTS = ["# café é bom", "# 🙂 emoji", "#\ttab no comentário", "# \\ barra", "#", "# ''' não é string"]
 
@@ -142,9 +162,10 @@ def char_fuzz(r, src):
         if op < 0.4 and s:
             del s[min(pos, len(s) - 1)]
         elif op < 0.8:
-            s.insert(pos, r.choice(list("()[]:\\'\"#\n \t.0123456789eExXjJ_+-*/=<>!$?`@~é")))
+            s.insert(pos, r.choice(list("()[]{};:\\'\"#\n \t.0123456789eExXjJ_+-*/=<>!$?`@~é")))
         else:
-            s.insert(pos, r.choice(["\"\"\"", "'''", "\\\n", "\n    ", "0x", "1e", "0o8", "0b2", "1_", "._"]))
+            s.insert(pos, r.choice(["\"\"\"", "'''", "\\\n", "\n    ", "0x", "1e", "0o8", "0b2", "1_", "._",
+                                    ":=", "@=", "...", "f'{", "0x1g", "0b1a", "0o19"]))
     return "".join(s)
 
 
@@ -168,6 +189,9 @@ def main():
         py_err = None
         try:
             exp = py_tokens(py_src)
+        except LegacyDiamond:
+            cats["legado_py2_diamante"] += 1
+            continue
         except (tokenize.TokenError, SyntaxError, IndentationError) as e:
             py_err = f"{type(e).__name__}: {e}"
         compile_err = None
@@ -208,6 +232,8 @@ def main():
                 j = next((x for x, (a, b) in enumerate(zip(got_cmp, exp_cmp)) if a != b), min(len(got_cmp), len(exp_cmp)))
                 cat = "DIFERENCA_TOKENS"
                 detail = f"#{j}\n    cudra : {got_cmp[max(0,j-2):j+3]}\n    python: {exp_cmp[max(0,j-2):j+3]}"
+            elif compile_err and any(m in compile_err for m in LEXICAL_COMPILE_MSGS):
+                cat, detail = "COMPILE_REJEITA_LEXICO_NOS_ACEITAMOS", compile_err
             else:
                 cats["ok"] += 1
                 continue

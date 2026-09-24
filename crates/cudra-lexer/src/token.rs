@@ -67,6 +67,12 @@ pub enum TokenKind {
     CaretEq,
     ShlEq,
     ShrEq,
+    AtEq,
+    ColonEq,
+    Ellipsis,
+    Semi,
+    LBrace,
+    RBrace,
     Str,
     Newline,
     Indent,
@@ -128,14 +134,26 @@ pub(crate) enum Base {
     LBracket,
     #[token("]")]
     RBracket,
+    #[token(":=")]
+    ColonEq,
     #[token(":")]
     Colon,
     #[token(",")]
     Comma,
+    #[token(";")]
+    Semi,
+    #[token("{")]
+    LBrace,
+    #[token("}")]
+    RBrace,
     #[token("->")]
     Arrow,
+    #[token("...")]
+    Ellipsis,
     #[token(".")]
     Dot,
+    #[token("@=")]
+    AtEq,
     #[token("@")]
     At,
     #[token("+=")]
@@ -213,10 +231,16 @@ impl Base {
             Base::LBracket => TokenKind::LBracket,
             Base::RBracket => TokenKind::RBracket,
             Base::Colon => TokenKind::Colon,
+            Base::ColonEq => TokenKind::ColonEq,
             Base::Comma => TokenKind::Comma,
+            Base::Semi => TokenKind::Semi,
+            Base::LBrace => TokenKind::LBrace,
+            Base::RBrace => TokenKind::RBrace,
             Base::Arrow => TokenKind::Arrow,
+            Base::Ellipsis => TokenKind::Ellipsis,
             Base::Dot => TokenKind::Dot,
             Base::At => TokenKind::At,
+            Base::AtEq => TokenKind::AtEq,
             Base::Plus => TokenKind::Plus,
             Base::PlusEq => TokenKind::PlusEq,
             Base::Minus => TokenKind::Minus,

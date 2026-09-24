@@ -138,7 +138,7 @@ fn incomplete_hex_literal_is_rejected() {
     let src = "x = 0x\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "número inválido: dígitos em falta");
+    assert_eq!(d.message, "literal hexadecimal inválido: dígitos em falta");
     let lo = src.find("0x").unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 2));
 }
@@ -148,7 +148,7 @@ fn incomplete_octal_literal_is_rejected() {
     let src = "x = 0o\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "número inválido: dígitos em falta");
+    assert_eq!(d.message, "literal octal inválido: dígitos em falta");
     let lo = src.find("0o").unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 2));
 }
@@ -158,7 +158,7 @@ fn incomplete_binary_literal_is_rejected() {
     let src = "x = 0b\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "número inválido: dígitos em falta");
+    assert_eq!(d.message, "literal binário inválido: dígitos em falta");
     let lo = src.find("0b").unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 2));
 }
@@ -191,13 +191,67 @@ fn invalid_digit_in_octal_literal_is_rejected() {
 }
 
 #[test]
-fn hex_digit_out_of_range_letter_is_not_glued_into_literal() {
-    // '0x1g': 'g' não é dígito hex, e o nosso comportamento aqui é
-    // divergência intencional (mensagem "falta um espaço..."), não o
-    // "dígito inválido" (esse só existe para binário/octal em Python).
-    let (_, diags) = lex_src("x = 0x1g\n");
+fn invalid_first_digit_in_octal_literal_is_rejected() {
+    // BUG L9: '0o8' não tinha nenhum dígito octal válido antes do '8', e o
+    // round 1 só apanhava o caso em que já havia um dígito válido.
+    let src = "x = 0o8\n";
+    let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "falta um espaço entre o número e 'g'");
+    assert_eq!(d.message, "dígito inválido '8' em literal octal");
+    let lo = src.find('8').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
+}
+
+#[test]
+fn invalid_first_digit_in_binary_literal_is_rejected() {
+    let src = "x = 0b2\n";
+    let (_, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "dígito inválido '2' em literal binário");
+    let lo = src.find('2').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
+}
+
+#[test]
+fn glued_letters_in_binary_literal_is_rejected() {
+    let src = "x = 0b1a\n";
+    let (_, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "literal binário inválido");
+    let lo = src.find("0b1a").unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 4));
+}
+
+#[test]
+fn glued_letters_in_octal_literal_is_rejected() {
+    let src = "x = 0o1z\n";
+    let (_, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "literal octal inválido");
+    let lo = src.find("0o1z").unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 4));
+}
+
+#[test]
+fn glued_letters_in_hex_literal_with_no_valid_digits_is_rejected() {
+    let src = "x = 0xg\n";
+    let (_, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "literal hexadecimal inválido");
+    let lo = src.find("0xg").unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 3));
+}
+
+#[test]
+fn hex_digit_out_of_range_letter_is_not_glued_into_literal() {
+    // '0x1g': 'g' não é dígito hex; o literal inteiro é inválido (não é
+    // "falta um espaço", que seria enganador aqui).
+    let src = "x = 0x1g\n";
+    let (_, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "literal hexadecimal inválido");
+    let lo = src.find("0x1g").unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 4));
 }
 
 #[test]

@@ -26,7 +26,7 @@ Newline	\n	7:8
 Eof		8:1
 ERROR	sublinhado inválido em literal numérico	1:5
 ERROR	sublinhado inválido em literal numérico	2:5
-ERROR	número inválido: dígitos em falta	3:5
+ERROR	literal hexadecimal inválido: dígitos em falta	3:5
 ERROR	número inválido: dígitos em falta	4:5
 ERROR	zeros à esquerda em literais decimais não são permitidos; usa 0o para octal	5:5
 ERROR	números complexos não são suportados	6:5

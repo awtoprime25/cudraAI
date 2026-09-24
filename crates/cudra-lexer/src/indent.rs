@@ -1,3 +1,8 @@
+// Limite do CPython (MAXINDENT=100, tamanho do array `indents`, incluindo a
+// entrada de base para a coluna 0): medido empiricamente no WSL — 99 níveis
+// reais de indentação cabem, o 100º dá "too many levels of indentation".
+pub(crate) const MAXINDENT: usize = 100;
+
 // Pilha de níveis de indentação. Só guarda níveis que vieram de um Indent
 // real, para garantir #Indent == #Dedent mesmo com erros de recuperação.
 pub(crate) struct IndentStack {
@@ -14,8 +19,13 @@ impl IndentStack {
         *self.levels.last().unwrap_or(&0)
     }
 
-    pub(crate) fn push(&mut self, level: u32) {
+    // Devolve false (sem empurrar) se isso ultrapassasse o limite do CPython.
+    pub(crate) fn push(&mut self, level: u32) -> bool {
+        if self.levels.len() >= MAXINDENT {
+            return false;
+        }
         self.levels.push(level);
+        true
     }
 
     // Desce até `level`. Devolve (nº de Dedents, se a pilha não aterrou
