@@ -4,11 +4,15 @@
 import json
 import math
 import random
+import re
 import struct
+import unicodedata
 from pathlib import Path
 
 SEED = 20260924
 HERE = Path(__file__).resolve().parent
+SRC = HERE.parent / 'src'
+DIGIT_LIMIT_RE = re.compile(r"value has (\d+) digits")
 
 
 def bits_hex(x: float) -> str:
@@ -67,14 +71,63 @@ def gen_float_repr_cases():
     return cases
 
 
+def gen_unicode_tables():
+    zero_cps = []
+    for cp in range(0, 0x110000):
+        if unicodedata.decimal(chr(cp), None) == 0:
+            zero_cps.append(cp)
+
+    ranges = []
+    start = None
+    for cp in range(0, 0x110000):
+        if not chr(cp).isprintable():
+            if start is None:
+                start = cp
+        elif start is not None:
+            ranges.append((start, cp - 1))
+            start = None
+    if start is not None:
+        ranges.append((start, 0x10FFFF))
+
+    return zero_cps, ranges
+
+
+def write_unicode_tables(zero_cps, ranges):
+    lines = ["// gerado por gen_refs.py, nao editar", ""]
+
+    lines.append("pub const ND_ZERO_CODEPOINTS: &[u32] = &[")
+    for i in range(0, len(zero_cps), 8):
+        chunk = zero_cps[i:i + 8]
+        lines.append("    " + ", ".join(f"0x{c:x}" for c in chunk) + ",")
+    lines.append("];")
+    lines.append("")
+
+    lines.append("pub const NON_PRINTABLE_RANGES: &[(u32, u32)] = &[")
+    for lo, hi in ranges:
+        lines.append(f"    (0x{lo:x}, 0x{hi:x}),")
+    lines.append("];")
+
+    out_path = SRC / 'unicode_tables.rs'
+    with open(out_path, 'w', encoding='ascii', newline='\n') as f:
+        f.write("\n".join(lines) + "\n")
+    print(f"unicode_tables.rs: {len(zero_cps)} pontos Nd, {len(ranges)} intervalos nao-imprimiveis")
+
+
 def is_diverging_char(s: str) -> bool:
-    return any(ord(c) > 127 and not c.isspace() for c in s)
+    return any(
+        ord(c) > 127 and not c.isspace() and unicodedata.decimal(c, None) is None
+        for c in s
+    )
 
 
 def classify_int(s: str):
     try:
         v = int(s)
-    except ValueError:
+    except ValueError as e:
+        msg = str(e)
+        if msg.startswith("Exceeds the limit"):
+            m = DIGIT_LIMIT_RE.search(msg)
+            return {"too_many_digits": int(m.group(1))}
         return "ValueError"
     if is_diverging_char(s):
         return "DIVERGE"
@@ -106,6 +159,36 @@ def gen_arg_parse_strings():
         '\x1c5', '\xa05', ' 5', '5\x1c', '5\xa0', '5 ', '\x1c5\x1c',
     ]
 
+    # R2-1: digitos Unicode Nd (arabe, devanagari, largura total, planos
+    # astrais) e misturas, antes/depois da validacao gramatical.
+    strings += [
+        '١٢', '٣.٥', '1.5٠', '०१२', '१२३', '０１２', '２３４',
+        '𝟎𝟏', '𐒠𐒡',
+        '१٢０', '-١٢', '+٣.٥e١٠', '١_٢', '١__٢', '_١٢', '١٢_',
+        '  १२  ', '٠٠١', '²', '²5', '5²', '١٢²',
+    ]
+
+    # R2-2: limite de 4300 digitos, na fronteira, com/sem '_', com/sem lixo,
+    # com/sem espaco em volta.
+    strings += [
+        '1' * 4300, '1' * 4301, '0' * 4300 + '1', '0' * 5000 + '1',
+        '1' * 4301 + 'x', 'x' + '1' * 4301,
+        '_'.join(['1'] * 4301), '  ' + '1' * 4301 + '  ',
+        '-' + '1' * 4301, '+' + '1' * 4301,
+        '1' * 4300 + '_1',
+    ]
+
+    # R2-3/R2-5: caracteres de exemplo para python_repr (imprimiveis vs nao
+    # imprimiveis) e string longa para truncagem a 200 codepoints.
+    strings += [
+        'é', 'à', '🙂', '²', ' ', ' ', '​', '﻿',
+        '­', '',
+        'é5', 'à5', '🙂5', ' 5', ' 5', '​5', '﻿5',
+        '­5', '5',
+        'x' * 300, 'x' * 199, 'x' * 200, 'x' * 201, 'x' * 198,
+    ]
+
+
     alphabet = "0123456789_+-.eEinfatyINFATY \t\n\x0b\x0c\r\x1c\xa0 x"
     rnd = random.Random(SEED)
     for _ in range(2000):
@@ -130,11 +213,15 @@ def gen_arg_parse_cases():
             "s": s,
             "int": classify_int(s),
             "float": classify_float(s),
+            "repr": repr(s),
         }, ensure_ascii=True))
     return lines
 
 
 def main():
+    zero_cps, ranges = gen_unicode_tables()
+    write_unicode_tables(zero_cps, ranges)
+
     float_cases = gen_float_repr_cases()
     with open(HERE / 'float_repr_ref.txt', 'w', encoding='ascii', newline='\n') as f:
         for h, r in float_cases:

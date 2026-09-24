@@ -5,7 +5,11 @@ use std::sync::OnceLock;
 
 use crate::panics::exit_with_error;
 use crate::parse::{parse_py_float, parse_py_int, IntParseError};
-use crate::pyrepr::python_repr;
+use crate::pyrepr::{python_repr, python_repr_truncated};
+use crate::unicode::utf8_surrogateescape_decode;
+
+/// Truncagem das mensagens de erro do int() do CPython (formato interno %.200R).
+const REPR_TRUNCATE_CHARS: usize = 200;
 
 static ARGV: OnceLock<Vec<Vec<u8>>> = OnceLock::new();
 
@@ -37,14 +41,14 @@ fn argv() -> &'static [Vec<u8>] {
     }
 }
 
-fn arg_string(i: i64) -> String {
+fn arg_codepoints(i: i64) -> Vec<u32> {
     let args = argv();
     if i < 0 || i as usize >= args.len() {
         exit_with_error("IndexError: argument index out of range");
     }
-    // Bytes nao-UTF-8 tornam-se U+FFFD, o que garantidamente falha a
-    // gramatica de int()/float() mais abaixo -> ValueError, como pedido.
-    String::from_utf8_lossy(&args[i as usize]).into_owned()
+    // Bytes nao-UTF-8 tornam-se surrogates altos (0xDC00 + byte), tal como o
+    // codec surrogateescape do Python usa para descodificar argv.
+    utf8_surrogateescape_decode(&args[i as usize])
 }
 
 #[no_mangle]
@@ -54,12 +58,17 @@ pub extern "C" fn cudra_rt_init(argc: i32, argv: *const *const c_char) {
 
 #[no_mangle]
 pub extern "C" fn cudra_arg_int(i: i64) -> i64 {
-    let s = arg_string(i);
-    match parse_py_int(&s) {
+    let cps = arg_codepoints(i);
+    match parse_py_int(&cps) {
         Ok(v) => v,
         Err(IntParseError::Invalid) => exit_with_error(&format!(
             "ValueError: invalid literal for int() with base 10: {}",
-            python_repr(&s)
+            python_repr_truncated(&cps, REPR_TRUNCATE_CHARS)
+        )),
+        Err(IntParseError::TooManyDigits(n)) => exit_with_error(&format!(
+            "ValueError: Exceeds the limit (4300 digits) for integer string \
+             conversion: value has {n} digits; use sys.set_int_max_str_digits() \
+             to increase the limit"
         )),
         Err(IntParseError::Overflow) => exit_with_error("OverflowError: int too large to convert"),
     }
@@ -67,12 +76,12 @@ pub extern "C" fn cudra_arg_int(i: i64) -> i64 {
 
 #[no_mangle]
 pub extern "C" fn cudra_arg_float(i: i64) -> f64 {
-    let s = arg_string(i);
-    match parse_py_float(&s) {
+    let cps = arg_codepoints(i);
+    match parse_py_float(&cps) {
         Some(v) => v,
         None => exit_with_error(&format!(
             "ValueError: could not convert string to float: {}",
-            python_repr(&s)
+            python_repr(&cps)
         )),
     }
 }

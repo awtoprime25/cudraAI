@@ -284,6 +284,142 @@ int main(void) {{
     assert_eq!(r.code, Some(0));
 }
 
+// g) limite de 4300 digitos do cudra_arg_int: acima do limite -> stdout
+// vazio, mensagem exata, exit 1. Zeros a esquerda contam para o total.
+#[test]
+fn g_arg_int_too_many_digits() {
+    let dir = unique_dir("g1");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(int argc, char** argv) {{
+    cudra_rt_init(argc, (const char**)argv);
+    cudra_print_int(cudra_arg_int(1));
+    cudra_print_end();
+    return cudra_rt_exit();
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "g_arg_int_limit", &lib);
+    let digits = "1".repeat(4301);
+    let r = run(&bin, &[&digits]);
+    assert_eq!(r.stdout, "");
+    assert_eq!(
+        r.stderr,
+        "ValueError: Exceeds the limit (4300 digits) for integer string conversion: \
+         value has 4301 digits; use sys.set_int_max_str_digits() to increase the limit\n"
+    );
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn g_arg_int_too_many_digits_leading_zeros() {
+    let dir = unique_dir("g2");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(int argc, char** argv) {{
+    cudra_rt_init(argc, (const char**)argv);
+    cudra_print_int(cudra_arg_int(1));
+    cudra_print_end();
+    return cudra_rt_exit();
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "g_arg_int_limit_zeros", &lib);
+    let digits = format!("{}1", "0".repeat(5000));
+    let r = run(&bin, &[&digits]);
+    assert_eq!(r.stdout, "");
+    assert_eq!(
+        r.stderr,
+        "ValueError: Exceeds the limit (4300 digits) for integer string conversion: \
+         value has 5001 digits; use sys.set_int_max_str_digits() to increase the limit\n"
+    );
+    assert_eq!(r.code, Some(1));
+}
+
+// h) surrogateescape: bytes de argv invalidos como UTF-8 -> cada byte
+// individualmente invalido vira o codepoint 0xDC00+byte. O proprio programa
+// C constroi o seu argv interno com bytes crus (nao passa pelo argv real do
+// processo, que nao aceitaria bytes invalidos de forma portavel).
+#[test]
+fn h_surrogateescape_single_invalid_byte() {
+    let dir = unique_dir("h1");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    static unsigned char bad[] = {{ 0xff, 0x00 }};
+    const char* argv[] = {{ "prog", (const char*)bad }};
+    cudra_rt_init(2, argv);
+    cudra_print_int(cudra_arg_int(1));
+    cudra_print_end();
+    return cudra_rt_exit();
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "h_surrogateescape_1", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "");
+    assert_eq!(
+        r.stderr,
+        "ValueError: invalid literal for int() with base 10: '\\udcff'\n"
+    );
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn h_surrogateescape_valid_prefix_then_invalid_byte() {
+    let dir = unique_dir("h2");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    static unsigned char bad[] = {{ '1', 0xff, 0x00 }};
+    const char* argv[] = {{ "prog", (const char*)bad }};
+    cudra_rt_init(2, argv);
+    cudra_print_int(cudra_arg_int(1));
+    cudra_print_end();
+    return cudra_rt_exit();
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "h_surrogateescape_2", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "");
+    assert_eq!(
+        r.stderr,
+        "ValueError: invalid literal for int() with base 10: '1\\udcff'\n"
+    );
+    assert_eq!(r.code, Some(1));
+}
+
+#[test]
+fn h_surrogateescape_incomplete_lead_byte() {
+    let dir = unique_dir("h3");
+    let lib = find_static_lib();
+    let src = format!(
+        r#"{HEADER}
+int main(void) {{
+    static unsigned char bad[] = {{ 0xc3, 0x00 }};
+    const char* argv[] = {{ "prog", (const char*)bad }};
+    cudra_rt_init(2, argv);
+    cudra_print_int(cudra_arg_int(1));
+    cudra_print_end();
+    return cudra_rt_exit();
+}}
+"#
+    );
+    let bin = compile_c(&src, &dir, "h_surrogateescape_3", &lib);
+    let r = run(&bin, &[]);
+    assert_eq!(r.stdout, "");
+    assert_eq!(
+        r.stderr,
+        "ValueError: invalid literal for int() with base 10: '\\udcc3'\n"
+    );
+    assert_eq!(r.code, Some(1));
+}
+
 // f) EPIPE: escrever >1 MiB para um pipe cujo leitor fecha logo — sem panic
 // nem mensagem de panic do Rust no stderr (o SIGPIPE fica como comportamento
 // C por omissao, por isso nao verificamos o exit code).
