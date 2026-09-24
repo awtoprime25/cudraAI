@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = 1;\\n\")"
+---
+(assign (name x) _ (int 1))

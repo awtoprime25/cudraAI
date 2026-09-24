@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = lambda: 1\\n\")"
+---
+ERROR	'lambda' ainda não é suportado(a) na Fase 1	1:5

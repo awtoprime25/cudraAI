@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = not a == b\\n\")"
+---
+(assign (name x) _ (unary not (cmp (name a) eq (name b))))

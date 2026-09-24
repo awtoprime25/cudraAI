@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = ~a.b\\n\")"
+---
+(assign (name x) _ (unary invert (attr (name a) b)))

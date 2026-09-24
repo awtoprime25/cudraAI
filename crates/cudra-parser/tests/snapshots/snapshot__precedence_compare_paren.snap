@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = a < (b < c)\\n\")"
+---
+(assign (name x) _ (cmp (name a) lt (cmp (name b) lt (name c))))

@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"@a.b(1)(2)\\n@c\\ndef f(): pass\\n\")"
+---
+(def f (decos (call (call (attr (name a) b) (int 1)) (int 2)) (name c)) (params) _ (body (pass)))

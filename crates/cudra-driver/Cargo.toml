@@ -1,0 +1,20 @@
+[package]
+name = "cudra-driver"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "cudrac"
+path = "src/main.rs"
+
+[dependencies]
+cudra-span = { path = "../cudra-span" }
+cudra-diagnostics = { path = "../cudra-diagnostics" }
+cudra-lexer = { path = "../cudra-lexer" }
+cudra-ast = { path = "../cudra-ast" }
+cudra-parser = { path = "../cudra-parser" }
+clap = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+insta = { workspace = true }

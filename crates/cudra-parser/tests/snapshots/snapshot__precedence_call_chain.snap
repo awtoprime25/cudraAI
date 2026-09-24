@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = a.b.c(1)(2)[3]\\n\")"
+---
+(assign (name x) _ (index (call (call (attr (attr (name a) b) c) (int 1)) (int 2)) (int 3)))

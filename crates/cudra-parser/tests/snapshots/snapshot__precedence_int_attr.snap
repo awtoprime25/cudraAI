@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = (1).real\\n\")"
+---
+(assign (name x) _ (attr (int 1) real))

@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = -2**2\\n\")"
+---
+(assign (name x) _ (unary neg (bin pow (int 2) (int 2))))

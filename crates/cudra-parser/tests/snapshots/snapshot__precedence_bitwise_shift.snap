@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"x = a|b^c&d<<e>>f+g-h*i/j//k%l**m\\n\")"
+---
+(assign (name x) _ (bin bitor (name a) (bin bitxor (name b) (bin bitand (name c) (bin shr (bin shl (name d) (name e)) (bin sub (bin add (name f) (name g)) (bin mod (bin floordiv (bin div (bin mul (name h) (name i)) (name j)) (name k)) (bin pow (name l) (name m)))))))))

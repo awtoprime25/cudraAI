@@ -1,0 +1,5 @@
+---
+source: crates/cudra-parser/tests/snapshot.rs
+expression: "dump(\"def f() -> None:\\n    return\\n\")"
+---
+(def f (decos) (params) (ty None) (body (return _)))
