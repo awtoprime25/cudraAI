@@ -171,6 +171,36 @@ fn hex_with_leading_underscore_after_prefix_is_accepted() {
 }
 
 #[test]
+fn invalid_digit_in_binary_literal_is_rejected() {
+    let src = "x = 0b10106\n";
+    let (_, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "dígito inválido '6' em literal binário");
+    let lo = src.find('6').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
+}
+
+#[test]
+fn invalid_digit_in_octal_literal_is_rejected() {
+    let src = "x = 0o178\n";
+    let (_, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "dígito inválido '8' em literal octal");
+    let lo = src.find('8').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
+}
+
+#[test]
+fn hex_digit_out_of_range_letter_is_not_glued_into_literal() {
+    // '0x1g': 'g' não é dígito hex, e o nosso comportamento aqui é
+    // divergência intencional (mensagem "falta um espaço..."), não o
+    // "dígito inválido" (esse só existe para binário/octal em Python).
+    let (_, diags) = lex_src("x = 0x1g\n");
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "falta um espaço entre o número e 'g'");
+}
+
+#[test]
 fn complex_int_suffix_is_rejected() {
     let src = "x = 1j\n";
     let (_, diags) = lex_src(src);

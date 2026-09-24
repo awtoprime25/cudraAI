@@ -22,7 +22,7 @@ struct Lexer<'a> {
     bytes: &'a [u8],
     pos: usize,
     len: usize,
-    paren_depth: u32,
+    open_brackets: Vec<(u8, usize)>,
     indent_stack: IndentStack,
     at_line_start: bool,
     line_has_content: bool,
@@ -39,7 +39,7 @@ impl<'a> Lexer<'a> {
             bytes: src.as_bytes(),
             pos: 0,
             len: src.len(),
-            paren_depth: 0,
+            open_brackets: Vec::new(),
             indent_stack: IndentStack::new(),
             at_line_start: true,
             line_has_content: false,
@@ -119,13 +119,25 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn at_backslash_newline(&self) -> bool {
-        matches!(self.bytes.get(self.pos + 1), Some(b'\n') | Some(b'\r'))
+    // '\' seguido de newline (continuação normal) ou já no fim do ficheiro
+    // (caso que `consume_backslash_newline` transforma num erro).
+    fn at_backslash_continuation(&self) -> bool {
+        matches!(
+            self.bytes.get(self.pos + 1),
+            Some(b'\n') | Some(b'\r') | None
+        )
     }
 
     fn consume_backslash_newline(&mut self) {
+        let bs_pos = self.pos;
         self.pos += 1; // '\'
         self.consume_newline_bytes();
+        if self.pos >= self.len {
+            self.push_error(
+                Span::new(self.file, bs_pos as u32, bs_pos as u32 + 1),
+                "continuação com '\\' no fim do ficheiro",
+            );
+        }
     }
 
     // Consome os espaços/tabs/form-feeds do início de uma linha lógica.
@@ -159,10 +171,15 @@ impl<'a> Lexer<'a> {
         (cols, had_tab, tab_pos)
     }
 
-    fn apply_indent(&mut self, cols: u32, ws_lo: usize) {
+    fn apply_indent(&mut self, bs_cols: u32, cont_cols: u32, ws_lo: usize) {
+        // Se a linha do `\` tem indentação própria (`bs_cols > 0`), é ela
+        // que decide, e a indentação da linha de continuação (`cont_cols`)
+        // é ignorada. Só quando o `\` está mesmo na coluna 0 é que a
+        // decisão passa para `cont_cols`.
+        let level = if bs_cols > 0 { bs_cols } else { cont_cols };
         if self.is_first_content_line {
             self.is_first_content_line = false;
-            if cols > 0 {
+            if level > 0 {
                 self.push_error(
                     Span::new(self.file, ws_lo as u32, self.pos as u32),
                     "indentação inesperada",
@@ -171,11 +188,11 @@ impl<'a> Lexer<'a> {
             return;
         }
         let top = self.indent_stack.top();
-        if cols > top {
-            self.indent_stack.push(cols);
+        if level > top {
+            self.indent_stack.push(level);
             self.push_token(TokenKind::Indent, self.pos);
-        } else if cols < top {
-            let (count, inconsistent) = self.indent_stack.dedent_to(cols);
+        } else if level < top {
+            let (count, inconsistent) = self.indent_stack.dedent_to(level);
             for _ in 0..count {
                 self.push_token(TokenKind::Dedent, self.pos);
             }
@@ -188,9 +205,14 @@ impl<'a> Lexer<'a> {
     // Processa o início de uma linha lógica (indentação + o que vem a
     // seguir). Devolve `true` quando aterra em conteúdo real (o chamador
     // deve parar e deixar `lex_one_real_token` tratar o token).
+    //
+    // Só se aplica indentação (e só se marca a linha como tendo conteúdo)
+    // quando se encontra mesmo um token real — uma continuação '\' que só
+    // leva a linhas em branco/comentário não é uma linha lógica.
     fn handle_line_start(&mut self) -> bool {
         let ws_lo = self.pos;
-        let (cols, had_tab, tab_pos) = self.scan_indent_prefix();
+        let (mut cont_cols, had_tab, tab_pos) = self.scan_indent_prefix();
+        let bs_cols = cont_cols; // indentação só da primeira linha física
         if had_tab {
             if let Some(tp) = tab_pos {
                 self.push_error(
@@ -199,27 +221,37 @@ impl<'a> Lexer<'a> {
                 );
             }
         }
-        match self.peek() {
-            None => false,
-            Some('#') => {
-                self.skip_to_line_end();
-                self.consume_newline_bytes();
-                false
-            }
-            Some('\n') | Some('\r') => {
-                self.consume_newline_bytes();
-                false
-            }
-            Some('\\') if self.at_backslash_newline() => {
-                self.consume_backslash_newline();
-                self.at_line_start = false;
-                false
-            }
-            Some(_) => {
-                self.apply_indent(cols, ws_lo);
-                self.line_has_content = true;
-                self.at_line_start = false;
-                true
+        loop {
+            match self.peek() {
+                None => return false,
+                Some('#') => {
+                    self.skip_to_line_end();
+                    self.consume_newline_bytes();
+                    return false;
+                }
+                Some('\n') | Some('\r') => {
+                    self.consume_newline_bytes();
+                    return false;
+                }
+                Some('\\') if self.at_backslash_continuation() => {
+                    self.consume_backslash_newline();
+                    let (c, had_tab2, tab_pos2) = self.scan_indent_prefix();
+                    cont_cols = c;
+                    if had_tab2 {
+                        if let Some(tp) = tab_pos2 {
+                            self.push_error(
+                                Span::new(self.file, tp as u32, tp as u32 + 1),
+                                "tabs na indentação não são suportados, usa espaços",
+                            );
+                        }
+                    }
+                }
+                Some(_) => {
+                    self.apply_indent(bs_cols, cont_cols, ws_lo);
+                    self.line_has_content = true;
+                    self.at_line_start = false;
+                    return true;
+                }
             }
         }
     }
@@ -232,7 +264,7 @@ impl<'a> Lexer<'a> {
             if self.pos >= self.len {
                 return;
             }
-            if self.at_line_start && self.paren_depth == 0 {
+            if self.at_line_start && self.open_brackets.is_empty() {
                 if self.handle_line_start() {
                     return;
                 }
@@ -245,12 +277,12 @@ impl<'a> Lexer<'a> {
                     self.skip_to_line_end();
                     continue;
                 }
-                Some('\\') if self.at_backslash_newline() => {
+                Some('\\') if self.at_backslash_continuation() => {
                     self.consume_backslash_newline();
                     continue;
                 }
                 Some('\n') | Some('\r') => {
-                    if self.paren_depth > 0 {
+                    if !self.open_brackets.is_empty() {
                         self.consume_newline_bytes();
                         continue;
                     }
@@ -275,6 +307,13 @@ impl<'a> Lexer<'a> {
         if self.line_has_content {
             self.push_token(TokenKind::Newline, self.pos);
             self.line_has_content = false;
+        }
+        // o mais exterior é o primeiro que foi aberto (fundo da pilha).
+        if let Some(&(ch, lo)) = self.open_brackets.first() {
+            self.push_error(
+                Span::new(self.file, lo as u32, lo as u32 + 1),
+                format!("'{}' nunca foi fechado", ch as char),
+            );
         }
         let count = self.indent_stack.remaining_dedents();
         for _ in 0..count {
@@ -354,16 +393,23 @@ impl<'a> Lexer<'a> {
                 self.pos = end;
                 let kind = base.to_token_kind();
                 match kind {
-                    TokenKind::LParen | TokenKind::LBracket => self.paren_depth += 1,
+                    TokenKind::LParen | TokenKind::LBracket => {
+                        let ch = if kind == TokenKind::LParen {
+                            b'('
+                        } else {
+                            b'['
+                        };
+                        self.open_brackets.push((ch, start));
+                    }
                     TokenKind::RParen | TokenKind::RBracket => {
-                        if self.paren_depth == 0 {
+                        if self.open_brackets.is_empty() {
                             let ch = if kind == TokenKind::RParen { ')' } else { ']' };
                             self.push_error(
                                 self.span_from(start),
                                 format!("'{ch}' sem correspondência"),
                             );
                         } else {
-                            self.paren_depth -= 1;
+                            self.open_brackets.pop();
                         }
                     }
                     _ => {}
@@ -544,6 +590,20 @@ impl<'a> Lexer<'a> {
                 "sublinhado inválido em literal numérico",
             );
             return;
+        }
+        if let Some(&b) = self.bytes.get(self.pos) {
+            if b.is_ascii_digit() {
+                // dígito decimal que não é válido nesta base (ex.: '6' em 0b10106).
+                let bad_pos = self.pos;
+                let ch = b as char;
+                self.scan_digit_run(|b| b.is_ascii_digit());
+                let radix_name = if radix == b'o' { "octal" } else { "binário" };
+                self.push_error(
+                    Span::new(self.file, bad_pos as u32, bad_pos as u32 + 1),
+                    format!("dígito inválido '{ch}' em literal {radix_name}"),
+                );
+                return;
+            }
         }
         self.finish_number(start, TokenKind::Int, false);
     }
