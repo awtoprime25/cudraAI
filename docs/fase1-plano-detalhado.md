@@ -341,6 +341,7 @@ Codegen:
   - debug: `O0`, verificações ligadas;
   - `--release`: pipeline `default<O3>` via `run_passes` do inkwell, `target-cpu` do host.
 - Emite um objeto `.o` num tempdir e liga com `cc <obj> <libcudra_runtime.a> -lm -o <out>`. O driver descobre a `.a` pelo `OUT_DIR`/caminho do build; aceitar também a env `CUDRA_RUNTIME_LIB`.
+- **A `.a` nunca pode estar desatualizada.** Um crate que é dependência é construído só como rlib, por isso a staticlib não vem "de graça". O `build.rs` do `cudra-driver` corre `$CARGO build -p cudra-runtime --lib --target-dir $OUT_DIR/rt` (no mesmo perfil), declara `cargo:rerun-if-changed` para `crates/cudra-runtime/src` e `Cargo.toml`, e embute o caminho com `cargo:rustc-env=CUDRA_RUNTIME_LIB_DEFAULT=…`. Proibido procurar uma `.a` qualquer em `target/debug` ou `target/release`. Teste obrigatório: `cargo test --workspace` num `CARGO_TARGET_DIR` vazio passa à primeira.
 - Verificar o módulo com `module.verify()` antes de emitir. Se falhar, é um bug interno: mensagem `erro interno do compilador` + o IR em stderr.
 
 Driver `cudrac` (clap):
