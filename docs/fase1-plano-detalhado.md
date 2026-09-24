@@ -251,6 +251,48 @@ Passos:
 4. **`lower.rs`:** gera a TIR. Insere `Cast` nas promoções dentro de expressões mistas. Em `print(a, b, …)`, avalia TODOS os argumentos (para temporários) antes da primeira chamada `cudra_print_*`, como no Python: `print(f(), g())`, com `f` e `g` a imprimirem, mostra primeiro o output de `f` e de `g`, e só depois a linha do `print`. Se um argumento der erro, nada dessa linha é impresso. Desaçucara `+=` e companhia, as comparações em cadeia e a veracidade (condição `int`/`float` → comparação ≠ 0).
 5. Recolhe **todos** os erros possíveis antes de parar. Não parar no primeiro.
 
+### 6.1 Decisões da sema (casos limite)
+
+Contrato das mensagens: um programa que o CPython executa sem erro e que nós rejeitamos por estar fora do subconjunto usa uma mensagem com `ainda não é suportad` / `ainda não são suportad`. As rejeições por tipagem estática (regra 1, atribuição definida, `return` inconsistente) são escolhas da linguagem e têm mensagens próprias.
+
+**Nomes e âmbitos**
+- Um nome é local de uma função se for parâmetro, alvo de atribuição/aumento ou variável de `for` em qualquer ponto do corpo (como no Python). Ler um local antes da atribuição → `a variável 'x' pode não estar definida aqui`, mesmo que exista uma variável de topo com esse nome (no Python seria `UnboundLocalError`).
+- Um nome lido numa função que não é local, nem função do topo, nem builtin, nem importado, mas que é variável do topo → `variáveis globais não são suportadas na Fase 1`. Se não existir em lado nenhum → `nome 'x' não definido`.
+- No topo, funções, variáveis e nomes importados partilham o espaço de nomes: atribuir a um nome que é função (ou o contrário, `def` com o nome de uma variável do topo já atribuída) → erro `'f' já é uma função` / `'x' já é uma variável`.
+- Sombra dos nossos builtins (`print`, `int`, `float`, `bool`, `abs`, `range`) por função, variável, parâmetro, variável de `for` ou import → erro `fazer sombra ao builtin 'print' ainda não é suportado`. Os outros builtins do Python (`sum`, `max`, `len`, `min`, `id`, `input`, …) **são nomes normais**: `sum = 0` é válido.
+- Chamar um builtin do Python fora da nossa lista (`max(1, 2)`, `len(x)`, `round(x)`, `str(x)`, …) quando o nome não é local → `o builtin 'max' ainda não é suportado`. Guardar a lista de `dir(builtins)` do CPython 3.12 numa constante.
+- Chamar um local (`g = 1; g()`, ou um parâmetro) → `'g' não é uma função`. Usar uma função como valor (`x = f`, `print(f)`, `f` como instrução) → `funções como valores ainda não são suportadas`.
+- `import cudra` torna válido `cudra.arg_int(i)` / `cudra.arg_float(i)`. Qualquer outro atributo, ou `cudra.x` sem `import cudra` → erro (`atributos ainda não são suportados`, ou `nome 'cudra' não definido`). `import <outro>` / `from <outro> import …` → `o módulo 'math' ainda não é suportado`. `from cudra import <outro>` → `'cudra' não tem 'arg_str'` (o CPython também falha). Importar o mesmo nome duas vezes é válido.
+
+**Ordem no topo (regra 4, transitiva)**
+- Cada instrução de topo tem uma posição. Uma função está disponível depois da sua linha `def`, e um nome importado depois da sua linha de import.
+- Uma chamada no topo, na posição p, a `f` exige que `f` e **todas as funções alcançáveis a partir de `f` no grafo de chamadas** tenham `def` antes de p, e que todos os nomes importados usados por essas funções estejam importados antes de p. Senão → `'g' usada antes de ser definida` (o CPython daria `NameError` em runtime). O span principal é a chamada no topo; um span secundário aponta para a chamada interior.
+- Usar `arg_int` no topo antes do import → o mesmo erro.
+
+**Tipos e operações**
+- Anotações: `int`, `float`, `bool`, `None`. `str`, `list`, `Nome[T]`, … → `o tipo 'str' ainda não é suportado`. Um nome desconhecido → `tipo desconhecido 'foo'`.
+- Variáveis de tipo `None` (`x = print()`, `x = f()` com `f` a devolver `None`): válidas. O `print(x)` imprime `None`. Qualquer outra operação com `None` (aritmética, comparação, condição, `not`, `bool(None)`, `int(None)`) → `operações com None ainda não são suportadas`. `x == None` / `x is None` idem.
+- `bool` em aritmética, unários `-`/`+`/`~`, `abs(bool)`, ou como argumento onde se espera `int` (`range(True)`, `arg_int(True)`, parâmetro `int`) → `bool usado como int ainda não é suportado`. `bool` vs `int`/`float` em comparações, e `<`/`<=`/`>`/`>=` entre `bool` → o mesmo tipo de mensagem. `int(True)`, `float(True)`, `bool(x)`, `not x` e `==`/`!=` entre dois `bool` são válidos.
+- `int()` → `0`, `float()` → `0.0`, `bool()` → `False` (como no Python). `int(x, base)`, `abs()`, `abs(a, b)` → erro. `print` aceita qualquer número de argumentos de qualquer tipo suportado, incluindo `None`.
+- `and`/`or`: os dois lados `bool` (regra 10). `not`: `bool`, `int` ou `float`.
+- Literais inteiros: `Int(v)` com `v > i64::MAX` só é válido se for operando direto de `Unary::Neg` e `v == 2^63` (→ `i64::MIN`). Fora disso → `inteiro fora do intervalo de 64 bits ainda não é suportado`. `--9223372036854775808` → o `Neg` exterior é um `INeg` normal (overflow em runtime).
+- `range(...)` fora do iterável de um `for`, `for x in <não-range>` e `range` com 0 ou mais de 3 argumentos → erro. Os argumentos do `range` são `int` exatos.
+- Aumentos: `x op= e` exige que `x` esteja definida e que `x op e` tenha exatamente o tipo de `x` (regra 1). `x /= 2` com `x: int` → erro.
+
+**Fluxo de controlo**
+- Um único CFG serve para a atribuição definida e para a análise "todos os caminhos devolvem".
+- `while` com condição literal `True` (ou inteiro literal ≠ 0) só sai por `break`. Nenhuma outra condição constante é dobrada (`if True:` conta como podendo não executar, tal como no Java).
+- O código inalcançável (depois de `return`/`break`/`continue` ou de um `while True` sem `break`) é verificado quanto a tipos, mas não conta para a atribuição definida nem para o retorno.
+- Uma função com retorno anotado diferente de `None` cujo fim é alcançável → `a função 'f' pode terminar sem return (devolveria None)`. Sem anotação, cair no fim conta como `return None`, e misturar com `return <valor>` → `return inconsistente`.
+- Funções num ciclo do grafo de chamadas (incluindo a recursão direta) têm de ter o retorno anotado → `funções recursivas sem tipo de retorno anotado ainda não são suportadas`. A inferência das outras funções segue a ordem topológica das SCC.
+- Rejeições que só a sema faz: decoradores (`decoradores ainda não são suportados`), alvos `Index` (`atribuição a índices ainda não é suportada`), `return` no topo (`'return' fora de uma função`), `break`/`continue` fora de ciclo, parâmetros sem anotação (`parâmetros sem anotação de tipo ainda não são suportados`), parâmetros repetidos, imports dentro de funções (`imports dentro de funções ainda não são suportados`) e funções duplicadas.
+
+**Recolha de erros sem cascata**
+- Uma expressão com erro tem o tipo `Error`, que é compatível com tudo e não gera mais erros.
+- Uma variável cuja primeira atribuição tem tipo `Error` fica declarada como `Error`.
+- Uma chamada a uma função com erros na assinatura usa o que se conseguiu resolver.
+- Se houver erros, a TIR não é gerada.
+
 Mensagens de erro em português, com o span principal e spans secundários quando ajudam. Exemplo:
 ```
 erro: tipo incompatível na atribuição a 'x'
