@@ -12,8 +12,6 @@ fn only_diag(diags: &[Diagnostic]) -> &Diagnostic {
     &diags[0]
 }
 
-// --- BUG L4: prefixos de string inválidos ----------------------------------
-
 #[test]
 fn invalid_two_letter_prefixes_lex_as_name_plus_str() {
     for bad in ["ub", "bu", "uR", "ur", "ff", "rr", "bf"] {
@@ -62,8 +60,6 @@ fn valid_two_letter_prefixes_in_any_case_lex_as_one_str() {
         );
     }
 }
-
-// --- BUG L5: f-strings PEP 701 ----------------------------------------------
 
 fn assert_one_str_no_errors(src: &str) {
     let (tokens, diags) = lex_src(src);
@@ -169,4 +165,77 @@ fn fstring_unclosed_field_with_newline_at_eof_does_not_panic() {
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
     assert_eq!(d.message, "string sem fecho");
+}
+
+#[test]
+fn backslash_before_open_brace_does_not_consume_it_and_field_opens() {
+    assert_one_str_no_errors("x = f'\\{a}'\n");
+}
+
+#[test]
+fn raw_fstring_backslash_before_open_brace_does_not_consume_it_and_field_opens() {
+    assert_one_str_no_errors("x = rf'\\{a}'\n");
+}
+
+#[test]
+fn backslash_before_close_brace_does_not_consume_it_then_doubled_escape() {
+    // '\}}': o '\' não consome o primeiro '}', que depois forma '}}' com o
+    // seguinte (escape literal de '}').
+    assert_one_str_no_errors("x = f'\\}}'\n");
+}
+
+#[test]
+fn backslash_before_open_brace_then_doubled_escape() {
+    assert_one_str_no_errors("x = f'\\{{'\n");
+}
+
+#[test]
+fn named_escape_followed_by_field_is_one_token() {
+    assert_one_str_no_errors("x = f'\\N{EM DASH}{a}'\n");
+}
+
+#[test]
+fn named_escape_inside_format_spec_is_one_token() {
+    assert_one_str_no_errors("x = f'{a:\\N{BULLET}}'\n");
+}
+
+#[test]
+fn named_escape_unterminated_before_closing_quote_has_no_lexical_error() {
+    // '\N{' e '\N{EM DASH' sem '}': o escape pára ANTES da aspa de fecho
+    // sem a consumir, por isso a string fecha normalmente — o compile()
+    // rejeita-os por erro de unicode, o que não é um problema léxico nosso.
+    assert_one_str_no_errors("x = f'\\N{'\n");
+    assert_one_str_no_errors("x = f'\\N{EM DASH'\n");
+}
+
+#[test]
+fn named_escape_followed_by_lone_closing_brace_is_rejected() {
+    let src = "x = f'\\N{EM DASH}}'\n";
+    let (_, diags) = lex_src(src);
+    assert!(
+        diags.iter().any(|d| d.message.contains("'}' sozinho")),
+        "esperava erro de '}}' sozinho: {diags:?}"
+    );
+}
+
+#[test]
+fn raw_fstring_named_escape_is_not_special_and_brace_opens_a_field() {
+    // numa f-string raw, '\N' é só '\' + 'N' — o '{' a seguir abre um
+    // campo real.
+    assert_one_str_no_errors("x = rf'\\N{x}'\n");
+}
+
+#[test]
+fn backslash_not_followed_by_newline_inside_field_is_rejected_and_recovers() {
+    let src = "x = f'{\\n}'\n";
+    let (tokens, diags) = lex_src(src);
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message == "carácter inesperado '\\'"),
+        "esperava erro de carácter inesperado: {diags:?}"
+    );
+    // a lexagem recupera: a string ainda fecha como 1 só Str.
+    let str_count = tokens.iter().filter(|t| t.kind == TokenKind::Str).count();
+    assert_eq!(str_count, 1);
 }

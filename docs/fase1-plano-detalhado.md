@@ -59,16 +59,35 @@ strings (fora do `print`: **não há strings de todo na Fase 1**, `print("x")` d
 Mensagem padrão: `erro: <construção> ainda não é suportado(a) na Fase 1`.
 
 ### 1.3 Semântica, alinhada com o Python
-1. **A primeira atribuição declara** a variável no âmbito da função. Voltar a atribuir tem de dar um tipo compatível: igual, ou `int` → variável `float` (promove). `float` → variável `int` é erro. O erro mostra os dois spans.
+1. **A primeira atribuição declara** a variável no âmbito da função. Voltar a atribuir tem de dar **exatamente o mesmo tipo**. O erro mostra os dois spans.
+   **Não há promoção implícita `int → float` em fronteiras de armazenamento**: atribuição (incluindo `x: float = 1`), passagem de argumentos, `return` e aumentos como `x += e` quando o resultado muda o tipo de `x`. Motivo: o Python não converte o valor. `x: float = 1; print(x)` imprime `1`, e uma promoção faria o nosso executável imprimir `1.0`, o que quebra o objetivo de stdout idêntico. O erro sugere a correção: `tipo incompatível: 'x' é float, mas o valor é int (usa 1.0 ou float(...))`. A promoção **só** existe dentro de expressões mistas (`i + f`, `i < f`), onde o Python também dá `float`. `x = 1; x += 0.5` → erro, porque `x` é `int`. `y = 1.0; y += 1` → válido, porque `float + int` dá `float`.
 2. **O âmbito é a função, não o bloco.** Uma variável criada num `if` ou `for` é visível depois. **Atribuição definida:** usar uma variável que não foi atribuída em todos os caminhos até ali dá erro `a variável 'x' pode não estar definida aqui`. A análise é sobre o CFG: interseção dos conjuntos "definidos" nos predecessores. Os ciclos contam como "podem executar 0 vezes".
 3. **Uma função não pode ler variáveis do topo.** Erro: `variáveis globais não são suportadas na Fase 1`. Um parâmetro ou local com o mesmo nome faz sombra, e está correto.
 4. **Ordem no topo:** chamar uma função no topo antes de a sua linha `def` dá erro de compilação `'f' usada antes de ser definida` (em Python seria NameError em runtime). Dentro de funções, chamar funções definidas mais abaixo é válido.
-5. `/` devolve sempre `float`. `//` e `%` entre `int` usam semântica de floor (o sinal do `%` segue o divisor). Entre `float`: `//` = `floor(a/b)`, `%` = `a - floor(a/b)*b` com ajuste de sinal como no `math.fmod` + correção do Python. Implementar exatamente como `float_divmod` do CPython: `mod = fmod(a,b); if mod != 0 and (b<0) != (mod<0): mod += b; ...`.
+5. `/` devolve sempre `float`. `//` e `%` entre `int` usam semântica de floor (o sinal do `%` segue o divisor). `i64::MIN % -1` → `0`, sem executar `srem`, que no x86 dá SIGFPE.
+   - **`int / int`** tem de ser o arredondamento correto do quociente exato, como no `long_true_divide` do CPython. Se `|a|` e `|b|` são ≤ 2^53, basta `(a as f64) / (b as f64)`. Senão, é preciso um helper do runtime, `cudra_int_truediv(a, b)`, que arredonda o quociente exato (ties-to-even) com aritmética `u128`. Verificado: `9223372036854775807 / 1285` → `7177721429458969.0`, enquanto a divisão ingénua dá `…970.0`.
+   - **Entre `float`** (ou misto, promovendo o `int`), `//` e `%` seguem EXATAMENTE o `float_divmod` do CPython. **Não** usar `floor(a/b)`: `1 // 0.1` é `9.0`, não `10.0`. O algoritmo:
+     ```
+     mod = fmod(a, b); div = (a - mod) / b
+     if mod != 0: if (b < 0) != (mod < 0): mod += b; div -= 1
+     else: mod = copysign(0.0, b)
+     if div != 0: fd = floor(div); if div - fd > 0.5: fd += 1
+     else: fd = copysign(0.0, a / b)
+     ```
+     Valores verificados no CPython: `1 // 0.1 = 9.0`, `1 % 0.1 = 0.09999999999999995`, `-4.0 % 2.0 = 0.0`, `4.0 % -2.0 = -0.0`, `-0.0 // 1.0 = -0.0`, `0.0 // -1.0 = -0.0`, `-7 // 2.0 = -4.0`, `inf // 1 = nan`, `inf % 1 = nan`, `1 % inf = 1.0`, `-1 % inf = inf`, `-1 // inf = -1.0`, `1e308 // 1e-308 = inf`, `-1e-300 // 1e300 = -1.0`.
 6. **Divisão/módulo por zero** (int ou float, em `/ // %`): mensagem em stderr `ZeroDivisionError: division by zero` e exit code 1. Não é preciso igualar o texto do CPython, só o exit code e o stdout até àquele ponto. **Atenção:** o stdout tem de ser flushed antes de sair.
 7. `**`:
    - `int ** int` com expoente ≥ 0 → `int` (exponenciação binária no runtime);
    - expoente negativo → erro de runtime `ValueError: negative int exponent not supported` + exit 1 (divergência documentada: o Python devolveria um float);
-   - qualquer operando `float` → `float` via `llvm.pow.f64`;
+   - qualquer operando `float` → `float`, via o helper do runtime `cudra_fpow(x, y)`, que replica o `float_pow` do CPython 3.12 (casos especiais primeiro, depois o `pow` da libm):
+     - `y == 0` → `1.0`, mesmo com `x` nan;
+     - `x == 1` → `1.0`, mesmo com `y` nan;
+     - nan → nan;
+     - `y` ±inf e `x` ±inf seguem as regras do CPython (`(-1.0) ** inf = 1.0`);
+     - `x == 0` com `y < 0` → `ZeroDivisionError` + exit 1;
+     - `x < 0` com `y` finito e não inteiro → o Python devolve um **complexo**. Para nós é um erro de runtime `ValueError: potência de base negativa com expoente fracionário ainda não é suportada` + exit 1 (divergência documentada, em `run-expect/`);
+     - um resultado infinito a partir de `x` e `y` finitos → `OverflowError` + exit 1 (`10.0 ** 400`);
+     - `(-0.0) ** 3 = -0.0` (expoente inteiro ímpar mantém o sinal).
    - associa à direita, e `-2**2 == -4`: o `**` liga mais forte do que o unário à esquerda.
 8. **Overflow de inteiros** (`+ - *`, `**`, `-x`, `abs`):
    - build debug → `OverflowError: integer overflow` + exit 1;
@@ -77,9 +96,9 @@ Mensagem padrão: `erro: <construção> ainda não é suportado(a) na Fase 1`.
    - `x << n` conta como aritmética com overflow: em debug, se o resultado não cabe em i64 (`n >= 64 && x != 0`, ou `(x << n) >> n != x`) → `OverflowError`; em release, `n >= 64` → 0, senão `shl` normal. `0 << n` é sempre 0;
    - `x >> n` com `n >= 64` → 0 se `x >= 0`, −1 se `x < 0` (igual ao Python) nos dois modos. Nunca emitir `shl`/`ashr` do LLVM com contagem ≥ 64 (é poison).
 9. `int(x: float)`: trunca para zero. NaN → `ValueError`, ±inf ou fora do intervalo i64 → `OverflowError`, ambos com exit 1, **nos dois modos**. `int(bool)`/`int(int)` → identidade. `float(int)` → `sitofp`. `bool(x)` → `x != 0`.
-10. **Veracidade:** as condições de `if`/`while`/`not` aceitam `bool`, `int` (≠ 0) e `float` (≠ 0.0). `and`/`or` exigem os dois operandos `bool`, senão erro `and/or com operandos não-bool ainda não é suportado`.
+10. **Veracidade:** as condições de `if`/`while`/`not` aceitam `bool`, `int` (≠ 0) e `float` (≠ 0.0). No float, usar `fcmp une x, 0.0`, porque `nan` é verdadeiro. Nas comparações de floats: `==` → `oeq`, `!=` → `une` (`nan != nan` é `True`), `< <= > >=` → `olt ole ogt oge`. `and`/`or` exigem os dois operandos `bool`, senão erro `and/or com operandos não-bool ainda não é suportado`.
 11. `bool` em aritmética: **erro** nesta fase (`True + 1`), para simplificar. As comparações entre `bool` (`==`, `!=`) são válidas.
-12. **Comparações mistas** `int`/`float`: promover o `int` para `float`.
+12. **Comparações mistas** `int`/`float`: são EXATAS, como no `float_richcompare` do CPython. **Não** basta promover o `int`: `2**53+1 == 9007199254740992.0` é `False` e `9223372036854775807 < 9.223372036854776e18` é `True`. Se `|i| ≤ 2^53`, pode converter-se o `int` para `float`. Senão, compara-se o `float` (se for finito) com o `int` em `i128`, tendo em conta a parte fracionária. `nan` → só o `!=` é verdadeiro. Implementar num helper do runtime ou inline. Na **aritmética** mista, a promoção `sitofp` está correta (igual ao `PyLong_AsDouble`).
 13. **Comparação em cadeia:** `a < b < c` ≡ `a < b and b < c`, com `b` avaliado **uma vez** (guardado num temporário) e curto-circuito.
 14. `range`:
     - todos os argumentos `int`; `step == 0` → `ValueError: range() arg 3 must not be zero` + exit 1;
@@ -94,7 +113,7 @@ Mensagem padrão: `erro: <construção> ainda não é suportado(a) na Fase 1`.
     - **Casos de teste obrigatórios:** `0.1`, `1.0`, `-0.0`, `1e16`, `1e15`, `123456789012345678.0`, `0.0001`, `0.00001`, `1/3`, `2.5e-5`, `1e308*10` (→ `inf`), `-(1e308*10)`, `inf - inf` (→ `nan`; `0.0/0.0` não serve, dá ZeroDivisionError). Valores verificados no CPython: `1e+16`, `1000000000000000.0`, `1.2345678901234568e+17`, `0.0001`, `1e-05`, `2.5e-05`, `0.3333333333333333`.
 16. `print` de `bool` → `True`/`False`; de `None` → `None`; de `int` → decimal.
 17. Funções sem `return` explícito devolvem `None`. Usar esse valor em aritmética dá erro de tipo.
-18. `arg_int(i)` / `arg_float(i)`: lêem `argv[i]` (`i` é `int`, `argv[0]` é o programa). Índice em falta → `IndexError` + exit 1; valor inválido → `ValueError` + exit 1.
+18. `arg_int(i)` / `arg_float(i)`: lêem `argv[i]` (`i` é `int`, `argv[0]` é o programa), com índices negativos como no `sys.argv[i]` do Python. Índice em falta → `IndexError` + exit 1; valor inválido → `ValueError` + exit 1.
 
 ---
 
@@ -227,10 +246,53 @@ Igual à §2.2 do plano de arquitetura, **sem** `Array`, `Kernel`, `Capture` ou 
 
 Passos:
 1. **`resolve.rs`:** tabela de funções do topo (nomes duplicados → erro). Imports válidos. Builtins (`print`, `int`, `float`, `bool`, `abs`, `range`); fazer sombra a um builtin com uma função → erro. Ordem das chamadas no topo (regra 4).
-2. **`infer.rs`:** por função. Assinatura das anotações; locais por unificação, com promoção `int→float`. Tipo de retorno: anotado, ou juntando todos os `return` (`int` + `float` → `float`; `None` + valor → erro `return inconsistente`). Recursão sem retorno anotado: se a única informação vier da própria chamada recursiva → erro `anota o tipo de retorno de 'f'`.
+2. **`infer.rs`:** por função. Assinatura das anotações; locais com o tipo da primeira atribuição, e as seguintes com o tipo exato (regra 1: sem promoção nas fronteiras). Tipo de retorno: anotado (e todos os `return` têm de ter esse tipo exato), ou o tipo comum de todos os `return`. Tipos diferentes, incluindo `int` + `float` e `None` + valor → erro `return inconsistente`. Recursão sem retorno anotado: se a única informação vier da própria chamada recursiva → erro `anota o tipo de retorno de 'f'`.
 3. **`definite.rs`:** atribuição definida sobre um CFG simples construído a partir da AST.
-4. **`lower.rs`:** gera a TIR. Insere `Cast` em todas as promoções. Desaçucara `+=` e companhia, as comparações em cadeia e a veracidade (condição `int`/`float` → comparação ≠ 0).
+4. **`lower.rs`:** gera a TIR. Insere `Cast` nas promoções dentro de expressões mistas. Em `print(a, b, …)`, avalia TODOS os argumentos (para temporários) antes da primeira chamada `cudra_print_*`, como no Python: `print(f(), g())`, com `f` e `g` a imprimirem, mostra primeiro o output de `f` e de `g`, e só depois a linha do `print`. Se um argumento der erro, nada dessa linha é impresso. Desaçucara `+=` e companhia, as comparações em cadeia e a veracidade (condição `int`/`float` → comparação ≠ 0).
 5. Recolhe **todos** os erros possíveis antes de parar. Não parar no primeiro.
+
+### 6.1 Decisões da sema (casos limite)
+
+Contrato das mensagens: um programa que o CPython executa sem erro e que nós rejeitamos por estar fora do subconjunto usa uma mensagem com `ainda não é suportad` / `ainda não são suportad`. As rejeições por tipagem estática (regra 1, atribuição definida, `return` inconsistente) são escolhas da linguagem e têm mensagens próprias.
+
+**Nomes e âmbitos**
+- Um nome é local de uma função se for parâmetro, alvo de atribuição/aumento ou variável de `for` em qualquer ponto do corpo (como no Python). Ler um local antes da atribuição → `a variável 'x' pode não estar definida aqui`, mesmo que exista uma variável de topo com esse nome (no Python seria `UnboundLocalError`).
+- Um nome lido numa função que não é local, nem função do topo, nem builtin, nem importado, mas que é variável do topo → `variáveis globais não são suportadas na Fase 1`. Se não existir em lado nenhum → `nome 'x' não definido`.
+- No topo, funções, variáveis e nomes importados partilham o espaço de nomes: atribuir a um nome que é função (ou o contrário, `def` com o nome de uma variável do topo já atribuída) → erro `redefinir 'f' (já é uma função) ainda não é suportado` / `redefinir 'x' (já é uma variável) ainda não é suportado`, porque o Python aceita e simplesmente substitui o valor.
+- Sombra dos nossos builtins (`print`, `int`, `float`, `bool`, `abs`, `range`) por função, variável, parâmetro, variável de `for` ou import → erro `fazer sombra ao builtin 'print' ainda não é suportado`. Os outros builtins do Python (`sum`, `max`, `len`, `min`, `id`, `input`, …) **são nomes normais**: `sum = 0` é válido.
+- Chamar um builtin do Python fora da nossa lista (`max(1, 2)`, `len(x)`, `round(x)`, `str(x)`, …) quando o nome não é local → `o builtin 'max' ainda não é suportado`. Guardar a lista de `dir(builtins)` do CPython 3.12 numa constante.
+- Chamar um local (`g = 1; g()`, ou um parâmetro) → `'g' não é uma função`. Usar uma função como valor (`x = f`, `print(f)`, `f` como instrução) → `funções como valores ainda não são suportadas`.
+- `import cudra` torna válido `cudra.arg_int(i)` / `cudra.arg_float(i)`. Qualquer outro atributo, ou `cudra.x` sem `import cudra` → erro (`atributos ainda não são suportados`, ou `nome 'cudra' não definido`). `import <outro>` / `from <outro> import …` → `o módulo 'math' ainda não é suportado`. `from cudra import <outro>` → `'cudra' não tem 'arg_str'` (o CPython também falha). Importar o mesmo nome duas vezes é válido.
+
+**Ordem no topo (regra 4, transitiva)**
+- Cada instrução de topo tem uma posição. Uma função está disponível depois da sua linha `def`, e um nome importado depois da sua linha de import.
+- Uma chamada no topo, na posição p, a `f` exige que `f` e **todas as funções alcançáveis a partir de `f` no grafo de chamadas** tenham `def` antes de p, e que todos os nomes importados usados por essas funções estejam importados antes de p. Senão → `'g' usada antes de ser definida` (o CPython daria `NameError` em runtime). O span principal é a chamada no topo; um span secundário aponta para a chamada interior.
+- Usar `arg_int` no topo antes do import → o mesmo erro.
+
+**Tipos e operações**
+- Anotações: `int`, `float`, `bool`, `None`. `str`, `list`, `Nome[T]`, … → `o tipo 'str' ainda não é suportado`. Um nome desconhecido → `tipo desconhecido 'foo'`.
+- Variáveis de tipo `None` (`x = print()`, `x = f()` com `f` a devolver `None`): válidas. O `print(x)` imprime `None`. Qualquer outra operação com `None` (aritmética, comparação, condição, `not`, `bool(None)`, `int(None)`) → `operações com None ainda não são suportadas`. `x == None` / `x is None` idem.
+- `bool` em aritmética, unários `-`/`+`/`~`, `abs(bool)`, ou como argumento onde se espera `int` (`range(True)`, `arg_int(True)`, parâmetro `int`) → `bool usado como int ainda não é suportado`. `bool` vs `int`/`float` em comparações, e `<`/`<=`/`>`/`>=` entre `bool` → o mesmo tipo de mensagem. `int(True)`, `float(True)`, `bool(x)`, `not x` e `==`/`!=` entre dois `bool` são válidos.
+- `int()` → `0`, `float()` → `0.0`, `bool()` → `False` (como no Python). `int(x, base)`, `abs()`, `abs(a, b)` → erro. `print` aceita qualquer número de argumentos de qualquer tipo suportado, incluindo `None`.
+- `and`/`or`: os dois lados `bool` (regra 10). `not`: `bool`, `int` ou `float`.
+- Literais inteiros: `Int(v)` com `v > i64::MAX` só é válido se for operando direto de `Unary::Neg` e `v == 2^63` (→ `i64::MIN`). Fora disso → `inteiro fora do intervalo de 64 bits ainda não é suportado`. `--9223372036854775808` → o `Neg` exterior é um `INeg` normal (overflow em runtime).
+- `range(...)` fora do iterável de um `for`, `for x in <não-range>` e `range` com 0 ou mais de 3 argumentos → erro. Os argumentos do `range` são `int` exatos.
+- Aumentos: `x op= e` exige que `x` esteja definida e que `x op e` tenha exatamente o tipo de `x` (regra 1). `x /= 2` com `x: int` → erro.
+
+**Fluxo de controlo**
+- Um único CFG serve para a atribuição definida e para a análise "todos os caminhos devolvem".
+- `while` com condição literal `True` (ou inteiro literal ≠ 0) só sai por `break`. Nenhuma outra condição constante é dobrada (`if True:` conta como podendo não executar, tal como no Java).
+- O código inalcançável (depois de `return`/`break`/`continue` ou de um `while True` sem `break`) é verificado quanto a tipos, mas não conta para a atribuição definida nem para o retorno.
+- Uma função com retorno anotado diferente de `None` cujo fim é alcançável → `a função 'f' pode terminar sem return (devolveria None)`. Sem anotação, cair no fim conta como `return None`, e misturar com `return <valor>` → `return inconsistente`.
+- Funções num ciclo do grafo de chamadas (incluindo a recursão direta) têm de ter o retorno anotado → `funções recursivas sem tipo de retorno anotado ainda não são suportadas`. A inferência das outras funções segue a ordem topológica das SCC.
+- Rejeições que só a sema faz: decoradores (`decoradores ainda não são suportados`), alvos `Index` (`atribuição a índices ainda não é suportada`), `return` no topo (`'return' fora de uma função`), `break`/`continue` fora de ciclo, parâmetros sem anotação (`parâmetros sem anotação de tipo ainda não são suportados`), parâmetros repetidos, imports dentro de funções (`imports dentro de funções ainda não são suportados`) e funções duplicadas (`redefinir a função 'f' ainda não é suportado`, porque o Python aceita e fica com a última).
+- Os casos à mão em `tests/oracle/sema_attack.py` (validados contra o CPython) são normativos: `python3 tests/oracle/sema_attack.py <cudrac>` tem de dar 0 falhas.
+
+**Recolha de erros sem cascata**
+- Uma expressão com erro tem o tipo `Error`, que é compatível com tudo e não gera mais erros.
+- Uma variável cuja primeira atribuição tem tipo `Error` fica declarada como `Error`.
+- Uma chamada a uma função com erros na assinatura usa o que se conseguiu resolver.
+- Se houver erros, a TIR não é gerada.
 
 Mensagens de erro em português, com o span principal e spans secundários quando ajudam. Exemplo:
 ```
@@ -254,6 +316,11 @@ ABI C, `#[no_mangle] extern "C"`, sem `panic` a atravessar a fronteira (`panic =
 - `cudra_panic(kind: u32, ...) -> !`: escreve `<Kind>Error: <msg>` em stderr, faz flush do stdout e `exit(1)`. Tipos: `ZeroDivision`, `Overflow`, `Value`, `Index`.
 - `cudra_rt_exit() -> i32`: flush do stdout e devolve 0.
 - `cudra_float_repr(f64, buf) -> len`, a implementar a regra 15 da §1.3, com testes unitários próprios no crate (todos os casos obrigatórios).
+- Helpers numéricos: o codegen chama-os em vez de gerar ele próprio a lógica, e cada um tem um oráculo contra o CPython com valores aleatórios e de fronteira.
+  - `cudra_int_truediv(a, b) -> f64` (regra 5);
+  - `cudra_float_floordiv(a, b) -> f64` e `cudra_float_mod(a, b) -> f64` (o `float_divmod` da regra 5; `b == 0` → `ZeroDivisionError`);
+  - `cudra_fpow(x, y) -> f64` (regra 7);
+  - `cudra_cmp_int_float(i: i64, f: f64) -> i32`: −1/0/1, ou 2 se não ordenado (nan) (regra 12).
 
 ## 8. Codegen (`cudra-codegen-llvm`) e driver (`cudra-driver`)
 
@@ -274,6 +341,7 @@ Codegen:
   - debug: `O0`, verificações ligadas;
   - `--release`: pipeline `default<O3>` via `run_passes` do inkwell, `target-cpu` do host.
 - Emite um objeto `.o` num tempdir e liga com `cc <obj> <libcudra_runtime.a> -lm -o <out>`. O driver descobre a `.a` pelo `OUT_DIR`/caminho do build; aceitar também a env `CUDRA_RUNTIME_LIB`.
+- **A `.a` nunca pode estar desatualizada.** Um crate que é dependência é construído só como rlib, por isso a staticlib não vem "de graça". O `build.rs` do `cudra-driver` corre `$CARGO build -p cudra-runtime --lib --target-dir $OUT_DIR/rt` (no mesmo perfil), declara `cargo:rerun-if-changed` para `crates/cudra-runtime/src` e `Cargo.toml`, e embute o caminho com `cargo:rustc-env=CUDRA_RUNTIME_LIB_DEFAULT=…`. Proibido procurar uma `.a` qualquer em `target/debug` ou `target/release`. Teste obrigatório: `cargo test --workspace` num `CARGO_TARGET_DIR` vazio passa à primeira.
 - Verificar o módulo com `module.verify()` antes de emitir. Se falhar, é um bug interno: mensagem `erro interno do compilador` + o IR em stderr.
 
 Driver `cudrac` (clap):
@@ -302,7 +370,8 @@ Driver `cudrac` (clap):
    - blocos numa só linha.
 3. **`tests/run-expect/`:** casos com divergência documentada face ao Python, com o stdout e o exit code esperados em ficheiro. Por exemplo: overflow em debug → exit 1; o mesmo em release → valor com wrapping; `1 << 64` (debug → exit 1, release → 0); `2 ** -1` → exit 1.
 4. **`tests/ui/`:** ≥ 25 programas inválidos com o stderr esperado. Cobrir cada erro da §1.2 e da §6 (tipo incompatível, pode não estar definida, global em função, uso antes de `def`, retorno inconsistente, tab, indentação inconsistente, string, `class`, parâmetro sem anotação, recursão sem anotar o retorno, etc.). Atualizar com `BLESS=1 cargo test`.
-5. `scripts/check.sh`: `cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test --workspace`. Tem de passar a verde no fim.
+5. `tests/oracle/run_attack.py <cudrac>`: cerca de 80 programas escritos à mão sobre os casos numéricos e de controlo difíceis (validados contra o CPython; as divergências estão descritas por modo). Tem de dar 0 falhas, em debug e em release.
+6. `scripts/check.sh`: `cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test --workspace`. Tem de passar a verde no fim.
 
 ## 10. Benchmarks (`bench/`)
 

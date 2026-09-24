@@ -40,6 +40,12 @@ struct FileData {
     name: String,
     src: String,
     line_starts: Vec<u32>,
+    // Índice dos chars multi-byte (UTF-8 com mais de 1 byte): posições em
+    // byte, em ordem crescente, e o prefixo acumulado de bytes "a mais"
+    // (len_utf8() - 1) até (exclusive) cada uma. Permite converter um
+    // byte-offset num nº de chars por pesquisa binária (O(log n)).
+    multibyte_pos: Vec<u32>,
+    multibyte_extra_prefix: Vec<u32>,
 }
 
 #[derive(Default)]
@@ -54,11 +60,14 @@ impl SourceMap {
 
     pub fn add(&mut self, name: String, src: String) -> FileId {
         let line_starts = line_starts_of(&src);
+        let (multibyte_pos, multibyte_extra_prefix) = multibyte_index_of(&src);
         let id = FileId(self.files.len() as u32);
         self.files.push(FileData {
             name,
             src,
             line_starts,
+            multibyte_pos,
+            multibyte_extra_prefix,
         });
         id
     }
@@ -111,6 +120,29 @@ fn line_starts_of(src: &str) -> Vec<u32> {
     line_starts
 }
 
+// Constrói o índice dos chars multi-byte de `src` (ver `FileData`).
+fn multibyte_index_of(src: &str) -> (Vec<u32>, Vec<u32>) {
+    let mut pos = Vec::new();
+    let mut extra_prefix = vec![0u32];
+    let mut running = 0u32;
+    for (i, c) in src.char_indices() {
+        let extra = c.len_utf8() as u32 - 1;
+        if extra > 0 {
+            pos.push(i as u32);
+            running += extra;
+            extra_prefix.push(running);
+        }
+    }
+    (pos, extra_prefix)
+}
+
+// Soma dos bytes "a mais" (além de 1) de todos os chars multi-byte cuja
+// posição é < `offset`. `pos` está ordenado, por isso é uma pesquisa binária.
+fn extra_bytes_before(pos: &[u32], extra_prefix: &[u32], offset: u32) -> u32 {
+    let k = pos.partition_point(|&p| p < offset);
+    extra_prefix[k]
+}
+
 fn line_col_of(data: &FileData, offset: u32) -> (u32, u32) {
     let len = data.src.len() as u32;
     let mut offset = offset.min(len);
@@ -121,8 +153,15 @@ fn line_col_of(data: &FileData, offset: u32) -> (u32, u32) {
         Ok(i) => i,
         Err(i) => i - 1,
     };
-    let line_start = data.line_starts[line_idx] as usize;
-    let col = data.src[line_start..offset as usize].chars().count() as u32 + 1;
+    let line_start = data.line_starts[line_idx];
+    let bytes_in_line = offset - line_start;
+    let extra = extra_bytes_before(&data.multibyte_pos, &data.multibyte_extra_prefix, offset)
+        - extra_bytes_before(
+            &data.multibyte_pos,
+            &data.multibyte_extra_prefix,
+            line_start,
+        );
+    let col = bytes_in_line - extra + 1;
     (line_idx as u32 + 1, col)
 }
 
@@ -293,5 +332,105 @@ mod tests {
         assert_ne!(a, c);
         assert_eq!(it.resolve(a), "total");
         assert_eq!(it.resolve(c), "outro");
+    }
+
+    // Implementação antiga (ingénua), mantida só para o teste diferencial.
+    fn naive_line_col(src: &str, line_starts: &[u32], offset: u32) -> (u32, u32) {
+        let len = src.len() as u32;
+        let mut offset = offset.min(len);
+        while offset > 0 && !src.is_char_boundary(offset as usize) {
+            offset -= 1;
+        }
+        let line_idx = match line_starts.binary_search(&offset) {
+            Ok(i) => i,
+            Err(i) => i - 1,
+        };
+        let line_start = line_starts[line_idx] as usize;
+        let col = src[line_start..offset as usize].chars().count() as u32 + 1;
+        (line_idx as u32 + 1, col)
+    }
+
+    // xorshift64 determinístico: sem dependências novas, só para gerar
+    // strings/offsets de teste de forma reprodutível.
+    struct Rng(u64);
+    impl Rng {
+        fn next_u64(&mut self) -> u64 {
+            self.0 ^= self.0 << 13;
+            self.0 ^= self.0 >> 7;
+            self.0 ^= self.0 << 17;
+            self.0
+        }
+        fn next_range(&mut self, n: usize) -> usize {
+            (self.next_u64() % n as u64) as usize
+        }
+    }
+
+    fn random_src(rng: &mut Rng) -> String {
+        const CHARS: &[char] = &['a', 'b', ' ', '\t', 'é', '🙂', '\r', '\n'];
+        let len = 1 + rng.next_range(60);
+        let mut s = String::new();
+        for _ in 0..len {
+            if rng.next_range(5) == 0 && s.ends_with('\r') {
+                // ocasionalmente força um '\r\n' explícito.
+                s.push('\n');
+                continue;
+            }
+            s.push(CHARS[rng.next_range(CHARS.len())]);
+        }
+        s
+    }
+
+    #[test]
+    fn line_col_matches_naive_implementation_at_every_offset() {
+        let mut rng = Rng(0x9E3779B97F4A7C15);
+        for _ in 0..500 {
+            let src = random_src(&mut rng);
+            let line_starts = line_starts_of(&src);
+            let (multibyte_pos, multibyte_extra_prefix) = multibyte_index_of(&src);
+            let data = FileData {
+                name: "t".to_string(),
+                src: src.clone(),
+                line_starts: line_starts.clone(),
+                multibyte_pos,
+                multibyte_extra_prefix,
+            };
+            let len = src.len() as u32;
+            for offset in 0..=(len + 3) {
+                let fast = line_col_of(&data, offset);
+                let naive = naive_line_col(&src, &line_starts, offset);
+                assert_eq!(
+                    fast, naive,
+                    "offset={offset} src={src:?}: rápido={fast:?} ingénuo={naive:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn line_col_on_2mb_line_handles_1m_calls_in_under_one_second_debug() {
+        let mut rng = Rng(0xD1B54A32D192ED03);
+        let mut src = String::with_capacity(2 * 1024 * 1024);
+        while src.len() < 2 * 1024 * 1024 {
+            if rng.next_range(3) == 0 {
+                src.push('é');
+            } else {
+                src.push('a');
+            }
+        }
+        let len = src.len() as u32;
+        let mut sm = SourceMap::new();
+        let f = sm.add("t.cdr".to_string(), src);
+
+        let start = std::time::Instant::now();
+        let mut rng2 = Rng(0x2545F4914F6CDD1D);
+        for _ in 0..1_000_000u32 {
+            let offset = rng2.next_range(len as usize + 1) as u32;
+            let _ = sm.line_col(f, offset);
+        }
+        let elapsed = start.elapsed();
+        assert!(
+            elapsed.as_secs_f64() < 1.5,
+            "1M chamadas a line_col demoraram {elapsed:?}"
+        );
     }
 }

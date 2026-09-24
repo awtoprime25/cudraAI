@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::io::{self, BufWriter, Write};
 use std::process::ExitCode;
 
 use cudra_lexer::{lex, TokenKind};
@@ -21,6 +22,9 @@ fn escape(text: &str) -> String {
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
+    let stdout = io::stdout();
+    let mut out = BufWriter::new(stdout.lock());
+
     let Some(path) = args.get(1) else {
         eprintln!("uso: dump_tokens <ficheiro>");
         return ExitCode::from(1);
@@ -29,7 +33,8 @@ fn main() -> ExitCode {
     let bytes = match fs::read(path) {
         Ok(b) => b,
         Err(e) => {
-            println!("ERROR\tnão foi possível ler o ficheiro: {e}\t1:1");
+            let _ = writeln!(out, "ERROR\tnão foi possível ler o ficheiro: {e}\t1:1");
+            let _ = out.flush();
             return ExitCode::from(1);
         }
     };
@@ -39,9 +44,11 @@ fn main() -> ExitCode {
         Err(e) => {
             let pos = e.utf8_error().valid_up_to();
             let byte = e.as_bytes()[pos];
-            println!(
+            let _ = writeln!(
+                out,
                 "ERROR\tficheiro não é UTF-8 válido (byte 0x{byte:02X} na posição {pos})\t1:1"
             );
+            let _ = out.flush();
             return ExitCode::from(1);
         }
     };
@@ -50,6 +57,11 @@ fn main() -> ExitCode {
     let file = sources.add(path.clone(), src.clone());
 
     let (tokens, diags) = lex(file, &src);
+    let exit = if diags.is_empty() {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::from(1)
+    };
 
     for tok in &tokens {
         let text = match tok.kind {
@@ -57,7 +69,9 @@ fn main() -> ExitCode {
             _ => escape(&src[tok.span.lo as usize..tok.span.hi as usize]),
         };
         let (line, col) = sources.line_col(file, tok.span.lo);
-        println!("{:?}\t{text}\t{line}:{col}", tok.kind);
+        if writeln!(out, "{:?}\t{text}\t{line}:{col}", tok.kind).is_err() {
+            return exit;
+        }
     }
 
     for diag in &diags {
@@ -66,12 +80,11 @@ fn main() -> ExitCode {
             .first()
             .map(|l| sources.line_col(file, l.span.lo))
             .unwrap_or((1, 1));
-        println!("ERROR\t{}\t{line}:{col}", diag.message);
+        if writeln!(out, "ERROR\t{}\t{line}:{col}", diag.message).is_err() {
+            return exit;
+        }
     }
 
-    if diags.is_empty() {
-        ExitCode::SUCCESS
-    } else {
-        ExitCode::from(1)
-    }
+    let _ = out.flush();
+    exit
 }

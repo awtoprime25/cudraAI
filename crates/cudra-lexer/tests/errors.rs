@@ -192,8 +192,6 @@ fn invalid_digit_in_octal_literal_is_rejected() {
 
 #[test]
 fn invalid_first_digit_in_octal_literal_is_rejected() {
-    // BUG L9: '0o8' não tinha nenhum dígito octal válido antes do '8', e o
-    // round 1 só apanhava o caso em que já havia um dígito válido.
     let src = "x = 0o8\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
@@ -403,4 +401,38 @@ fn indent_and_dedent_counts_always_match_even_with_errors() {
         .filter(|t| t.kind == cudra_lexer::TokenKind::Dedent)
         .count();
     assert_eq!(indents, dedents);
+}
+
+#[test]
+fn null_byte_in_comment_reports_exactly_one_error() {
+    let src = "# a\0b\nx = 1\n";
+    let (tokens, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "o ficheiro contém bytes nulos (0x00)");
+    let lo = src.find('\0').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
+    // o resto da lexagem continua normalmente.
+    assert!(tokens
+        .iter()
+        .any(|t| t.kind == cudra_lexer::TokenKind::Name));
+}
+
+#[test]
+fn null_byte_in_string_reports_exactly_one_error() {
+    let src = "x = 'a\0b'\n";
+    let (tokens, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "o ficheiro contém bytes nulos (0x00)");
+    let lo = src.find('\0').unwrap() as u32;
+    assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
+    assert!(tokens.iter().any(|t| t.kind == cudra_lexer::TokenKind::Str));
+}
+
+#[test]
+fn null_byte_alone_reports_exactly_one_error() {
+    let src = "\0";
+    let (_, diags) = lex_src(src);
+    let d = only_diag(&diags);
+    assert_eq!(d.message, "o ficheiro contém bytes nulos (0x00)");
+    assert_eq!(primary_span(d), Span::new(FileId(0), 0, 1));
 }

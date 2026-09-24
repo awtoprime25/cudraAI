@@ -2,8 +2,6 @@ mod common;
 use common::lex_src;
 use cudra_lexer::TokenKind;
 
-// --- BUG L7: tokens novos (maximal munch, como o CPython) ------------------
-
 #[test]
 fn at_eq_is_one_token() {
     let (tokens, diags) = lex_src("x @= y\n");

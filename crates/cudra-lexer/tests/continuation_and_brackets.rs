@@ -21,8 +21,6 @@ fn primary_span(diag: &Diagnostic) -> Span {
         .span
 }
 
-// --- BUG L1: linha física só com espaços + '\' começa a linha lógica -----
-
 #[test]
 fn backslash_only_line_after_blank_still_emits_newline() {
     let src = "\n\\\nx = 1\n";
@@ -101,8 +99,6 @@ fn unindented_backslash_only_line_dedents_before_content() {
     );
 }
 
-// --- BUG L3: continuação '\' seguida do fim do ficheiro -------------------
-
 #[test]
 fn backslash_then_newline_then_eof_is_rejected() {
     let src = "x = 1 \\\n";
@@ -133,8 +129,6 @@ fn backslash_only_line_then_eof_is_rejected() {
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
 }
 
-// --- BUG L2: parênteses/colchetes nunca fechados até ao EOF ---------------
-
 #[test]
 fn unclosed_paren_at_eof_is_rejected_at_the_opening_paren() {
     let src = "x = (1 + 2\n";
@@ -160,8 +154,6 @@ fn closed_brackets_report_nothing() {
     let (_, diags) = lex_src("x = (1, [2, 3])\n");
     assert!(diags.is_empty(), "não devia dar erro: {diags:?}");
 }
-
-// --- BUG L6: fecho não corresponde ao tipo de abertura ---------------------
 
 fn secondary_span(diag: &Diagnostic) -> Span {
     diag.labels
@@ -198,8 +190,6 @@ fn mismatched_close_paren_after_open_bracket_reports_both_positions() {
     assert!(tokens.iter().any(|t| t.kind == TokenKind::RParen));
 }
 
-// --- BUG L8: limite de parênteses/colchetes/chavetas aninhados (MAXLEVEL) --
-
 #[test]
 fn exactly_200_nested_parens_is_accepted() {
     let src = format!("{}{}", "(".repeat(200), ")".repeat(200));
@@ -214,8 +204,6 @@ fn two_hundred_and_one_nested_parens_reports_the_limit_once() {
     let d = only_diag(&diags);
     assert_eq!(d.message, "demasiados parênteses aninhados (máximo 200)");
 }
-
-// --- BUG L8: limite de indentação (MAXINDENT), fronteira exata -------------
 
 fn indent_chain(levels: usize) -> String {
     let mut src = String::new();
