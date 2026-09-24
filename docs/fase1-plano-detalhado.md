@@ -59,16 +59,35 @@ strings (fora do `print`: **não há strings de todo na Fase 1**, `print("x")` d
 Mensagem padrão: `erro: <construção> ainda não é suportado(a) na Fase 1`.
 
 ### 1.3 Semântica, alinhada com o Python
-1. **A primeira atribuição declara** a variável no âmbito da função. Voltar a atribuir tem de dar um tipo compatível: igual, ou `int` → variável `float` (promove). `float` → variável `int` é erro. O erro mostra os dois spans.
+1. **A primeira atribuição declara** a variável no âmbito da função. Voltar a atribuir tem de dar **exatamente o mesmo tipo**. O erro mostra os dois spans.
+   **Não há promoção implícita `int → float` em fronteiras de armazenamento**: atribuição (incluindo `x: float = 1`), passagem de argumentos, `return` e aumentos como `x += e` quando o resultado muda o tipo de `x`. Motivo: o Python não converte o valor. `x: float = 1; print(x)` imprime `1`, e uma promoção faria o nosso executável imprimir `1.0`, o que quebra o objetivo de stdout idêntico. O erro sugere a correção: `tipo incompatível: 'x' é float, mas o valor é int (usa 1.0 ou float(...))`. A promoção **só** existe dentro de expressões mistas (`i + f`, `i < f`), onde o Python também dá `float`. `x = 1; x += 0.5` → erro, porque `x` é `int`. `y = 1.0; y += 1` → válido, porque `float + int` dá `float`.
 2. **O âmbito é a função, não o bloco.** Uma variável criada num `if` ou `for` é visível depois. **Atribuição definida:** usar uma variável que não foi atribuída em todos os caminhos até ali dá erro `a variável 'x' pode não estar definida aqui`. A análise é sobre o CFG: interseção dos conjuntos "definidos" nos predecessores. Os ciclos contam como "podem executar 0 vezes".
 3. **Uma função não pode ler variáveis do topo.** Erro: `variáveis globais não são suportadas na Fase 1`. Um parâmetro ou local com o mesmo nome faz sombra, e está correto.
 4. **Ordem no topo:** chamar uma função no topo antes de a sua linha `def` dá erro de compilação `'f' usada antes de ser definida` (em Python seria NameError em runtime). Dentro de funções, chamar funções definidas mais abaixo é válido.
-5. `/` devolve sempre `float`. `//` e `%` entre `int` usam semântica de floor (o sinal do `%` segue o divisor). Entre `float`: `//` = `floor(a/b)`, `%` = `a - floor(a/b)*b` com ajuste de sinal como no `math.fmod` + correção do Python. Implementar exatamente como `float_divmod` do CPython: `mod = fmod(a,b); if mod != 0 and (b<0) != (mod<0): mod += b; ...`.
+5. `/` devolve sempre `float`. `//` e `%` entre `int` usam semântica de floor (o sinal do `%` segue o divisor). `i64::MIN % -1` → `0`, sem executar `srem`, que no x86 dá SIGFPE.
+   - **`int / int`** tem de ser o arredondamento correto do quociente exato, como no `long_true_divide` do CPython. Se `|a|` e `|b|` são ≤ 2^53, basta `(a as f64) / (b as f64)`. Senão, é preciso um helper do runtime, `cudra_int_truediv(a, b)`, que arredonda o quociente exato (ties-to-even) com aritmética `u128`. Verificado: `9223372036854775807 / 1285` → `7177721429458969.0`, enquanto a divisão ingénua dá `…970.0`.
+   - **Entre `float`** (ou misto, promovendo o `int`), `//` e `%` seguem EXATAMENTE o `float_divmod` do CPython. **Não** usar `floor(a/b)`: `1 // 0.1` é `9.0`, não `10.0`. O algoritmo:
+     ```
+     mod = fmod(a, b); div = (a - mod) / b
+     if mod != 0: if (b < 0) != (mod < 0): mod += b; div -= 1
+     else: mod = copysign(0.0, b)
+     if div != 0: fd = floor(div); if div - fd > 0.5: fd += 1
+     else: fd = copysign(0.0, a / b)
+     ```
+     Valores verificados no CPython: `1 // 0.1 = 9.0`, `1 % 0.1 = 0.09999999999999995`, `-4.0 % 2.0 = 0.0`, `4.0 % -2.0 = -0.0`, `-0.0 // 1.0 = -0.0`, `0.0 // -1.0 = -0.0`, `-7 // 2.0 = -4.0`, `inf // 1 = nan`, `inf % 1 = nan`, `1 % inf = 1.0`, `-1 % inf = inf`, `-1 // inf = -1.0`, `1e308 // 1e-308 = inf`, `-1e-300 // 1e300 = -1.0`.
 6. **Divisão/módulo por zero** (int ou float, em `/ // %`): mensagem em stderr `ZeroDivisionError: division by zero` e exit code 1. Não é preciso igualar o texto do CPython, só o exit code e o stdout até àquele ponto. **Atenção:** o stdout tem de ser flushed antes de sair.
 7. `**`:
    - `int ** int` com expoente ≥ 0 → `int` (exponenciação binária no runtime);
    - expoente negativo → erro de runtime `ValueError: negative int exponent not supported` + exit 1 (divergência documentada: o Python devolveria um float);
-   - qualquer operando `float` → `float` via `llvm.pow.f64`;
+   - qualquer operando `float` → `float`, via o helper do runtime `cudra_fpow(x, y)`, que replica o `float_pow` do CPython 3.12 (casos especiais primeiro, depois o `pow` da libm):
+     - `y == 0` → `1.0`, mesmo com `x` nan;
+     - `x == 1` → `1.0`, mesmo com `y` nan;
+     - nan → nan;
+     - `y` ±inf e `x` ±inf seguem as regras do CPython (`(-1.0) ** inf = 1.0`);
+     - `x == 0` com `y < 0` → `ZeroDivisionError` + exit 1;
+     - `x < 0` com `y` finito e não inteiro → o Python devolve um **complexo**. Para nós é um erro de runtime `ValueError: potência de base negativa com expoente fracionário ainda não é suportada` + exit 1 (divergência documentada, em `run-expect/`);
+     - um resultado infinito a partir de `x` e `y` finitos → `OverflowError` + exit 1 (`10.0 ** 400`);
+     - `(-0.0) ** 3 = -0.0` (expoente inteiro ímpar mantém o sinal).
    - associa à direita, e `-2**2 == -4`: o `**` liga mais forte do que o unário à esquerda.
 8. **Overflow de inteiros** (`+ - *`, `**`, `-x`, `abs`):
    - build debug → `OverflowError: integer overflow` + exit 1;
@@ -77,9 +96,9 @@ Mensagem padrão: `erro: <construção> ainda não é suportado(a) na Fase 1`.
    - `x << n` conta como aritmética com overflow: em debug, se o resultado não cabe em i64 (`n >= 64 && x != 0`, ou `(x << n) >> n != x`) → `OverflowError`; em release, `n >= 64` → 0, senão `shl` normal. `0 << n` é sempre 0;
    - `x >> n` com `n >= 64` → 0 se `x >= 0`, −1 se `x < 0` (igual ao Python) nos dois modos. Nunca emitir `shl`/`ashr` do LLVM com contagem ≥ 64 (é poison).
 9. `int(x: float)`: trunca para zero. NaN → `ValueError`, ±inf ou fora do intervalo i64 → `OverflowError`, ambos com exit 1, **nos dois modos**. `int(bool)`/`int(int)` → identidade. `float(int)` → `sitofp`. `bool(x)` → `x != 0`.
-10. **Veracidade:** as condições de `if`/`while`/`not` aceitam `bool`, `int` (≠ 0) e `float` (≠ 0.0). `and`/`or` exigem os dois operandos `bool`, senão erro `and/or com operandos não-bool ainda não é suportado`.
+10. **Veracidade:** as condições de `if`/`while`/`not` aceitam `bool`, `int` (≠ 0) e `float` (≠ 0.0). No float, usar `fcmp une x, 0.0`, porque `nan` é verdadeiro. Nas comparações de floats: `==` → `oeq`, `!=` → `une` (`nan != nan` é `True`), `< <= > >=` → `olt ole ogt oge`. `and`/`or` exigem os dois operandos `bool`, senão erro `and/or com operandos não-bool ainda não é suportado`.
 11. `bool` em aritmética: **erro** nesta fase (`True + 1`), para simplificar. As comparações entre `bool` (`==`, `!=`) são válidas.
-12. **Comparações mistas** `int`/`float`: promover o `int` para `float`.
+12. **Comparações mistas** `int`/`float`: são EXATAS, como no `float_richcompare` do CPython. **Não** basta promover o `int`: `2**53+1 == 9007199254740992.0` é `False` e `9223372036854775807 < 9.223372036854776e18` é `True`. Se `|i| ≤ 2^53`, pode converter-se o `int` para `float`. Senão, compara-se o `float` (se for finito) com o `int` em `i128`, tendo em conta a parte fracionária. `nan` → só o `!=` é verdadeiro. Implementar num helper do runtime ou inline. Na **aritmética** mista, a promoção `sitofp` está correta (igual ao `PyLong_AsDouble`).
 13. **Comparação em cadeia:** `a < b < c` ≡ `a < b and b < c`, com `b` avaliado **uma vez** (guardado num temporário) e curto-circuito.
 14. `range`:
     - todos os argumentos `int`; `step == 0` → `ValueError: range() arg 3 must not be zero` + exit 1;
@@ -227,9 +246,9 @@ Igual à §2.2 do plano de arquitetura, **sem** `Array`, `Kernel`, `Capture` ou 
 
 Passos:
 1. **`resolve.rs`:** tabela de funções do topo (nomes duplicados → erro). Imports válidos. Builtins (`print`, `int`, `float`, `bool`, `abs`, `range`); fazer sombra a um builtin com uma função → erro. Ordem das chamadas no topo (regra 4).
-2. **`infer.rs`:** por função. Assinatura das anotações; locais por unificação, com promoção `int→float`. Tipo de retorno: anotado, ou juntando todos os `return` (`int` + `float` → `float`; `None` + valor → erro `return inconsistente`). Recursão sem retorno anotado: se a única informação vier da própria chamada recursiva → erro `anota o tipo de retorno de 'f'`.
+2. **`infer.rs`:** por função. Assinatura das anotações; locais com o tipo da primeira atribuição, e as seguintes com o tipo exato (regra 1: sem promoção nas fronteiras). Tipo de retorno: anotado (e todos os `return` têm de ter esse tipo exato), ou o tipo comum de todos os `return`. Tipos diferentes, incluindo `int` + `float` e `None` + valor → erro `return inconsistente`. Recursão sem retorno anotado: se a única informação vier da própria chamada recursiva → erro `anota o tipo de retorno de 'f'`.
 3. **`definite.rs`:** atribuição definida sobre um CFG simples construído a partir da AST.
-4. **`lower.rs`:** gera a TIR. Insere `Cast` em todas as promoções. Desaçucara `+=` e companhia, as comparações em cadeia e a veracidade (condição `int`/`float` → comparação ≠ 0).
+4. **`lower.rs`:** gera a TIR. Insere `Cast` nas promoções dentro de expressões mistas. Em `print(a, b, …)`, avalia TODOS os argumentos (para temporários) antes da primeira chamada `cudra_print_*`, como no Python: `print(f(), g())`, com `f` e `g` a imprimirem, mostra primeiro o output de `f` e de `g`, e só depois a linha do `print`. Se um argumento der erro, nada dessa linha é impresso. Desaçucara `+=` e companhia, as comparações em cadeia e a veracidade (condição `int`/`float` → comparação ≠ 0).
 5. Recolhe **todos** os erros possíveis antes de parar. Não parar no primeiro.
 
 Mensagens de erro em português, com o span principal e spans secundários quando ajudam. Exemplo:
@@ -254,6 +273,11 @@ ABI C, `#[no_mangle] extern "C"`, sem `panic` a atravessar a fronteira (`panic =
 - `cudra_panic(kind: u32, ...) -> !`: escreve `<Kind>Error: <msg>` em stderr, faz flush do stdout e `exit(1)`. Tipos: `ZeroDivision`, `Overflow`, `Value`, `Index`.
 - `cudra_rt_exit() -> i32`: flush do stdout e devolve 0.
 - `cudra_float_repr(f64, buf) -> len`, a implementar a regra 15 da §1.3, com testes unitários próprios no crate (todos os casos obrigatórios).
+- Helpers numéricos: o codegen chama-os em vez de gerar ele próprio a lógica, e cada um tem um oráculo contra o CPython com valores aleatórios e de fronteira.
+  - `cudra_int_truediv(a, b) -> f64` (regra 5);
+  - `cudra_float_floordiv(a, b) -> f64` e `cudra_float_mod(a, b) -> f64` (o `float_divmod` da regra 5; `b == 0` → `ZeroDivisionError`);
+  - `cudra_fpow(x, y) -> f64` (regra 7);
+  - `cudra_cmp_int_float(i: i64, f: f64) -> i32`: −1/0/1, ou 2 se não ordenado (nan) (regra 12).
 
 ## 8. Codegen (`cudra-codegen-llvm`) e driver (`cudra-driver`)
 
