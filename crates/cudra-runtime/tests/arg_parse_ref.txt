@@ -1,0 +1,1617 @@
+{"s": "", "int": "ValueError", "float": "ValueError"}
+{"s": " ", "int": "ValueError", "float": "ValueError"}
+{"s": "+", "int": "ValueError", "float": "ValueError"}
+{"s": "-", "int": "ValueError", "float": "ValueError"}
+{"s": "+-1", "int": "ValueError", "float": "ValueError"}
+{"s": "1 2", "int": "ValueError", "float": "ValueError"}
+{"s": "0x10", "int": "ValueError", "float": "ValueError"}
+{"s": "_1", "int": "ValueError", "float": "ValueError"}
+{"s": "1_", "int": "ValueError", "float": "ValueError"}
+{"s": "1__0", "int": "ValueError", "float": "ValueError"}
+{"s": "007", "int": 7, "float": "7.0"}
+{"s": "00", "int": 0, "float": "0.0"}
+{"s": "0_0", "int": 0, "float": "0.0"}
+{"s": "\uff11\uff12", "int": "DIVERGE", "float": "DIVERGE"}
+{"s": "  -42 ", "int": -42, "float": "-42.0"}
+{"s": "9223372036854775807", "int": 9223372036854775807, "float": "9.223372036854776e+18"}
+{"s": "9223372036854775808", "int": "OverflowError", "float": "9.223372036854776e+18"}
+{"s": "-9223372036854775808", "int": -9223372036854775808, "float": "-9.223372036854776e+18"}
+{"s": "-9223372036854775809", "int": "OverflowError", "float": "-9.223372036854776e+18"}
+{"s": "9223372036854775806", "int": 9223372036854775806, "float": "9.223372036854776e+18"}
+{"s": "-9223372036854775807", "int": -9223372036854775807, "float": "-9.223372036854776e+18"}
+{"s": "1_0.5", "int": "ValueError", "float": "10.5"}
+{"s": "1._5", "int": "ValueError", "float": "ValueError"}
+{"s": "1_.5", "int": "ValueError", "float": "ValueError"}
+{"s": "1e1_0", "int": "ValueError", "float": "10000000000.0"}
+{"s": "1_e10", "int": "ValueError", "float": "ValueError"}
+{"s": ".5", "int": "ValueError", "float": "0.5"}
+{"s": "5.", "int": "ValueError", "float": "5.0"}
+{"s": "+.5e-2", "int": "ValueError", "float": "0.005"}
+{"s": ".", "int": "ValueError", "float": "ValueError"}
+{"s": "1e", "int": "ValueError", "float": "ValueError"}
+{"s": "0x1p3", "int": "ValueError", "float": "ValueError"}
+{"s": "1,5", "int": "ValueError", "float": "ValueError"}
+{"s": "nan(123)", "int": "ValueError", "float": "ValueError"}
+{"s": "inf", "int": "ValueError", "float": "inf"}
+{"s": "INFINITY", "int": "ValueError", "float": "inf"}
+{"s": "Infinity", "int": "ValueError", "float": "inf"}
+{"s": "-nan", "int": "ValueError", "float": "nan"}
+{"s": "+nan", "int": "ValueError", "float": "nan"}
+{"s": "infi", "int": "ValueError", "float": "ValueError"}
+{"s": "1e400", "int": "ValueError", "float": "inf"}
+{"s": "1e-400", "int": "ValueError", "float": "0.0"}
+{"s": "-0.0", "int": "ValueError", "float": "-0.0"}
+{"s": "\uff11\u0662", "int": "DIVERGE", "float": "DIVERGE"}
+{"s": "nan", "int": "ValueError", "float": "nan"}
+{"s": "NAN", "int": "ValueError", "float": "nan"}
+{"s": "  inf  ", "int": "ValueError", "float": "inf"}
+{"s": "\u001c5", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a05", "int": 5, "float": "5.0"}
+{"s": "\u20035", "int": 5, "float": "5.0"}
+{"s": "5\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "5\u00a0", "int": 5, "float": "5.0"}
+{"s": "5\u2003", "int": 5, "float": "5.0"}
+{"s": "\u001c5\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "9\u00a0\u20033YnN ", "int": "ValueError", "float": "ValueError"}
+{"s": "yI \u001cE3i.", "int": "ValueError", "float": "ValueError"}
+{"s": "25xN", "int": "ValueError", "float": "ValueError"}
+{"s": "t4i\te\f\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": " Y n2\u00a0_", "int": "ValueError", "float": "ValueError"}
+{"s": "AT7\fn+\t\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\fE71\u000be", "int": "ValueError", "float": "ValueError"}
+{"s": "T68 ", "int": "ValueError", "float": "ValueError"}
+{"s": "10", "int": 10, "float": "10.0"}
+{"s": "T-F\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003\u000b.\u000be", "int": "ValueError", "float": "ValueError"}
+{"s": "3\raF\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "E", "int": "ValueError", "float": "ValueError"}
+{"s": "tAN\f09f", "int": "ValueError", "float": "ValueError"}
+{"s": "f", "int": "ValueError", "float": "ValueError"}
+{"s": "7\f8", "int": "ValueError", "float": "ValueError"}
+{"s": "1aI42\f5.", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0-65", "int": -65, "float": "-65.0"}
+{"s": "x3\ff0I\u000bF", "int": "ValueError", "float": "ValueError"}
+{"s": "YFN\u000b_ ", "int": "ValueError", "float": "ValueError"}
+{"s": "tEny7\t", "int": "ValueError", "float": "ValueError"}
+{"s": "5_", "int": "ValueError", "float": "ValueError"}
+{"s": "\u20035iY\u2003fa", "int": "ValueError", "float": "ValueError"}
+{"s": "t_01\u20030", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003-", "int": "ValueError", "float": "ValueError"}
+{"s": "x", "int": "ValueError", "float": "ValueError"}
+{"s": "FTnY3", "int": "ValueError", "float": "ValueError"}
+{"s": "-e", "int": "ValueError", "float": "ValueError"}
+{"s": "-\nT\u001c\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "4YE", "int": "ValueError", "float": "ValueError"}
+{"s": "t", "int": "ValueError", "float": "ValueError"}
+{"s": "e6x\u000bN", "int": "ValueError", "float": "ValueError"}
+{"s": "y\t-.E\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "T", "int": "ValueError", "float": "ValueError"}
+{"s": "a\t2_y\u000bF1", "int": "ValueError", "float": "ValueError"}
+{"s": "\r_\r46", "int": "ValueError", "float": "ValueError"}
+{"s": "Y06Y8_\u000b\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cT\u000b+\r0_", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bFta5-ex", "int": "ValueError", "float": "ValueError"}
+{"s": "1AN", "int": "ValueError", "float": "ValueError"}
+{"s": "t34Ni\f4\n", "int": "ValueError", "float": "ValueError"}
+{"s": "e", "int": "ValueError", "float": "ValueError"}
+{"s": "f7eN+42", "int": "ValueError", "float": "ValueError"}
+{"s": " +29", "int": 29, "float": "29.0"}
+{"s": "3YYaN\n", "int": "ValueError", "float": "ValueError"}
+{"s": "\n", "int": "ValueError", "float": "ValueError"}
+{"s": "0", "int": 0, "float": "0.0"}
+{"s": "0FyE\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "Ft", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0y8", "int": "ValueError", "float": "ValueError"}
+{"s": "ft", "int": "ValueError", "float": "ValueError"}
+{"s": "_._f", "int": "ValueError", "float": "ValueError"}
+{"s": " \n tiA-", "int": "ValueError", "float": "ValueError"}
+{"s": ".0", "int": "ValueError", "float": "0.0"}
+{"s": "E\n0f", "int": "ValueError", "float": "ValueError"}
+{"s": "\fI3Ie8", "int": "ValueError", "float": "ValueError"}
+{"s": "\n.fNa", "int": "ValueError", "float": "ValueError"}
+{"s": "nt9705", "int": "ValueError", "float": "ValueError"}
+{"s": "A\u000bAt\u001c4x\f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "3\t", "int": 3, "float": "3.0"}
+{"s": "y.", "int": "ValueError", "float": "ValueError"}
+{"s": "Fxna\u2003\t5", "int": "ValueError", "float": "ValueError"}
+{"s": "\f84 E", "int": "ValueError", "float": "ValueError"}
+{"s": "__.\naa81", "int": "ValueError", "float": "ValueError"}
+{"s": "_", "int": "ValueError", "float": "ValueError"}
+{"s": "_\u000b\n\u2003aa", "int": "ValueError", "float": "ValueError"}
+{"s": "TaFN7", "int": "ValueError", "float": "ValueError"}
+{"s": "5+_ff1E", "int": "ValueError", "float": "ValueError"}
+{"s": "\fyN\t+fT", "int": "ValueError", "float": "ValueError"}
+{"s": "TNa", "int": "ValueError", "float": "ValueError"}
+{"s": "8\f", "int": 8, "float": "8.0"}
+{"s": "_fF7237t", "int": "ValueError", "float": "ValueError"}
+{"s": "y48tTY", "int": "ValueError", "float": "ValueError"}
+{"s": "\ft_f0y", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "f-i16Fx", "int": "ValueError", "float": "ValueError"}
+{"s": "I_t\u2003.\f6\t", "int": "ValueError", "float": "ValueError"}
+{"s": "\nN1", "int": "ValueError", "float": "ValueError"}
+{"s": "xx8a", "int": "ValueError", "float": "ValueError"}
+{"s": "-tE\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "27", "int": 27, "float": "27.0"}
+{"s": "\u00a0\u001c\t\nE", "int": "ValueError", "float": "ValueError"}
+{"s": "f6A+1nY", "int": "ValueError", "float": "ValueError"}
+{"s": "89f.7N", "int": "ValueError", "float": "ValueError"}
+{"s": "1", "int": 1, "float": "1.0"}
+{"s": "\u2003E", "int": "ValueError", "float": "ValueError"}
+{"s": "9", "int": 9, "float": "9.0"}
+{"s": "e7n", "int": "ValueError", "float": "ValueError"}
+{"s": "f\u000b\ra\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "\r9x\r", "int": "ValueError", "float": "ValueError"}
+{"s": "6", "int": 6, "float": "6.0"}
+{"s": "\u00a0I.", "int": "ValueError", "float": "ValueError"}
+{"s": "i\f\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003.IN7", "int": "ValueError", "float": "ValueError"}
+{"s": "Ye-49-", "int": "ValueError", "float": "ValueError"}
+{"s": "i8t\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "\fTN.", "int": "ValueError", "float": "ValueError"}
+{"s": "I\f\ta", "int": "ValueError", "float": "ValueError"}
+{"s": "2-", "int": "ValueError", "float": "ValueError"}
+{"s": "y ", "int": "ValueError", "float": "ValueError"}
+{"s": "x5 ", "int": "ValueError", "float": "ValueError"}
+{"s": "Iaf\t_7", "int": "ValueError", "float": "ValueError"}
+{"s": "\fTA66it5", "int": "ValueError", "float": "ValueError"}
+{"s": "Fa\t+7xA", "int": "ValueError", "float": "ValueError"}
+{"s": "nt", "int": "ValueError", "float": "ValueError"}
+{"s": "\t1\n6f", "int": "ValueError", "float": "ValueError"}
+{"s": " n", "int": "ValueError", "float": "ValueError"}
+{"s": "8xtf\t\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "8_", "int": "ValueError", "float": "ValueError"}
+{"s": "n\u00a0_", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\f", "int": "ValueError", "float": "ValueError"}
+{"s": "\t1.N\u000b1\tN", "int": "ValueError", "float": "ValueError"}
+{"s": "\u200309n\u00a0\r", "int": "ValueError", "float": "ValueError"}
+{"s": "_93", "int": "ValueError", "float": "ValueError"}
+{"s": "iF4En1F4", "int": "ValueError", "float": "ValueError"}
+{"s": "Y 52", "int": "ValueError", "float": "ValueError"}
+{"s": "Aa9a\u000b3", "int": "ValueError", "float": "ValueError"}
+{"s": "\ri\tTte", "int": "ValueError", "float": "ValueError"}
+{"s": "YA\f", "int": "ValueError", "float": "ValueError"}
+{"s": "6\fa\t32", "int": "ValueError", "float": "ValueError"}
+{"s": "TxIt9\t 4", "int": "ValueError", "float": "ValueError"}
+{"s": "7+It", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "fF", "int": "ValueError", "float": "ValueError"}
+{"s": "+axie 5-", "int": "ValueError", "float": "ValueError"}
+{"s": "-\t\t\t", "int": "ValueError", "float": "ValueError"}
+{"s": "0-", "int": "ValueError", "float": "ValueError"}
+{"s": "A\f  \r7AY", "int": "ValueError", "float": "ValueError"}
+{"s": "tN_3", "int": "ValueError", "float": "ValueError"}
+{"s": "x a9", "int": "ValueError", "float": "ValueError"}
+{"s": "-7\r7572", "int": "ValueError", "float": "ValueError"}
+{"s": "Y8\r", "int": "ValueError", "float": "ValueError"}
+{"s": "1n+Fen\u000bA", "int": "ValueError", "float": "ValueError"}
+{"s": "7_\t\u2003xE\t\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "4\u00a0y", "int": "ValueError", "float": "ValueError"}
+{"s": "4I\tx2+\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "y\n\rx\u2003E", "int": "ValueError", "float": "ValueError"}
+{"s": "6YNFn", "int": "ValueError", "float": "ValueError"}
+{"s": "EEef\n.", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\r", "int": "ValueError", "float": "ValueError"}
+{"s": "57\r8", "int": "ValueError", "float": "ValueError"}
+{"s": "I", "int": "ValueError", "float": "ValueError"}
+{"s": "i\r", "int": "ValueError", "float": "ValueError"}
+{"s": "F9n93.99", "int": "ValueError", "float": "ValueError"}
+{"s": "1+yTxn7", "int": "ValueError", "float": "ValueError"}
+{"s": "na", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "FN7F\nY9\r", "int": "ValueError", "float": "ValueError"}
+{"s": "74T_+y", "int": "ValueError", "float": "ValueError"}
+{"s": "7Tf0\n-", "int": "ValueError", "float": "ValueError"}
+{"s": "yN7\n_3", "int": "ValueError", "float": "ValueError"}
+{"s": "_Ii\nfa+", "int": "ValueError", "float": "ValueError"}
+{"s": "-0f\f78", "int": "ValueError", "float": "ValueError"}
+{"s": "yn8\u00a00\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "f2", "int": "ValueError", "float": "ValueError"}
+{"s": "1N .", "int": "ValueError", "float": "ValueError"}
+{"s": "fa799T\f", "int": "ValueError", "float": "ValueError"}
+{"s": " 58xA", "int": "ValueError", "float": "ValueError"}
+{"s": "+\fe", "int": "ValueError", "float": "ValueError"}
+{"s": "62\u00a0_\f", "int": "ValueError", "float": "ValueError"}
+{"s": "\f0nFiT", "int": "ValueError", "float": "ValueError"}
+{"s": "2", "int": 2, "float": "2.0"}
+{"s": "3\u2003\tT", "int": "ValueError", "float": "ValueError"}
+{"s": "28x\f_0", "int": "ValueError", "float": "ValueError"}
+{"s": "x\fy6", "int": "ValueError", "float": "ValueError"}
+{"s": "3+.\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bEi\u000b\u20031A ", "int": "ValueError", "float": "ValueError"}
+{"s": "y\fx-i", "int": "ValueError", "float": "ValueError"}
+{"s": "e+", "int": "ValueError", "float": "ValueError"}
+{"s": "x\f_\ra", "int": "ValueError", "float": "ValueError"}
+{"s": "1\n\t\t", "int": 1, "float": "1.0"}
+{"s": "F0fF\f", "int": "ValueError", "float": "ValueError"}
+{"s": "8\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "8 T4YT\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "+y e\u001c\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "Y6", "int": "ValueError", "float": "ValueError"}
+{"s": "a", "int": "ValueError", "float": "ValueError"}
+{"s": "_-\u00a0\t58_", "int": "ValueError", "float": "ValueError"}
+{"s": "59\n1\u00a0N+5", "int": "ValueError", "float": "ValueError"}
+{"s": "i5-aF_7F", "int": "ValueError", "float": "ValueError"}
+{"s": "Y", "int": "ValueError", "float": "ValueError"}
+{"s": " 7\u2003\u00a0T22", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0tA\t.", "int": "ValueError", "float": "ValueError"}
+{"s": "4e-Nf", "int": "ValueError", "float": "ValueError"}
+{"s": "78\tAt", "int": "ValueError", "float": "ValueError"}
+{"s": "+t 7", "int": "ValueError", "float": "ValueError"}
+{"s": "9\u20037", "int": "ValueError", "float": "ValueError"}
+{"s": "\fT", "int": "ValueError", "float": "ValueError"}
+{"s": "TNE\nY\u000bt", "int": "ValueError", "float": "ValueError"}
+{"s": "i7", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\fA0\u2003x", "int": "ValueError", "float": "ValueError"}
+{"s": "y\u000bE\ra9Y", "int": "ValueError", "float": "ValueError"}
+{"s": "79\nf2_\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c1T4_\r\n", "int": "ValueError", "float": "ValueError"}
+{"s": "60\u2003.\nY\r", "int": "ValueError", "float": "ValueError"}
+{"s": "8+a+t", "int": "ValueError", "float": "ValueError"}
+{"s": "++-", "int": "ValueError", "float": "ValueError"}
+{"s": "4\u200384_\u001cYE", "int": "ValueError", "float": "ValueError"}
+{"s": "-\u000b1N0\n2", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003y", "int": "ValueError", "float": "ValueError"}
+{"s": "9\t+aYa8", "int": "ValueError", "float": "ValueError"}
+{"s": "\ft\u001cnyY\u001c\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "0\fE5xy", "int": "ValueError", "float": "ValueError"}
+{"s": "5", "int": 5, "float": "5.0"}
+{"s": "x+", "int": "ValueError", "float": "ValueError"}
+{"s": "95", "int": 95, "float": "95.0"}
+{"s": "95A2", "int": "ValueError", "float": "ValueError"}
+{"s": " yta", "int": "ValueError", "float": "ValueError"}
+{"s": "N ", "int": "ValueError", "float": "ValueError"}
+{"s": "Y17", "int": "ValueError", "float": "ValueError"}
+{"s": "2f_NT1NI", "int": "ValueError", "float": "ValueError"}
+{"s": "2.", "int": "ValueError", "float": "2.0"}
+{"s": "\u000ba\u2003\n6", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b3", "int": 3, "float": "3.0"}
+{"s": "4na\te", "int": "ValueError", "float": "ValueError"}
+{"s": "-NfF", "int": "ValueError", "float": "ValueError"}
+{"s": "t\u001c2", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cf", "int": "ValueError", "float": "ValueError"}
+{"s": "T315t", "int": "ValueError", "float": "ValueError"}
+{"s": "n\u001c\u000bf6.9", "int": "ValueError", "float": "ValueError"}
+{"s": "yE\f", "int": "ValueError", "float": "ValueError"}
+{"s": "ta\u000b93F", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b+E72fE", "int": "ValueError", "float": "ValueError"}
+{"s": "n3e\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "_267.", "int": "ValueError", "float": "ValueError"}
+{"s": "Y02f", "int": "ValueError", "float": "ValueError"}
+{"s": "0n.9A", "int": "ValueError", "float": "ValueError"}
+{"s": "\u20039", "int": 9, "float": "9.0"}
+{"s": "_5t", "int": "ValueError", "float": "ValueError"}
+{"s": "9I5", "int": "ValueError", "float": "ValueError"}
+{"s": "IT2\t", "int": "ValueError", "float": "ValueError"}
+{"s": "0\u00a0_\ret\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "4x", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c206", "int": "ValueError", "float": "ValueError"}
+{"s": "tN578", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0F", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\re", "int": "ValueError", "float": "ValueError"}
+{"s": "ynT8T", "int": "ValueError", "float": "ValueError"}
+{"s": "_3Y_7f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cT+", "int": "ValueError", "float": "ValueError"}
+{"s": "iFY23Iy", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cNF", "int": "ValueError", "float": "ValueError"}
+{"s": "Fy0Af\u20039", "int": "ValueError", "float": "ValueError"}
+{"s": "3Fn87", "int": "ValueError", "float": "ValueError"}
+{"s": "F", "int": "ValueError", "float": "ValueError"}
+{"s": " 11", "int": 11, "float": "11.0"}
+{"s": "A\u001c7", "int": "ValueError", "float": "ValueError"}
+{"s": "Y7\t\u00a067", "int": "ValueError", "float": "ValueError"}
+{"s": "-Y6F t", "int": "ValueError", "float": "ValueError"}
+{"s": "8\t4+", "int": "ValueError", "float": "ValueError"}
+{"s": "\t1\u000b", "int": 1, "float": "1.0"}
+{"s": "1\u001c168", "int": "ValueError", "float": "ValueError"}
+{"s": "EN.2+\u000b3", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000be", "int": "ValueError", "float": "ValueError"}
+{"s": "7 1\u001cY", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c\u000bn", "int": "ValueError", "float": "ValueError"}
+{"s": "y1y7_32\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "In", "int": "ValueError", "float": "ValueError"}
+{"s": "yFE8y4", "int": "ValueError", "float": "ValueError"}
+{"s": "t\u00a0\f+", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\u00a02f5+", "int": "ValueError", "float": "ValueError"}
+{"s": "3n", "int": "ValueError", "float": "ValueError"}
+{"s": "i-\f", "int": "ValueError", "float": "ValueError"}
+{"s": "9\u00a0\f3", "int": "ValueError", "float": "ValueError"}
+{"s": "_34\nE", "int": "ValueError", "float": "ValueError"}
+{"s": "1\u000b", "int": 1, "float": "1.0"}
+{"s": "IE\u2003iI\u001c\f_", "int": "ValueError", "float": "ValueError"}
+{"s": "9.xI5yT", "int": "ValueError", "float": "ValueError"}
+{"s": "E\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\u20032\rTi+\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "7 ", "int": 7, "float": "7.0"}
+{"s": "\u001cFNF-\ff\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "fF9", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0nE98.x.", "int": "ValueError", "float": "ValueError"}
+{"s": "a__E6\nA", "int": "ValueError", "float": "ValueError"}
+{"s": "N+\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "f\u000bY9n7", "int": "ValueError", "float": "ValueError"}
+{"s": "\r", "int": "ValueError", "float": "ValueError"}
+{"s": "2E6\u2003Ef+T", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u2003\u00a0\nx", "int": "ValueError", "float": "ValueError"}
+{"s": "f\t\ryf", "int": "ValueError", "float": "ValueError"}
+{"s": "+nI\nI", "int": "ValueError", "float": "ValueError"}
+{"s": "iE4F\n_e", "int": "ValueError", "float": "ValueError"}
+{"s": "68\t\u00a0", "int": 68, "float": "68.0"}
+{"s": "na-e", "int": "ValueError", "float": "ValueError"}
+{"s": "1\u000b\n", "int": 1, "float": "1.0"}
+{"s": "47eT\u2003.\r\t", "int": "ValueError", "float": "ValueError"}
+{"s": "I8", "int": "ValueError", "float": "ValueError"}
+{"s": "\u20037", "int": 7, "float": "7.0"}
+{"s": "A6\u2003nY+a\f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b\r+NeA", "int": "ValueError", "float": "ValueError"}
+{"s": "\nT", "int": "ValueError", "float": "ValueError"}
+{"s": "+.ex5.", "int": "ValueError", "float": "ValueError"}
+{"s": "5ttN\n8T", "int": "ValueError", "float": "ValueError"}
+{"s": "\r8a", "int": "ValueError", "float": "ValueError"}
+{"s": "8_Y9f 0f", "int": "ValueError", "float": "ValueError"}
+{"s": "y\u001cx3x", "int": "ValueError", "float": "ValueError"}
+{"s": "it", "int": "ValueError", "float": "ValueError"}
+{"s": "xn82F", "int": "ValueError", "float": "ValueError"}
+{"s": "_-n8", "int": "ValueError", "float": "ValueError"}
+{"s": "05TaY 49", "int": "ValueError", "float": "ValueError"}
+{"s": "FE", "int": "ValueError", "float": "ValueError"}
+{"s": "\r\u2003E.x\u00a0n", "int": "ValueError", "float": "ValueError"}
+{"s": "FIN.71\n7", "int": "ValueError", "float": "ValueError"}
+{"s": " \r+56", "int": 56, "float": "56.0"}
+{"s": "..6.\r", "int": "ValueError", "float": "ValueError"}
+{"s": "2Et\u00a0+\r", "int": "ValueError", "float": "ValueError"}
+{"s": "n9\n\n\u001c\r2", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bi7\u001c_1nn", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bN", "int": "ValueError", "float": "ValueError"}
+{"s": "N1\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "N97", "int": "ValueError", "float": "ValueError"}
+{"s": "Y8e\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": " T\f\t\f", "int": "ValueError", "float": "ValueError"}
+{"s": "8F-F-\u000b3", "int": "ValueError", "float": "ValueError"}
+{"s": "1fE\u001ct0", "int": "ValueError", "float": "ValueError"}
+{"s": "T\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\f54x_+f", "int": "ValueError", "float": "ValueError"}
+{"s": "3", "int": 3, "float": "3.0"}
+{"s": "\u000ba\fIn", "int": "ValueError", "float": "ValueError"}
+{"s": "1E\reT", "int": "ValueError", "float": "ValueError"}
+{"s": "7TAf\ne", "int": "ValueError", "float": "ValueError"}
+{"s": "Fe ii", "int": "ValueError", "float": "ValueError"}
+{"s": "i0F", "int": "ValueError", "float": "ValueError"}
+{"s": "\r7", "int": 7, "float": "7.0"}
+{"s": "7eFn4\u00a0i6", "int": "ValueError", "float": "ValueError"}
+{"s": "a\u2003\u001c9\f4F", "int": "ValueError", "float": "ValueError"}
+{"s": "aA1-\fi+E", "int": "ValueError", "float": "ValueError"}
+{"s": "+9", "int": 9, "float": "9.0"}
+{"s": " +4\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "2EaTF+tA", "int": "ValueError", "float": "ValueError"}
+{"s": "A", "int": "ValueError", "float": "ValueError"}
+{"s": "6xnF0t", "int": "ValueError", "float": "ValueError"}
+{"s": "53\t", "int": 53, "float": "53.0"}
+{"s": "\t ", "int": "ValueError", "float": "ValueError"}
+{"s": "I\u00a0\r-\r5.", "int": "ValueError", "float": "ValueError"}
+{"s": "eA\r9f", "int": "ValueError", "float": "ValueError"}
+{"s": "FFn", "int": "ValueError", "float": "ValueError"}
+{"s": "1T8n\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0a5t\f.", "int": "ValueError", "float": "ValueError"}
+{"s": "f\u001c\u001ctN", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003+8n 0", "int": "ValueError", "float": "ValueError"}
+{"s": "I_", "int": "ValueError", "float": "ValueError"}
+{"s": "\fA+2ey", "int": "ValueError", "float": "ValueError"}
+{"s": "Y+", "int": "ValueError", "float": "ValueError"}
+{"s": "542\t4Y.5", "int": "ValueError", "float": "ValueError"}
+{"s": "T6n\nt0", "int": "ValueError", "float": "ValueError"}
+{"s": "TA", "int": "ValueError", "float": "ValueError"}
+{"s": "3\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "166\nN0", "int": "ValueError", "float": "ValueError"}
+{"s": "6f\u000be", "int": "ValueError", "float": "ValueError"}
+{"s": "\r17", "int": 17, "float": "17.0"}
+{"s": "3N010 ", "int": "ValueError", "float": "ValueError"}
+{"s": "4F5-Y", "int": "ValueError", "float": "ValueError"}
+{"s": "56\nF0", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b\ff_1Ti\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "91f8 +\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "4fxf\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "3T", "int": "ValueError", "float": "ValueError"}
+{"s": "+yY", "int": "ValueError", "float": "ValueError"}
+{"s": "7N-.7", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\f\tE\u001ca", "int": "ValueError", "float": "ValueError"}
+{"s": "Ia\u000bA\u001cN", "int": "ValueError", "float": "ValueError"}
+{"s": "_05", "int": "ValueError", "float": "ValueError"}
+{"s": "ityfn77Y", "int": "ValueError", "float": "ValueError"}
+{"s": "F3", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\u001c E-A+\n", "int": "ValueError", "float": "ValueError"}
+{"s": "YY\u00a0Ty", "int": "ValueError", "float": "ValueError"}
+{"s": "\r\u00a01\r\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0-1ix2_", "int": "ValueError", "float": "ValueError"}
+{"s": "\na5N-eE-", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\t\f4", "int": 4, "float": "4.0"}
+{"s": "3na\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "9+", "int": "ValueError", "float": "ValueError"}
+{"s": ".aA\t 6T0", "int": "ValueError", "float": "ValueError"}
+{"s": "+\r", "int": "ValueError", "float": "ValueError"}
+{"s": "I\u001cf", "int": "ValueError", "float": "ValueError"}
+{"s": "__48+i\nF", "int": "ValueError", "float": "ValueError"}
+{"s": "+.1eN5\u2003t", "int": "ValueError", "float": "ValueError"}
+{"s": "EEfi", "int": "ValueError", "float": "ValueError"}
+{"s": "iYFA\u001cE", "int": "ValueError", "float": "ValueError"}
+{"s": "T\tn+5\u001c\u00a0\r", "int": "ValueError", "float": "ValueError"}
+{"s": "x8_.y", "int": "ValueError", "float": "ValueError"}
+{"s": "y", "int": "ValueError", "float": "ValueError"}
+{"s": "y\t5Y\u000b\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\tA\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "78n\r-", "int": "ValueError", "float": "ValueError"}
+{"s": "aYFa6e", "int": "ValueError", "float": "ValueError"}
+{"s": "-9\u000bt\u000b2", "int": "ValueError", "float": "ValueError"}
+{"s": "1f\fn-n", "int": "ValueError", "float": "ValueError"}
+{"s": "x4f\u001cYx9", "int": "ValueError", "float": "ValueError"}
+{"s": "FT.f\u00a0\u000b\t", "int": "ValueError", "float": "ValueError"}
+{"s": "5I8", "int": "ValueError", "float": "ValueError"}
+{"s": "74\u2003\f.ee", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a09e\u000b\t3\n\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "+t 3yy\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "5Y\u001c\f7NA", "int": "ValueError", "float": "ValueError"}
+{"s": "6A\u00a0\u000b9ff", "int": "ValueError", "float": "ValueError"}
+{"s": "I\fnx", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\f+-TN8-", "int": "ValueError", "float": "ValueError"}
+{"s": "F\u2003i_", "int": "ValueError", "float": "ValueError"}
+{"s": "ee", "int": "ValueError", "float": "ValueError"}
+{"s": "71af\ta4x", "int": "ValueError", "float": "ValueError"}
+{"s": "e  \u000byAi", "int": "ValueError", "float": "ValueError"}
+{"s": "f+f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bEt7E3", "int": "ValueError", "float": "ValueError"}
+{"s": "eI\n", "int": "ValueError", "float": "ValueError"}
+{"s": "\f", "int": "ValueError", "float": "ValueError"}
+{"s": "4", "int": 4, "float": "4.0"}
+{"s": "A.A\u001c\tTF5", "int": "ValueError", "float": "ValueError"}
+{"s": "12x2\r50\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003n\t", "int": "ValueError", "float": "ValueError"}
+{"s": "eE\u001c3_Yy", "int": "ValueError", "float": "ValueError"}
+{"s": "A\ra7", "int": "ValueError", "float": "ValueError"}
+{"s": "384a", "int": "ValueError", "float": "ValueError"}
+{"s": "-\r7Y\u001c7", "int": "ValueError", "float": "ValueError"}
+{"s": "T_", "int": "ValueError", "float": "ValueError"}
+{"s": "a6N-6Y1A", "int": "ValueError", "float": "ValueError"}
+{"s": "Ae\rF86n2", "int": "ValueError", "float": "ValueError"}
+{"s": "7I\u2003\u2003\u2003 ", "int": "ValueError", "float": "ValueError"}
+{"s": "Ey 2\u2003A", "int": "ValueError", "float": "ValueError"}
+{"s": "AFF\r0ftn", "int": "ValueError", "float": "ValueError"}
+{"s": "t9Y8x7", "int": "ValueError", "float": "ValueError"}
+{"s": "2FN6\u000ba3a", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\u00a0NAiA", "int": "ValueError", "float": "ValueError"}
+{"s": "t\n4.\fI", "int": "ValueError", "float": "ValueError"}
+{"s": "9E\u000b43E", "int": "ValueError", "float": "ValueError"}
+{"s": "t2\u00a0055T", "int": "ValueError", "float": "ValueError"}
+{"s": "Nia+\n3\t\n", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b7\u2003.-eI6", "int": "ValueError", "float": "ValueError"}
+{"s": "40Ii", "int": "ValueError", "float": "ValueError"}
+{"s": "i\t\rF\n-\nF", "int": "ValueError", "float": "ValueError"}
+{"s": "7\u00a0xa3_a\r", "int": "ValueError", "float": "ValueError"}
+{"s": "x7FA", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\u00a0E", "int": "ValueError", "float": "ValueError"}
+{"s": "A7 axnA", "int": "ValueError", "float": "ValueError"}
+{"s": ".f92 f\u00a0y", "int": "ValueError", "float": "ValueError"}
+{"s": "\r.4I\u2003ii", "int": "ValueError", "float": "ValueError"}
+{"s": "Taf", "int": "ValueError", "float": "ValueError"}
+{"s": "eAifi\u00a0ae", "int": "ValueError", "float": "ValueError"}
+{"s": "8_4E\t40Y", "int": "ValueError", "float": "ValueError"}
+{"s": "n\u2003x6", "int": "ValueError", "float": "ValueError"}
+{"s": "8", "int": 8, "float": "8.0"}
+{"s": "6\u000bx", "int": "ValueError", "float": "ValueError"}
+{"s": "_t\rYnNF", "int": "ValueError", "float": "ValueError"}
+{"s": "0t", "int": "ValueError", "float": "ValueError"}
+{"s": "i", "int": "ValueError", "float": "ValueError"}
+{"s": "\tn", "int": "ValueError", "float": "ValueError"}
+{"s": "e  ", "int": "ValueError", "float": "ValueError"}
+{"s": "2FNty", "int": "ValueError", "float": "ValueError"}
+{"s": ".\fIa\ry", "int": "ValueError", "float": "ValueError"}
+{"s": "t\u001c\u2003a9+_", "int": "ValueError", "float": "ValueError"}
+{"s": "_ E3\tTAE", "int": "ValueError", "float": "ValueError"}
+{"s": "\rN", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u001c_093t", "int": "ValueError", "float": "ValueError"}
+{"s": "59TtAA.0", "int": "ValueError", "float": "ValueError"}
+{"s": "9ey2\na3", "int": "ValueError", "float": "ValueError"}
+{"s": "5I._", "int": "ValueError", "float": "ValueError"}
+{"s": "I_9.3I", "int": "ValueError", "float": "ValueError"}
+{"s": "I\n13YA", "int": "ValueError", "float": "ValueError"}
+{"s": "1YI\nY+6N", "int": "ValueError", "float": "ValueError"}
+{"s": "\f1\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "x\f2", "int": "ValueError", "float": "ValueError"}
+{"s": "fN039", "int": "ValueError", "float": "ValueError"}
+{"s": "exi80 \n", "int": "ValueError", "float": "ValueError"}
+{"s": "e\u000b57y", "int": "ValueError", "float": "ValueError"}
+{"s": "5.fN49yI", "int": "ValueError", "float": "ValueError"}
+{"s": "x0y14\f-\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "N\u001cF7\u00a08\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "e\n8E\u000b\ff", "int": "ValueError", "float": "ValueError"}
+{"s": "7", "int": 7, "float": "7.0"}
+{"s": "5\r\r", "int": 5, "float": "5.0"}
+{"s": "06a3\u000be1", "int": "ValueError", "float": "ValueError"}
+{"s": "i3i\r", "int": "ValueError", "float": "ValueError"}
+{"s": "F\u2003\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "n7a", "int": "ValueError", "float": "ValueError"}
+{"s": "i33Y\u200346", "int": "ValueError", "float": "ValueError"}
+{"s": "5F", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c759I", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\t1-", "int": "ValueError", "float": "ValueError"}
+{"s": "a7\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "F\u000b\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": ".\t", "int": "ValueError", "float": "ValueError"}
+{"s": "7\ry\u00a08", "int": "ValueError", "float": "ValueError"}
+{"s": " \u000bF3y", "int": "ValueError", "float": "ValueError"}
+{"s": "eTeN", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u00a0\f02I", "int": "ValueError", "float": "ValueError"}
+{"s": "_2I7\na+", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\r\u001c\tt", "int": "ValueError", "float": "ValueError"}
+{"s": "\f1", "int": 1, "float": "1.0"}
+{"s": "6._", "int": "ValueError", "float": "ValueError"}
+{"s": "y\u001cI", "int": "ValueError", "float": "ValueError"}
+{"s": "N90f", "int": "ValueError", "float": "ValueError"}
+{"s": "2\u2003\n", "int": 2, "float": "2.0"}
+{"s": "a-", "int": "ValueError", "float": "ValueError"}
+{"s": "eFay\ry0+", "int": "ValueError", "float": "ValueError"}
+{"s": "n", "int": "ValueError", "float": "ValueError"}
+{"s": "Fn", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a01F02a", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b.3", "int": "ValueError", "float": "0.3"}
+{"s": "86Yi", "int": "ValueError", "float": "ValueError"}
+{"s": "fE_", "int": "ValueError", "float": "ValueError"}
+{"s": "a-+4i\u2003\u001c0", "int": "ValueError", "float": "ValueError"}
+{"s": "A8E_.\u000bAe", "int": "ValueError", "float": "ValueError"}
+{"s": "n0A", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "t7_\u00a0A4A\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "a ", "int": "ValueError", "float": "ValueError"}
+{"s": "T\n+\f9\n-", "int": "ValueError", "float": "ValueError"}
+{"s": "nAy-1Fx", "int": "ValueError", "float": "ValueError"}
+{"s": "f1Ft\tN26", "int": "ValueError", "float": "ValueError"}
+{"s": "4xFi6f9\f", "int": "ValueError", "float": "ValueError"}
+{"s": "yeT2\u001c\u001cFY", "int": "ValueError", "float": "ValueError"}
+{"s": "Nn_\niT9", "int": "ValueError", "float": "ValueError"}
+{"s": "47", "int": 47, "float": "47.0"}
+{"s": "F\u001c7xY", "int": "ValueError", "float": "ValueError"}
+{"s": "y1", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003\t", "int": "ValueError", "float": "ValueError"}
+{"s": "ifTY_e", "int": "ValueError", "float": "ValueError"}
+{"s": "N5I7\r", "int": "ValueError", "float": "ValueError"}
+{"s": "E9Fn-FN9", "int": "ValueError", "float": "ValueError"}
+{"s": "Y-fN", "int": "ValueError", "float": "ValueError"}
+{"s": "-1F\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bE n66f", "int": "ValueError", "float": "ValueError"}
+{"s": "0Nn+i\fx", "int": "ValueError", "float": "ValueError"}
+{"s": "IaF\n_+", "int": "ValueError", "float": "ValueError"}
+{"s": "f\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "-Ti", "int": "ValueError", "float": "ValueError"}
+{"s": "0NfEy", "int": "ValueError", "float": "ValueError"}
+{"s": "ni", "int": "ValueError", "float": "ValueError"}
+{"s": "\r2f1y", "int": "ValueError", "float": "ValueError"}
+{"s": "\fAt0\t", "int": "ValueError", "float": "ValueError"}
+{"s": " \u00a06+n", "int": "ValueError", "float": "ValueError"}
+{"s": "5- 1\r_ ", "int": "ValueError", "float": "ValueError"}
+{"s": "i\u2003i\u00a0 t", "int": "ValueError", "float": "ValueError"}
+{"s": "_Aty-1a", "int": "ValueError", "float": "ValueError"}
+{"s": "\nT3", "int": "ValueError", "float": "ValueError"}
+{"s": "\t5+ ", "int": "ValueError", "float": "ValueError"}
+{"s": ".tna", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\t2xte", "int": "ValueError", "float": "ValueError"}
+{"s": "Yf3a771", "int": "ValueError", "float": "ValueError"}
+{"s": "-\rI1", "int": "ValueError", "float": "ValueError"}
+{"s": "t.", "int": "ValueError", "float": "ValueError"}
+{"s": "EI8N+a6", "int": "ValueError", "float": "ValueError"}
+{"s": "A\t9A", "int": "ValueError", "float": "ValueError"}
+{"s": "\fT\t\u000b966\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "axx", "int": "ValueError", "float": "ValueError"}
+{"s": "2e", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003nEI", "int": "ValueError", "float": "ValueError"}
+{"s": "t\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0xY", "int": "ValueError", "float": "ValueError"}
+{"s": "xit\u001c-\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "1t", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003Ft3i", "int": "ValueError", "float": "ValueError"}
+{"s": "-xe0", "int": "ValueError", "float": "ValueError"}
+{"s": "7n\u001cnAIA", "int": "ValueError", "float": "ValueError"}
+{"s": "y\u00a0+nf-", "int": "ValueError", "float": "ValueError"}
+{"s": "7AEe\fTf", "int": "ValueError", "float": "ValueError"}
+{"s": "9_.0", "int": "ValueError", "float": "ValueError"}
+{"s": "4\t1\u2003t.F\t", "int": "ValueError", "float": "ValueError"}
+{"s": "A\f0y6+I4", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u00a09e", "int": "ValueError", "float": "ValueError"}
+{"s": "\r\u20031-\u000b73", "int": "ValueError", "float": "ValueError"}
+{"s": "n6", "int": "ValueError", "float": "ValueError"}
+{"s": "Ie58\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "f6", "int": "ValueError", "float": "ValueError"}
+{"s": "tF\u001c7tx0T", "int": "ValueError", "float": "ValueError"}
+{"s": "1x\u20038N482", "int": "ValueError", "float": "ValueError"}
+{"s": "fIA.n", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b2", "int": 2, "float": "2.0"}
+{"s": "\u00a0\nxy\n2EN", "int": "ValueError", "float": "ValueError"}
+{"s": "4n0\u00a0A", "int": "ValueError", "float": "ValueError"}
+{"s": "n3\u00a0\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "-TiN", "int": "ValueError", "float": "ValueError"}
+{"s": "-N", "int": "ValueError", "float": "ValueError"}
+{"s": "\tF9aANf", "int": "ValueError", "float": "ValueError"}
+{"s": "ei\t0x\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "FA57I\u001c\t\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "\r.7y\t4_", "int": "ValueError", "float": "ValueError"}
+{"s": "8y", "int": "ValueError", "float": "ValueError"}
+{"s": "9xA1", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c2-++.\u001c_", "int": "ValueError", "float": "ValueError"}
+{"s": "e.\u001c50", "int": "ValueError", "float": "ValueError"}
+{"s": "A\u000b20\r2", "int": "ValueError", "float": "ValueError"}
+{"s": "\nnNe49", "int": "ValueError", "float": "ValueError"}
+{"s": "_+\u2003A\t", "int": "ValueError", "float": "ValueError"}
+{"s": "6\u2003\u001c59\r+", "int": "ValueError", "float": "ValueError"}
+{"s": "\n1t\tt3-", "int": "ValueError", "float": "ValueError"}
+{"s": "a\t\u00a0n", "int": "ValueError", "float": "ValueError"}
+{"s": "Y4.i\n", "int": "ValueError", "float": "ValueError"}
+{"s": "N36y_e ", "int": "ValueError", "float": "ValueError"}
+{"s": ".2\f\u000bE6", "int": "ValueError", "float": "ValueError"}
+{"s": "EI6n\t.8x", "int": "ValueError", "float": "ValueError"}
+{"s": "\tTt", "int": "ValueError", "float": "ValueError"}
+{"s": "0\f-NI", "int": "ValueError", "float": "ValueError"}
+{"s": "yaEN8NI5", "int": "ValueError", "float": "ValueError"}
+{"s": "t36\n1E\rN", "int": "ValueError", "float": "ValueError"}
+{"s": "T3", "int": "ValueError", "float": "ValueError"}
+{"s": "0iN", "int": "ValueError", "float": "ValueError"}
+{"s": "I6\f-\t", "int": "ValueError", "float": "ValueError"}
+{"s": "\n7\rI", "int": "ValueError", "float": "ValueError"}
+{"s": "a\u00a08if.2", "int": "ValueError", "float": "ValueError"}
+{"s": "8A+f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u20036\u00a0i+_3", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bt", "int": "ValueError", "float": "ValueError"}
+{"s": "NTI", "int": "ValueError", "float": "ValueError"}
+{"s": "A6\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\u20036\u200308\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "3\u001caI+\fi", "int": "ValueError", "float": "ValueError"}
+{"s": "3++e4", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001ca\tY4", "int": "ValueError", "float": "ValueError"}
+{"s": ".89yFn\tn", "int": "ValueError", "float": "ValueError"}
+{"s": "N0\f\t1+", "int": "ValueError", "float": "ValueError"}
+{"s": "+AEN", "int": "ValueError", "float": "ValueError"}
+{"s": "1257", "int": 1257, "float": "1257.0"}
+{"s": "+ ", "int": "ValueError", "float": "ValueError"}
+{"s": "_\r+1YT", "int": "ValueError", "float": "ValueError"}
+{"s": "nee\u000b8\n", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003_\u000bx\u00a0\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "At\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "_+Y90i ", "int": "ValueError", "float": "ValueError"}
+{"s": "0\u000bt\fI9", "int": "ValueError", "float": "ValueError"}
+{"s": "IF1\u00a09f\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b\f\rniyxe", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b\t957-f ", "int": "ValueError", "float": "ValueError"}
+{"s": "T\n", "int": "ValueError", "float": "ValueError"}
+{"s": "8A9", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003at", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c01+A", "int": "ValueError", "float": "ValueError"}
+{"s": "NT832Te+", "int": "ValueError", "float": "ValueError"}
+{"s": "2+Nf\nA", "int": "ValueError", "float": "ValueError"}
+{"s": "en\u000be7F", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b-", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\n", "int": "ValueError", "float": "ValueError"}
+{"s": "59F.", "int": "ValueError", "float": "ValueError"}
+{"s": "A6\n  N", "int": "ValueError", "float": "ValueError"}
+{"s": "e70xIf\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "\t_I", "int": "ValueError", "float": "ValueError"}
+{"s": "N31t", "int": "ValueError", "float": "ValueError"}
+{"s": "nIya\r3AE", "int": "ValueError", "float": "ValueError"}
+{"s": "533i0", "int": "ValueError", "float": "ValueError"}
+{"s": "\n9", "int": 9, "float": "9.0"}
+{"s": "f367F\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "059\u001c7A\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "Y\t3", "int": "ValueError", "float": "ValueError"}
+{"s": "4\r", "int": 4, "float": "4.0"}
+{"s": "-_n", "int": "ValueError", "float": "ValueError"}
+{"s": "F \u00a0Y", "int": "ValueError", "float": "ValueError"}
+{"s": "0\n", "int": 0, "float": "0.0"}
+{"s": "t33I", "int": "ValueError", "float": "ValueError"}
+{"s": "\ti\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b\f8y\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "f8A 4\f", "int": "ValueError", "float": "ValueError"}
+{"s": "A9 N", "int": "ValueError", "float": "ValueError"}
+{"s": "EF2N", "int": "ValueError", "float": "ValueError"}
+{"s": "39I5E5", "int": "ValueError", "float": "ValueError"}
+{"s": "e693Ixx+", "int": "ValueError", "float": "ValueError"}
+{"s": "0 i1F62E", "int": "ValueError", "float": "ValueError"}
+{"s": "1\u000bA", "int": "ValueError", "float": "ValueError"}
+{"s": "e6\u000b+t8x", "int": "ValueError", "float": "ValueError"}
+{"s": "e-x", "int": "ValueError", "float": "ValueError"}
+{"s": "na\t\u000b-9", "int": "ValueError", "float": "ValueError"}
+{"s": "-E\tE60a", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b9", "int": 9, "float": "9.0"}
+{"s": "\nF.\u000ba9", "int": "ValueError", "float": "ValueError"}
+{"s": "ex17y_ ", "int": "ValueError", "float": "ValueError"}
+{"s": "-5e7\n\u000b", "int": "ValueError", "float": "-50000000.0"}
+{"s": "34\u000bN", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c2-\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a05y", "int": "ValueError", "float": "ValueError"}
+{"s": "8aynx+", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\u00a0\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "ieT2", "int": "ValueError", "float": "ValueError"}
+{"s": "y1yiF", "int": "ValueError", "float": "ValueError"}
+{"s": "9A5fyE", "int": "ValueError", "float": "ValueError"}
+{"s": "5E\u001c42n", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bFAE6\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "E\u000bNxfI3\f", "int": "ValueError", "float": "ValueError"}
+{"s": "3i\r", "int": "ValueError", "float": "ValueError"}
+{"s": "8e\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "xY", "int": "ValueError", "float": "ValueError"}
+{"s": "6N\u2003.3", "int": "ValueError", "float": "ValueError"}
+{"s": "n 95E", "int": "ValueError", "float": "ValueError"}
+{"s": "EfI1ty4", "int": "ValueError", "float": "ValueError"}
+{"s": "x f\n", "int": "ValueError", "float": "ValueError"}
+{"s": "7e", "int": "ValueError", "float": "ValueError"}
+{"s": "1y\n.", "int": "ValueError", "float": "ValueError"}
+{"s": "_Ea+.+En", "int": "ValueError", "float": "ValueError"}
+{"s": "i.._6", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cY\f8n1", "int": "ValueError", "float": "ValueError"}
+{"s": "3f\u00a0NtA\t", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000by", "int": "ValueError", "float": "ValueError"}
+{"s": "27T", "int": "ValueError", "float": "ValueError"}
+{"s": "F+-446\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "f308t8\f4", "int": "ValueError", "float": "ValueError"}
+{"s": "3.Ai51", "int": "ValueError", "float": "ValueError"}
+{"s": "x\u00a0+7\u2003IE\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\ty_t4.x\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "e7fy\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "2F_", "int": "ValueError", "float": "ValueError"}
+{"s": "1e9_", "int": "ValueError", "float": "ValueError"}
+{"s": "i\ff844", "int": "ValueError", "float": "ValueError"}
+{"s": "\t7EaA+", "int": "ValueError", "float": "ValueError"}
+{"s": "Ny\r\f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0+\t7 5e", "int": "ValueError", "float": "ValueError"}
+{"s": "F +a\nI", "int": "ValueError", "float": "ValueError"}
+{"s": "_yt\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "e29 Y", "int": "ValueError", "float": "ValueError"}
+{"s": "eYfxn2", "int": "ValueError", "float": "ValueError"}
+{"s": "I\t6I4", "int": "ValueError", "float": "ValueError"}
+{"s": "30n8\u000biea", "int": "ValueError", "float": "ValueError"}
+{"s": "7a0\f\t", "int": "ValueError", "float": "ValueError"}
+{"s": "2Ef\u000bN7", "int": "ValueError", "float": "ValueError"}
+{"s": "\n  0t\t7a", "int": "ValueError", "float": "ValueError"}
+{"s": "3Any4y2", "int": "ValueError", "float": "ValueError"}
+{"s": "n2\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "yiT \t", "int": "ValueError", "float": "ValueError"}
+{"s": "eEx\u20034T", "int": "ValueError", "float": "ValueError"}
+{"s": "Fa0\r5n9", "int": "ValueError", "float": "ValueError"}
+{"s": "+2", "int": 2, "float": "2.0"}
+{"s": "NT0y9N", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0-\r87Y\r1", "int": "ValueError", "float": "ValueError"}
+{"s": "TNtEt3", "int": "ValueError", "float": "ValueError"}
+{"s": "A_", "int": "ValueError", "float": "ValueError"}
+{"s": "F.+20\ft", "int": "ValueError", "float": "ValueError"}
+{"s": "5152", "int": 5152, "float": "5152.0"}
+{"s": "T\u001c0\u20031\t\r5", "int": "ValueError", "float": "ValueError"}
+{"s": "-INY2i", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003I\u001ct\f8I", "int": "ValueError", "float": "ValueError"}
+{"s": "i3_\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cn7\tf", "int": "ValueError", "float": "ValueError"}
+{"s": "831E\n", "int": "ValueError", "float": "ValueError"}
+{"s": "f7\u2003Ii+e\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c\r\u2003y7", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b\u001cTNyi2e", "int": "ValueError", "float": "ValueError"}
+{"s": "+4tI746f", "int": "ValueError", "float": "ValueError"}
+{"s": "x+\u001c+7-", "int": "ValueError", "float": "ValueError"}
+{"s": "N1t\t_", "int": "ValueError", "float": "ValueError"}
+{"s": "ax-86i", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\u00a0_6", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bI63i\u001c\u2003.", "int": "ValueError", "float": "ValueError"}
+{"s": "ax4a6.", "int": "ValueError", "float": "ValueError"}
+{"s": "E--.A\tF", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003Ta\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "F8", "int": "ValueError", "float": "ValueError"}
+{"s": "2TiY ", "int": "ValueError", "float": "ValueError"}
+{"s": "AEyt\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "5\f0yy\u2003+\n", "int": "ValueError", "float": "ValueError"}
+{"s": "T0\u00a0\fNA", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003ATn_e5a", "int": "ValueError", "float": "ValueError"}
+{"s": "I.\u20030", "int": "ValueError", "float": "ValueError"}
+{"s": "544", "int": 544, "float": "544.0"}
+{"s": "Na\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "Fi\rt", "int": "ValueError", "float": "ValueError"}
+{"s": ".\r_\fi9", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0y+\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003eI92Y\n", "int": "ValueError", "float": "ValueError"}
+{"s": "8aTA\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "at3\r\n", "int": "ValueError", "float": "ValueError"}
+{"s": ".\u2003Tt", "int": "ValueError", "float": "ValueError"}
+{"s": "\ta59N88\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b+", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0y2\u000b0", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003T \u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c7T1Ene\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "nx\fnI", "int": "ValueError", "float": "ValueError"}
+{"s": "1Y1tt4\ft", "int": "ValueError", "float": "ValueError"}
+{"s": "ayNY_Ax", "int": "ValueError", "float": "ValueError"}
+{"s": "T\t3", "int": "ValueError", "float": "ValueError"}
+{"s": "f0\n+058", "int": "ValueError", "float": "ValueError"}
+{"s": "3n\u00a0i..yA", "int": "ValueError", "float": "ValueError"}
+{"s": "Ta.Y7", "int": "ValueError", "float": "ValueError"}
+{"s": "16aFn\f", "int": "ValueError", "float": "ValueError"}
+{"s": "45 F", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000by\u001c_.ftI", "int": "ValueError", "float": "ValueError"}
+{"s": "a2N_ \u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "\tNT\f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000ba", "int": "ValueError", "float": "ValueError"}
+{"s": "A\t\u000b_\rF", "int": "ValueError", "float": "ValueError"}
+{"s": "E3E", "int": "ValueError", "float": "ValueError"}
+{"s": "i -\u2003712+", "int": "ValueError", "float": "ValueError"}
+{"s": "_\f6ey2Y", "int": "ValueError", "float": "ValueError"}
+{"s": "0A5n8E", "int": "ValueError", "float": "ValueError"}
+{"s": "49f\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "9_\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "e9_N", "int": "ValueError", "float": "ValueError"}
+{"s": ".n\fEE\f", "int": "ValueError", "float": "ValueError"}
+{"s": "\rT", "int": "ValueError", "float": "ValueError"}
+{"s": "0Y\r0ai\ta", "int": "ValueError", "float": "ValueError"}
+{"s": "\r8", "int": 8, "float": "8.0"}
+{"s": "-9A", "int": "ValueError", "float": "ValueError"}
+{"s": "3+1n", "int": "ValueError", "float": "ValueError"}
+{"s": "ayY6", "int": "ValueError", "float": "ValueError"}
+{"s": "tn7_A\t", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c\t05N-\u000b2", "int": "ValueError", "float": "ValueError"}
+{"s": "faf8ET\u00a0x", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\ne-6Ty\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "0x8\r_\n\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "3N\t\t\u001cnA", "int": "ValueError", "float": "ValueError"}
+{"s": "tI", "int": "ValueError", "float": "ValueError"}
+{"s": " ia._eeN", "int": "ValueError", "float": "ValueError"}
+{"s": "F2\t5.", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0 e\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "F2f7+Y", "int": "ValueError", "float": "ValueError"}
+{"s": "t2e", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c\r", "int": "ValueError", "float": "ValueError"}
+{"s": "N", "int": "ValueError", "float": "ValueError"}
+{"s": "+EiF", "int": "ValueError", "float": "ValueError"}
+{"s": "Na T5\u001c\nn", "int": "ValueError", "float": "ValueError"}
+{"s": "Y\fT8+4e", "int": "ValueError", "float": "ValueError"}
+{"s": "eA27Y84", "int": "ValueError", "float": "ValueError"}
+{"s": "t_3\u200371", "int": "ValueError", "float": "ValueError"}
+{"s": "0YITI-", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\u001c5e", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\u00a0F+ef2i", "int": "ValueError", "float": "ValueError"}
+{"s": "_51nNF", "int": "ValueError", "float": "ValueError"}
+{"s": "AI15Y", "int": "ValueError", "float": "ValueError"}
+{"s": "f\n2_", "int": "ValueError", "float": "ValueError"}
+{"s": "\r\ta\t\fy", "int": "ValueError", "float": "ValueError"}
+{"s": "Ax-aF\u2003E", "int": "ValueError", "float": "ValueError"}
+{"s": "fAe3\u001ct", "int": "ValueError", "float": "ValueError"}
+{"s": "4ATt\t6e", "int": "ValueError", "float": "ValueError"}
+{"s": "5N\u2003\u001c4\t\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "+E8e.0\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "Y4", "int": "ValueError", "float": "ValueError"}
+{"s": "2937\r4", "int": "ValueError", "float": "ValueError"}
+{"s": "T2y2280", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003y\u2003ix", "int": "ValueError", "float": "ValueError"}
+{"s": "7y8a.", "int": "ValueError", "float": "ValueError"}
+{"s": "aYf29x", "int": "ValueError", "float": "ValueError"}
+{"s": "f ", "int": "ValueError", "float": "ValueError"}
+{"s": "xf4A", "int": "ValueError", "float": "ValueError"}
+{"s": "95T9", "int": "ValueError", "float": "ValueError"}
+{"s": "a\u00a03t\u00a0504", "int": "ValueError", "float": "ValueError"}
+{"s": "nE", "int": "ValueError", "float": "ValueError"}
+{"s": "\tF", "int": "ValueError", "float": "ValueError"}
+{"s": "7T+2\u00a0I\r+", "int": "ValueError", "float": "ValueError"}
+{"s": "xn", "int": "ValueError", "float": "ValueError"}
+{"s": "0T7", "int": "ValueError", "float": "ValueError"}
+{"s": "FA5\u000b_", "int": "ValueError", "float": "ValueError"}
+{"s": "N5", "int": "ValueError", "float": "ValueError"}
+{"s": "ia\f\ni8", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bY1\u001c.\n71", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b\u000bIy7\f\u001c+", "int": "ValueError", "float": "ValueError"}
+{"s": "F5Tn\u000bN", "int": "ValueError", "float": "ValueError"}
+{"s": "AI\n2N", "int": "ValueError", "float": "ValueError"}
+{"s": "+8-t", "int": "ValueError", "float": "ValueError"}
+{"s": ".-", "int": "ValueError", "float": "ValueError"}
+{"s": "Fia\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "e-F4a0a0", "int": "ValueError", "float": "ValueError"}
+{"s": "e+a\u001cFT", "int": "ValueError", "float": "ValueError"}
+{"s": "I\u000b_41", "int": "ValueError", "float": "ValueError"}
+{"s": "f5T2.Tt\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "n\u20031", "int": "ValueError", "float": "ValueError"}
+{"s": "EI.nYnE", "int": "ValueError", "float": "ValueError"}
+{"s": "-n+.a-\r", "int": "ValueError", "float": "ValueError"}
+{"s": ".n", "int": "ValueError", "float": "ValueError"}
+{"s": "_x2 \t4\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "IA9e", "int": "ValueError", "float": "ValueError"}
+{"s": "a6\t", "int": "ValueError", "float": "ValueError"}
+{"s": "-nI-I", "int": "ValueError", "float": "ValueError"}
+{"s": "\nE5Y+A79", "int": "ValueError", "float": "ValueError"}
+{"s": "8Yt\u000bi", "int": "ValueError", "float": "ValueError"}
+{"s": "8\u001cxF50", "int": "ValueError", "float": "ValueError"}
+{"s": "1\f4", "int": "ValueError", "float": "ValueError"}
+{"s": "\fEf", "int": "ValueError", "float": "ValueError"}
+{"s": "\t", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c6y.\t.4 ", "int": "ValueError", "float": "ValueError"}
+{"s": "\nA", "int": "ValueError", "float": "ValueError"}
+{"s": "n\u000b\r-1_\u000b9", "int": "ValueError", "float": "ValueError"}
+{"s": "9A00", "int": "ValueError", "float": "ValueError"}
+{"s": "a\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0f6\t", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bx \r43\n", "int": "ValueError", "float": "ValueError"}
+{"s": " y", "int": "ValueError", "float": "ValueError"}
+{"s": "\t9 \fA", "int": "ValueError", "float": "ValueError"}
+{"s": "IF01fYiI", "int": "ValueError", "float": "ValueError"}
+{"s": "8\u2003N\f-", "int": "ValueError", "float": "ValueError"}
+{"s": "f_\t7\r", "int": "ValueError", "float": "ValueError"}
+{"s": "75+\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "5f\u000bEe", "int": "ValueError", "float": "ValueError"}
+{"s": "1\r", "int": 1, "float": "1.0"}
+{"s": "_FyE999", "int": "ValueError", "float": "ValueError"}
+{"s": "\ne .", "int": "ValueError", "float": "ValueError"}
+{"s": "taf+7a94", "int": "ValueError", "float": "ValueError"}
+{"s": "IiIix2\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "y\u000b2+", "int": "ValueError", "float": "ValueError"}
+{"s": "_I7", "int": "ValueError", "float": "ValueError"}
+{"s": "tEE\u00a0 ", "int": "ValueError", "float": "ValueError"}
+{"s": "iET\f3n", "int": "ValueError", "float": "ValueError"}
+{"s": "n\u000ba\u000be\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\f._EE-4", "int": "ValueError", "float": "ValueError"}
+{"s": "\nn", "int": "ValueError", "float": "ValueError"}
+{"s": "N\f\t0\u000b\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0iy8f_tn", "int": "ValueError", "float": "ValueError"}
+{"s": "_\r3E50\fT", "int": "ValueError", "float": "ValueError"}
+{"s": "_0t1nx_", "int": "ValueError", "float": "ValueError"}
+{"s": "y0-", "int": "ValueError", "float": "ValueError"}
+{"s": "y+yTa\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "+\r6\f", "int": "ValueError", "float": "ValueError"}
+{"s": "-YF", "int": "ValueError", "float": "ValueError"}
+{"s": "IY", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bf\fn\t", "int": "ValueError", "float": "ValueError"}
+{"s": "NF8", "int": "ValueError", "float": "ValueError"}
+{"s": "f-IxF4", "int": "ValueError", "float": "ValueError"}
+{"s": "n1\u20036e1nE", "int": "ValueError", "float": "ValueError"}
+{"s": "NY\t0et", "int": "ValueError", "float": "ValueError"}
+{"s": "+i", "int": "ValueError", "float": "ValueError"}
+{"s": "9IE\u2003\f\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "123", "int": 123, "float": "123.0"}
+{"s": "\fT\u000b6", "int": "ValueError", "float": "ValueError"}
+{"s": "0\u001cEFi", "int": "ValueError", "float": "ValueError"}
+{"s": "\r+a", "int": "ValueError", "float": "ValueError"}
+{"s": "y16", "int": "ValueError", "float": "ValueError"}
+{"s": "8\u001c\u000b91\nY", "int": "ValueError", "float": "ValueError"}
+{"s": "xNATA-f", "int": "ValueError", "float": "ValueError"}
+{"s": "..3 45Y\t", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\u001cA\u20035", "int": "ValueError", "float": "ValueError"}
+{"s": "\nN.x\t\n", "int": "ValueError", "float": "ValueError"}
+{"s": "AN-0\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "9\u00a0F\u00a0I", "int": "ValueError", "float": "ValueError"}
+{"s": "A3nF\u001c..", "int": "ValueError", "float": "ValueError"}
+{"s": "\r\f \u000b9\u000b78", "int": "ValueError", "float": "ValueError"}
+{"s": "7F_x1+4", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\teyf7", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u001c9", "int": "ValueError", "float": "ValueError"}
+{"s": "e0", "int": "ValueError", "float": "ValueError"}
+{"s": "  y\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "TF", "int": "ValueError", "float": "ValueError"}
+{"s": "Y8i0\u001c\n\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "a\u001cN", "int": "ValueError", "float": "ValueError"}
+{"s": "A\r\rA-\f\tA", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003y4-5", "int": "ValueError", "float": "ValueError"}
+{"s": "T\r.E.", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c9f\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "5i4", "int": "ValueError", "float": "ValueError"}
+{"s": "+E41\u001c9Y\n", "int": "ValueError", "float": "ValueError"}
+{"s": "-07ta6", "int": "ValueError", "float": "ValueError"}
+{"s": "f\r9", "int": "ValueError", "float": "ValueError"}
+{"s": "NF", "int": "ValueError", "float": "ValueError"}
+{"s": "tnA.", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a02\n", "int": 2, "float": "2.0"}
+{"s": "\f5", "int": 5, "float": "5.0"}
+{"s": "A_2", "int": "ValueError", "float": "ValueError"}
+{"s": "n-1", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u001c\u001c+\u00a0_I\f", "int": "ValueError", "float": "ValueError"}
+{"s": "tE ", "int": "ValueError", "float": "ValueError"}
+{"s": "F_t0\u2003e9", "int": "ValueError", "float": "ValueError"}
+{"s": " f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000be8f0f0", "int": "ValueError", "float": "ValueError"}
+{"s": "-1A533E", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\nAN", "int": "ValueError", "float": "ValueError"}
+{"s": "-\u00a0nt\n", "int": "ValueError", "float": "ValueError"}
+{"s": "\ta\u00a0yf+x", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bNE.F", "int": "ValueError", "float": "ValueError"}
+{"s": "42_6 e", "int": "ValueError", "float": "ValueError"}
+{"s": "\nIe.E0n ", "int": "ValueError", "float": "ValueError"}
+{"s": "0\u001cNe1y", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b0Ea5", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003NeYf\f_7", "int": "ValueError", "float": "ValueError"}
+{"s": "\n-\f", "int": "ValueError", "float": "ValueError"}
+{"s": ".n3a1x3", "int": "ValueError", "float": "ValueError"}
+{"s": "_ 0nN8iT", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a04.1", "int": "ValueError", "float": "4.1"}
+{"s": "EI18+xfY", "int": "ValueError", "float": "ValueError"}
+{"s": "n6\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "F\u001cIx\fIA", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b1", "int": 1, "float": "1.0"}
+{"s": "\u2003+", "int": "ValueError", "float": "ValueError"}
+{"s": "y963\u00a0\t", "int": "ValueError", "float": "ValueError"}
+{"s": "13a0e+\u000bA", "int": "ValueError", "float": "ValueError"}
+{"s": "6a03\u00a0a", "int": "ValueError", "float": "ValueError"}
+{"s": "inI", "int": "ValueError", "float": "ValueError"}
+{"s": "na\f1\n7\rx", "int": "ValueError", "float": "ValueError"}
+{"s": "5239T9", "int": "ValueError", "float": "ValueError"}
+{"s": "2\u2003e\f\f\f-\n", "int": "ValueError", "float": "ValueError"}
+{"s": "32\u000bxF", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b6e-n\f", "int": "ValueError", "float": "ValueError"}
+{"s": "_5T43", "int": "ValueError", "float": "ValueError"}
+{"s": ".Ix\u00a0EA\t", "int": "ValueError", "float": "ValueError"}
+{"s": "iT\tI-T", "int": "ValueError", "float": "ValueError"}
+{"s": "iaE t-", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\u001c Nyf\r", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u001cfNNa\u000b+", "int": "ValueError", "float": "ValueError"}
+{"s": "-\t6f\n\r\r", "int": "ValueError", "float": "ValueError"}
+{"s": "xN\u000bfxfi\t", "int": "ValueError", "float": "ValueError"}
+{"s": "y-\u000b6\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u2003f.\u001c3x", "int": "ValueError", "float": "ValueError"}
+{"s": "t\f_F", "int": "ValueError", "float": "ValueError"}
+{"s": "Ta", "int": "ValueError", "float": "ValueError"}
+{"s": "4_F\u00a0n4F\r", "int": "ValueError", "float": "ValueError"}
+{"s": "7I69y1", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003\n", "int": "ValueError", "float": "ValueError"}
+{"s": "9aY", "int": "ValueError", "float": "ValueError"}
+{"s": "\nFa3", "int": "ValueError", "float": "ValueError"}
+{"s": "n8", "int": "ValueError", "float": "ValueError"}
+{"s": "\ri", "int": "ValueError", "float": "ValueError"}
+{"s": "y0+\f-t\t", "int": "ValueError", "float": "ValueError"}
+{"s": "ia", "int": "ValueError", "float": "ValueError"}
+{"s": "+ ef\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "n 5\t\u000b3\r_", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003_0\n_", "int": "ValueError", "float": "ValueError"}
+{"s": "24.+Y", "int": "ValueError", "float": "ValueError"}
+{"s": " \u001cE", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c6T", "int": "ValueError", "float": "ValueError"}
+{"s": "N1\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "99f-", "int": "ValueError", "float": "ValueError"}
+{"s": "1\u2003-\nx", "int": "ValueError", "float": "ValueError"}
+{"s": "eF\u2003\nt\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "e7E", "int": "ValueError", "float": "ValueError"}
+{"s": "\t.\u00a0Ae\u00a0\t", "int": "ValueError", "float": "ValueError"}
+{"s": "0T", "int": "ValueError", "float": "ValueError"}
+{"s": "\fE", "int": "ValueError", "float": "ValueError"}
+{"s": "I5N", "int": "ValueError", "float": "ValueError"}
+{"s": "In_9", "int": "ValueError", "float": "ValueError"}
+{"s": "\rn_-Y4\t_", "int": "ValueError", "float": "ValueError"}
+{"s": "Y_", "int": "ValueError", "float": "ValueError"}
+{"s": "06\n\f\u00a03", "int": "ValueError", "float": "ValueError"}
+{"s": "9\u000b", "int": 9, "float": "9.0"}
+{"s": "59 T36", "int": "ValueError", "float": "ValueError"}
+{"s": "FN", "int": "ValueError", "float": "ValueError"}
+{"s": "95.03\fyy", "int": "ValueError", "float": "ValueError"}
+{"s": "2_ynfA7\t", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0ey", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0ef6\n", "int": "ValueError", "float": "ValueError"}
+{"s": "F02-.\r\u000bE", "int": "ValueError", "float": "ValueError"}
+{"s": "N9\u2003.7e", "int": "ValueError", "float": "ValueError"}
+{"s": "E\n1NT", "int": "ValueError", "float": "ValueError"}
+{"s": "feF\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": " I\u00a063\u001c-N", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\u000b\f", "int": "ValueError", "float": "ValueError"}
+{"s": "t48\u00a0\f-5\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "9NE\n5\ff", "int": "ValueError", "float": "ValueError"}
+{"s": "\t36\u00a0iEe", "int": "ValueError", "float": "ValueError"}
+{"s": "+Y\u001cteY+6", "int": "ValueError", "float": "ValueError"}
+{"s": "a_\u000b\n1\u001c\t", "int": "ValueError", "float": "ValueError"}
+{"s": "I\u20036AE", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0+f\u00a0e\ryy", "int": "ValueError", "float": "ValueError"}
+{"s": "75\u2003y", "int": "ValueError", "float": "ValueError"}
+{"s": "fa93a\n9N", "int": "ValueError", "float": "ValueError"}
+{"s": "i6", "int": "ValueError", "float": "ValueError"}
+{"s": "9\u000bA.", "int": "ValueError", "float": "ValueError"}
+{"s": "6+1", "int": "ValueError", "float": "ValueError"}
+{"s": "IA", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cy3Yax\r\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "i\u001cf", "int": "ValueError", "float": "ValueError"}
+{"s": "5y9\u2003n\n", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c6t\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003\u00a0t9a", "int": "ValueError", "float": "ValueError"}
+{"s": "a06i\n\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "3\u000b", "int": 3, "float": "3.0"}
+{"s": "A3e3T", "int": "ValueError", "float": "ValueError"}
+{"s": "iN\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "74t", "int": "ValueError", "float": "ValueError"}
+{"s": "828A", "int": "ValueError", "float": "ValueError"}
+{"s": "7F\fi\rEFI", "int": "ValueError", "float": "ValueError"}
+{"s": "-49-F-xI", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\u2003i", "int": "ValueError", "float": "ValueError"}
+{"s": "--Ay\f", "int": "ValueError", "float": "ValueError"}
+{"s": "n.38.E4", "int": "ValueError", "float": "ValueError"}
+{"s": "x9T0i6\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "+a12Y\u000b0", "int": "ValueError", "float": "ValueError"}
+{"s": "3_\u00a0054", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0e\u001c41E", "int": "ValueError", "float": "ValueError"}
+{"s": "3--\r", "int": "ValueError", "float": "ValueError"}
+{"s": "Y\teAiA", "int": "ValueError", "float": "ValueError"}
+{"s": "t.8_x4", "int": "ValueError", "float": "ValueError"}
+{"s": "-1i4", "int": "ValueError", "float": "ValueError"}
+{"s": "Y\ft3", "int": "ValueError", "float": "ValueError"}
+{"s": "_56AI", "int": "ValueError", "float": "ValueError"}
+{"s": ".072\n_", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0221", "int": 221, "float": "221.0"}
+{"s": "\u001c\ff", "int": "ValueError", "float": "ValueError"}
+{"s": "A.2", "int": "ValueError", "float": "ValueError"}
+{"s": "ay29nx", "int": "ValueError", "float": "ValueError"}
+{"s": "-IFxA76T", "int": "ValueError", "float": "ValueError"}
+{"s": "7N", "int": "ValueError", "float": "ValueError"}
+{"s": "n\u00a0\f\rYA", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c-A6", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a02", "int": 2, "float": "2.0"}
+{"s": "7aTINy-+", "int": "ValueError", "float": "ValueError"}
+{"s": ".5\u20032 ", "int": "ValueError", "float": "ValueError"}
+{"s": "\nE\n94\tn", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cT0\nx\u001c-", "int": "ValueError", "float": "ValueError"}
+{"s": "+\r\n", "int": "ValueError", "float": "ValueError"}
+{"s": "fx.\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "T6\n\r.", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0tE\n", "int": "ValueError", "float": "ValueError"}
+{"s": ".tE89\f", "int": "ValueError", "float": "ValueError"}
+{"s": "3\u001cTa", "int": "ValueError", "float": "ValueError"}
+{"s": "aY\u000b+-3", "int": "ValueError", "float": "ValueError"}
+{"s": "x3x\u00a0+\n-", "int": "ValueError", "float": "ValueError"}
+{"s": "62E\u00a0i+", "int": "ValueError", "float": "ValueError"}
+{"s": "4-8", "int": "ValueError", "float": "ValueError"}
+{"s": "FyN5Na\t", "int": "ValueError", "float": "ValueError"}
+{"s": ".t", "int": "ValueError", "float": "ValueError"}
+{"s": "+6Ytn", "int": "ValueError", "float": "ValueError"}
+{"s": "fE\u2003E.7i", "int": "ValueError", "float": "ValueError"}
+{"s": "yF", "int": "ValueError", "float": "ValueError"}
+{"s": "I-y", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003\r", "int": "ValueError", "float": "ValueError"}
+{"s": "4Y92", "int": "ValueError", "float": "ValueError"}
+{"s": "f+", "int": "ValueError", "float": "ValueError"}
+{"s": "eY\u000b7\n", "int": "ValueError", "float": "ValueError"}
+{"s": "+6", "int": 6, "float": "6.0"}
+{"s": "\u00a09", "int": 9, "float": "9.0"}
+{"s": "N\u000b\u2003T5", "int": "ValueError", "float": "ValueError"}
+{"s": "\tE", "int": "ValueError", "float": "ValueError"}
+{"s": "8\f \u000bY", "int": "ValueError", "float": "ValueError"}
+{"s": "1\u2003a", "int": "ValueError", "float": "ValueError"}
+{"s": "\n3FA4\u20036x", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\u001c3f", "int": "ValueError", "float": "ValueError"}
+{"s": ".475", "int": "ValueError", "float": "0.475"}
+{"s": "6\u001c3\u2003E", "int": "ValueError", "float": "ValueError"}
+{"s": "\r2Yxfi", "int": "ValueError", "float": "ValueError"}
+{"s": "\nIF", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b86  iNA", "int": "ValueError", "float": "ValueError"}
+{"s": "0Y\u00a0\t", "int": "ValueError", "float": "ValueError"}
+{"s": "-21\u000ba", "int": "ValueError", "float": "ValueError"}
+{"s": "4F6A_4", "int": "ValueError", "float": "ValueError"}
+{"s": "Aa\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "6F", "int": "ValueError", "float": "ValueError"}
+{"s": "f\t_a", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cY", "int": "ValueError", "float": "ValueError"}
+{"s": "ITn89fF", "int": "ValueError", "float": "ValueError"}
+{"s": "3\u001c9E", "int": "ValueError", "float": "ValueError"}
+{"s": "F9E\u20036", "int": "ValueError", "float": "ValueError"}
+{"s": "x4nY_e", "int": "ValueError", "float": "ValueError"}
+{"s": "A4\nT", "int": "ValueError", "float": "ValueError"}
+{"s": "I_\u001cAFe", "int": "ValueError", "float": "ValueError"}
+{"s": "Eix", "int": "ValueError", "float": "ValueError"}
+{"s": "Y\n6", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0I7x93AN", "int": "ValueError", "float": "ValueError"}
+{"s": ".\u001cY20", "int": "ValueError", "float": "ValueError"}
+{"s": "a\f", "int": "ValueError", "float": "ValueError"}
+{"s": "5F\fNFa_N", "int": "ValueError", "float": "ValueError"}
+{"s": "f\fefee", "int": "ValueError", "float": "ValueError"}
+{"s": "A70\u000b3N_3", "int": "ValueError", "float": "ValueError"}
+{"s": "x5", "int": "ValueError", "float": "ValueError"}
+{"s": "\fe", "int": "ValueError", "float": "ValueError"}
+{"s": "Ya\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "_NA4t\t", "int": "ValueError", "float": "ValueError"}
+{"s": "\f02yt", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0y\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "t\n6N\na\n", "int": "ValueError", "float": "ValueError"}
+{"s": "121\r", "int": 121, "float": "121.0"}
+{"s": "x\rft", "int": "ValueError", "float": "ValueError"}
+{"s": "T1Ef--A", "int": "ValueError", "float": "ValueError"}
+{"s": "_\u2003A", "int": "ValueError", "float": "ValueError"}
+{"s": "6F\u001cn", "int": "ValueError", "float": "ValueError"}
+{"s": "+6i\u00a0a", "int": "ValueError", "float": "ValueError"}
+{"s": "x3\t\u00a0N5", "int": "ValueError", "float": "ValueError"}
+{"s": "x9", "int": "ValueError", "float": "ValueError"}
+{"s": "A17\nA-N", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c05 \u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "91", "int": 91, "float": "91.0"}
+{"s": "\u000b9N6Ey4", "int": "ValueError", "float": "ValueError"}
+{"s": "2a-4", "int": "ValueError", "float": "ValueError"}
+{"s": "\nA28", "int": "ValueError", "float": "ValueError"}
+{"s": "-N9\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b-6", "int": -6, "float": "-6.0"}
+{"s": "e3\u00a0\r\u2003T\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\n2Y8", "int": "ValueError", "float": "ValueError"}
+{"s": "nx\u2003t1A-n", "int": "ValueError", "float": "ValueError"}
+{"s": "eF2", "int": "ValueError", "float": "ValueError"}
+{"s": "Y 3-41+", "int": "ValueError", "float": "ValueError"}
+{"s": "\nN58t.\n.", "int": "ValueError", "float": "ValueError"}
+{"s": "\n-\f0\u00a00\tt", "int": "ValueError", "float": "ValueError"}
+{"s": "8a x90", "int": "ValueError", "float": "ValueError"}
+{"s": "F61e4012", "int": "ValueError", "float": "ValueError"}
+{"s": "E\f\tF\tTt0", "int": "ValueError", "float": "ValueError"}
+{"s": " N+T", "int": "ValueError", "float": "ValueError"}
+{"s": "Y\u000b4E\r9", "int": "ValueError", "float": "ValueError"}
+{"s": "8n\u000b9\t+ N", "int": "ValueError", "float": "ValueError"}
+{"s": " 7x8x2 4", "int": "ValueError", "float": "ValueError"}
+{"s": "I0 FF\nx", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u2003n", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\u001cf\t", "int": "ValueError", "float": "ValueError"}
+{"s": "1i ", "int": "ValueError", "float": "ValueError"}
+{"s": "Yi2I\r", "int": "ValueError", "float": "ValueError"}
+{"s": "ane0\t\nEa", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\u00a0fY-n", "int": "ValueError", "float": "ValueError"}
+{"s": "y70\u001cF2\r", "int": "ValueError", "float": "ValueError"}
+{"s": "4+n", "int": "ValueError", "float": "ValueError"}
+{"s": "Yt \ntE7 ", "int": "ValueError", "float": "ValueError"}
+{"s": "0N\f_\u000bI", "int": "ValueError", "float": "ValueError"}
+{"s": "\fAT", "int": "ValueError", "float": "ValueError"}
+{"s": ".ae\rN00", "int": "ValueError", "float": "ValueError"}
+{"s": "\fAIf6AFa", "int": "ValueError", "float": "ValueError"}
+{"s": "-Y\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "9..\u001cE", "int": "ValueError", "float": "ValueError"}
+{"s": "2\nY8+EY\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003y\r\f", "int": "ValueError", "float": "ValueError"}
+{"s": "e.", "int": "ValueError", "float": "ValueError"}
+{"s": "62e\rIf", "int": "ValueError", "float": "ValueError"}
+{"s": "3A0", "int": "ValueError", "float": "ValueError"}
+{"s": "NTe7T1 x", "int": "ValueError", "float": "ValueError"}
+{"s": "7.\nt7x", "int": "ValueError", "float": "ValueError"}
+{"s": "-\f \nyfta", "int": "ValueError", "float": "ValueError"}
+{"s": "9-4_11", "int": "ValueError", "float": "ValueError"}
+{"s": "48y.7A5", "int": "ValueError", "float": "ValueError"}
+{"s": "x\u00a0 Ya", "int": "ValueError", "float": "ValueError"}
+{"s": ".x+", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b-AE4", "int": "ValueError", "float": "ValueError"}
+{"s": "AAi-\u00a0+n", "int": "ValueError", "float": "ValueError"}
+{"s": "iF8a\r\f", "int": "ValueError", "float": "ValueError"}
+{"s": "t\f2F15tt", "int": "ValueError", "float": "ValueError"}
+{"s": "i9x95E\f", "int": "ValueError", "float": "ValueError"}
+{"s": "IN1\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "+T", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c6", "int": "ValueError", "float": "ValueError"}
+{"s": "-0", "int": 0, "float": "-0.0"}
+{"s": "\f+_E\r", "int": "ValueError", "float": "ValueError"}
+{"s": "9xey99NA", "int": "ValueError", "float": "ValueError"}
+{"s": "aI\u000b\r5n ", "int": "ValueError", "float": "ValueError"}
+{"s": "E\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "820\f4N", "int": "ValueError", "float": "ValueError"}
+{"s": "ay A3fN", "int": "ValueError", "float": "ValueError"}
+{"s": "2\r4-E\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "\f9_\u000b5i", "int": "ValueError", "float": "ValueError"}
+{"s": "4_", "int": "ValueError", "float": "ValueError"}
+{"s": "2+6-96nY", "int": "ValueError", "float": "ValueError"}
+{"s": "e\u2003--", "int": "ValueError", "float": "ValueError"}
+{"s": "if\fY\r", "int": "ValueError", "float": "ValueError"}
+{"s": "F8E\u001c+yf", "int": "ValueError", "float": "ValueError"}
+{"s": "5t", "int": "ValueError", "float": "ValueError"}
+{"s": "Yx", "int": "ValueError", "float": "ValueError"}
+{"s": "f89-", "int": "ValueError", "float": "ValueError"}
+{"s": "fYfE", "int": "ValueError", "float": "ValueError"}
+{"s": "+8", "int": 8, "float": "8.0"}
+{"s": "e2\rF\u000b\u00a0\u000b\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "8i", "int": "ValueError", "float": "ValueError"}
+{"s": "_1\f3", "int": "ValueError", "float": "ValueError"}
+{"s": ".i7", "int": "ValueError", "float": "ValueError"}
+{"s": "3\f\n", "int": 3, "float": "3.0"}
+{"s": "Ay4", "int": "ValueError", "float": "ValueError"}
+{"s": "t8t2", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c7\n8.", "int": "ValueError", "float": "ValueError"}
+{"s": "_7E", "int": "ValueError", "float": "ValueError"}
+{"s": "\t4t\u00a0 3", "int": "ValueError", "float": "ValueError"}
+{"s": "+.\u001cyI", "int": "ValueError", "float": "ValueError"}
+{"s": "fN\u001c99 \f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c05\u001ce\u001ca", "int": "ValueError", "float": "ValueError"}
+{"s": "ntE", "int": "ValueError", "float": "ValueError"}
+{"s": "-7E\u001c\u20033", "int": "ValueError", "float": "ValueError"}
+{"s": "x2529t\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "I\r7", "int": "ValueError", "float": "ValueError"}
+{"s": "02i0e\r6", "int": "ValueError", "float": "ValueError"}
+{"s": "Fe", "int": "ValueError", "float": "ValueError"}
+{"s": "Yf4\n", "int": "ValueError", "float": "ValueError"}
+{"s": "n\u2003y\rYxeF", "int": "ValueError", "float": "ValueError"}
+{"s": "2t4tT2", "int": "ValueError", "float": "ValueError"}
+{"s": "E1E", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003T+\f\u001c\nff", "int": "ValueError", "float": "ValueError"}
+{"s": "I-\t7", "int": "ValueError", "float": "ValueError"}
+{"s": "4\u00a0 6-6Ti", "int": "ValueError", "float": "ValueError"}
+{"s": "aN6If", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b66", "int": 66, "float": "66.0"}
+{"s": "NAi", "int": "ValueError", "float": "ValueError"}
+{"s": "98T6A\r1", "int": "ValueError", "float": "ValueError"}
+{"s": "5\u2003\u00a09", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003F9+4A", "int": "ValueError", "float": "ValueError"}
+{"s": "14_-.I", "int": "ValueError", "float": "ValueError"}
+{"s": "n119F", "int": "ValueError", "float": "ValueError"}
+{"s": ".itE\f+\tn", "int": "ValueError", "float": "ValueError"}
+{"s": "TnF\f\n6e", "int": "ValueError", "float": "ValueError"}
+{"s": "EE2t- ", "int": "ValueError", "float": "ValueError"}
+{"s": "xT4.\nxA", "int": "ValueError", "float": "ValueError"}
+{"s": "ya\n4a", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0AyA-fE", "int": "ValueError", "float": "ValueError"}
+{"s": "y\u000b3\t.1", "int": "ValueError", "float": "ValueError"}
+{"s": "Y\u001c2I\f\u00a0y", "int": "ValueError", "float": "ValueError"}
+{"s": "x5n\u000b\u2003eF", "int": "ValueError", "float": "ValueError"}
+{"s": "5\n27\na", "int": "ValueError", "float": "ValueError"}
+{"s": "81Y_+a", "int": "ValueError", "float": "ValueError"}
+{"s": ".I2", "int": "ValueError", "float": "ValueError"}
+{"s": "E0E476I6", "int": "ValueError", "float": "ValueError"}
+{"s": "3\u2003 ", "int": 3, "float": "3.0"}
+{"s": "\tt6", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b2I", "int": "ValueError", "float": "ValueError"}
+{"s": "n2", "int": "ValueError", "float": "ValueError"}
+{"s": "f\u001c\fY2", "int": "ValueError", "float": "ValueError"}
+{"s": "E7e27F_", "int": "ValueError", "float": "ValueError"}
+{"s": "IT\u001cTfe", "int": "ValueError", "float": "ValueError"}
+{"s": "4-f9N", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\u2003+\u20034", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bA8\tn", "int": "ValueError", "float": "ValueError"}
+{"s": "67", "int": 67, "float": "67.0"}
+{"s": "26.\u001ciTy2", "int": "ValueError", "float": "ValueError"}
+{"s": "+.4_", "int": "ValueError", "float": "ValueError"}
+{"s": "y\fy.\u001c\t", "int": "ValueError", "float": "ValueError"}
+{"s": "7x", "int": "ValueError", "float": "ValueError"}
+{"s": "+3.", "int": "ValueError", "float": "3.0"}
+{"s": "\u000b5\f\r\r\u000bI.", "int": "ValueError", "float": "ValueError"}
+{"s": "+N\fn37", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c\u2003Y1i\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "3y\u20034", "int": "ValueError", "float": "ValueError"}
+{"s": "fE_FY", "int": "ValueError", "float": "ValueError"}
+{"s": "85\tyYF\u00a0\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "08a+eif ", "int": "ValueError", "float": "ValueError"}
+{"s": "8F68-1\f+", "int": "ValueError", "float": "ValueError"}
+{"s": "154_N", "int": "ValueError", "float": "ValueError"}
+{"s": "3i7TN1F", "int": "ValueError", "float": "ValueError"}
+{"s": "\n.\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "-64eFy", "int": "ValueError", "float": "ValueError"}
+{"s": "\r+6", "int": 6, "float": "6.0"}
+{"s": "\u2003n.\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c4\fi_", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003n62", "int": "ValueError", "float": "ValueError"}
+{"s": "2\u2003n\u2003y n", "int": "ValueError", "float": "ValueError"}
+{"s": "36fY.\t\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "6iN\r.", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003n_", "int": "ValueError", "float": "ValueError"}
+{"s": "YA+", "int": "ValueError", "float": "ValueError"}
+{"s": "_\tf3T6 ", "int": "ValueError", "float": "ValueError"}
+{"s": "\tN\tt2A\f\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": " i", "int": "ValueError", "float": "ValueError"}
+{"s": "9\f8\n60", "int": "ValueError", "float": "ValueError"}
+{"s": "y\nI63e\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b\t9\u000b9aT", "int": "ValueError", "float": "ValueError"}
+{"s": "8\nf", "int": "ValueError", "float": "ValueError"}
+{"s": "y1\u20038F3i\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "9\ta5\n\f\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "1\nNy1F", "int": "ValueError", "float": "ValueError"}
+{"s": "+iA-\u00a00Y7", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\u00a0ty7-87", "int": "ValueError", "float": "ValueError"}
+{"s": ".8AI", "int": "ValueError", "float": "ValueError"}
+{"s": "0nF4\u001cYi4", "int": "ValueError", "float": "ValueError"}
+{"s": "7-2f", "int": "ValueError", "float": "ValueError"}
+{"s": "4n43F\tE+", "int": "ValueError", "float": "ValueError"}
+{"s": "4\u001cFa1\u001caf", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b\n33Y", "int": "ValueError", "float": "ValueError"}
+{"s": "N306N", "int": "ValueError", "float": "ValueError"}
+{"s": "\fie\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "_\u200337", "int": "ValueError", "float": "ValueError"}
+{"s": "I+\u2003\u000b\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "t53..I2", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0A+831\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003xYi6.94", "int": "ValueError", "float": "ValueError"}
+{"s": "xn1F7", "int": "ValueError", "float": "ValueError"}
+{"s": "2n8", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cI-1+IN", "int": "ValueError", "float": "ValueError"}
+{"s": "y6x\rI", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0t043\u000bi", "int": "ValueError", "float": "ValueError"}
+{"s": "IE0332T0", "int": "ValueError", "float": "ValueError"}
+{"s": "y7", "int": "ValueError", "float": "ValueError"}
+{"s": "E0et", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0F7n", "int": "ValueError", "float": "ValueError"}
+{"s": "YT04Tti", "int": "ValueError", "float": "ValueError"}
+{"s": "8Yt\nN xi", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0xF7I6AY", "int": "ValueError", "float": "ValueError"}
+{"s": "5.F\u2003\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\u00a0-0 ", "int": 0, "float": "-0.0"}
+{"s": "eTAAiA\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "E7n", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003.-\tYEI3", "int": "ValueError", "float": "ValueError"}
+{"s": "e3x\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "0+n\n01", "int": "ValueError", "float": "ValueError"}
+{"s": "  i\ty_", "int": "ValueError", "float": "ValueError"}
+{"s": "N0Yt", "int": "ValueError", "float": "ValueError"}
+{"s": "\rF\u001c\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "5\u00a0_n", "int": "ValueError", "float": "ValueError"}
+{"s": "Tf\r982y", "int": "ValueError", "float": "ValueError"}
+{"s": "Ni\t-f9", "int": "ValueError", "float": "ValueError"}
+{"s": "aE", "int": "ValueError", "float": "ValueError"}
+{"s": "f4", "int": "ValueError", "float": "ValueError"}
+{"s": "Y ", "int": "ValueError", "float": "ValueError"}
+{"s": "AA\u2003.", "int": "ValueError", "float": "ValueError"}
+{"s": "tE0", "int": "ValueError", "float": "ValueError"}
+{"s": "\fI", "int": "ValueError", "float": "ValueError"}
+{"s": "3I8Y", "int": "ValueError", "float": "ValueError"}
+{"s": "21", "int": 21, "float": "21.0"}
+{"s": "4.8I\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "y0e08", "int": "ValueError", "float": "ValueError"}
+{"s": "N8", "int": "ValueError", "float": "ValueError"}
+{"s": "I0_\r\n.yT", "int": "ValueError", "float": "ValueError"}
+{"s": "iEnfy28x", "int": "ValueError", "float": "ValueError"}
+{"s": "9\u2003193y\t\t", "int": "ValueError", "float": "ValueError"}
+{"s": "a\u001caNt86", "int": "ValueError", "float": "ValueError"}
+{"s": "9 YT\u20037\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "\r\u000b\nEe9+", "int": "ValueError", "float": "ValueError"}
+{"s": "+f\f2AA7", "int": "ValueError", "float": "ValueError"}
+{"s": "\n+\n4 +", "int": "ValueError", "float": "ValueError"}
+{"s": "TYTI5", "int": "ValueError", "float": "ValueError"}
+{"s": "\tA48F\tA5", "int": "ValueError", "float": "ValueError"}
+{"s": "i\n\u2003\riI.", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b--", "int": "ValueError", "float": "ValueError"}
+{"s": "\nI x415y", "int": "ValueError", "float": "ValueError"}
+{"s": "429", "int": 429, "float": "429.0"}
+{"s": "4If852", "int": "ValueError", "float": "ValueError"}
+{"s": "9\u001c\t714x", "int": "ValueError", "float": "ValueError"}
+{"s": "NN", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000bN3I0Y", "int": "ValueError", "float": "ValueError"}
+{"s": "--yIY", "int": "ValueError", "float": "ValueError"}
+{"s": "\rY07 i", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\r6.Ye4", "int": "ValueError", "float": "ValueError"}
+{"s": "05\u00a0\n+.\u00a0+", "int": "ValueError", "float": "ValueError"}
+{"s": "46f2", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003ey_\u2003f", "int": "ValueError", "float": "ValueError"}
+{"s": "8\u00a0y\nif-", "int": "ValueError", "float": "ValueError"}
+{"s": "T\u000b5\u000b7", "int": "ValueError", "float": "ValueError"}
+{"s": "n44t", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0afA", "int": "ValueError", "float": "ValueError"}
+{"s": "yn3.3", "int": "ValueError", "float": "ValueError"}
+{"s": "eNx\u000b7e\u20030", "int": "ValueError", "float": "ValueError"}
+{"s": "15\n.\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "\nNNtty", "int": "ValueError", "float": "ValueError"}
+{"s": "A\fE\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "0\nn", "int": "ValueError", "float": "ValueError"}
+{"s": "+n", "int": "ValueError", "float": "ValueError"}
+{"s": "-\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "2eTe", "int": "ValueError", "float": "ValueError"}
+{"s": "19t_68", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\rY14", "int": "ValueError", "float": "ValueError"}
+{"s": "- n", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001c\u001c5", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "N0N6i", "int": "ValueError", "float": "ValueError"}
+{"s": "+\u000btTfei\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "ay \u2003155", "int": "ValueError", "float": "ValueError"}
+{"s": "46f F\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "ifI\u2003ATF", "int": "ValueError", "float": "ValueError"}
+{"s": "n\t_xyna", "int": "ValueError", "float": "ValueError"}
+{"s": "1\u001c_I+T\f", "int": "ValueError", "float": "ValueError"}
+{"s": "\u20034YN ", "int": "ValueError", "float": "ValueError"}
+{"s": "N9", "int": "ValueError", "float": "ValueError"}
+{"s": "\fyxi_-6", "int": "ValueError", "float": "ValueError"}
+{"s": "_-NI\r", "int": "ValueError", "float": "ValueError"}
+{"s": "tIt\u000b\tE\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\u200314EAI", "int": "ValueError", "float": "ValueError"}
+{"s": "7-F", "int": "ValueError", "float": "ValueError"}
+{"s": "484", "int": 484, "float": "484.0"}
+{"s": " A6+", "int": "ValueError", "float": "ValueError"}
+{"s": "eie", "int": "ValueError", "float": "ValueError"}
+{"s": "5\fA", "int": "ValueError", "float": "ValueError"}
+{"s": "t0\t.", "int": "ValueError", "float": "ValueError"}
+{"s": "x\n_\n4YYx", "int": "ValueError", "float": "ValueError"}
+{"s": "AI\u000b\t2", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\u000bit7", "int": "ValueError", "float": "ValueError"}
+{"s": "yi8Y\nn", "int": "ValueError", "float": "ValueError"}
+{"s": "i2\n", "int": "ValueError", "float": "ValueError"}
+{"s": "7t_a_Nf0", "int": "ValueError", "float": "ValueError"}
+{"s": "8\u000b4e\u000b\u00a0\nx", "int": "ValueError", "float": "ValueError"}
+{"s": "1y", "int": "ValueError", "float": "ValueError"}
+{"s": "y4n", "int": "ValueError", "float": "ValueError"}
+{"s": "9_\u000b-1", "int": "ValueError", "float": "ValueError"}
+{"s": "A\r4", "int": "ValueError", "float": "ValueError"}
+{"s": ".e", "int": "ValueError", "float": "ValueError"}
+{"s": "T E+Iy3", "int": "ValueError", "float": "ValueError"}
+{"s": "I++4t9T", "int": "ValueError", "float": "ValueError"}
+{"s": "8\u000b\rNY-", "int": "ValueError", "float": "ValueError"}
+{"s": "Y\u000bTN\fe\rA", "int": "ValueError", "float": "ValueError"}
+{"s": "I\ry6\t_Iy", "int": "ValueError", "float": "ValueError"}
+{"s": "9228\u000bY.\f", "int": "ValueError", "float": "ValueError"}
+{"s": ".8F377", "int": "ValueError", "float": "ValueError"}
+{"s": "Y3\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "7\u000b\u001ct", "int": "ValueError", "float": "ValueError"}
+{"s": "tTy5E+", "int": "ValueError", "float": "ValueError"}
+{"s": "\r8\f-6f_0", "int": "ValueError", "float": "ValueError"}
+{"s": "e\u2003", "int": "ValueError", "float": "ValueError"}
+{"s": "\n\n\f", "int": "ValueError", "float": "ValueError"}
+{"s": "0Yx\u00a0.xx", "int": "ValueError", "float": "ValueError"}
+{"s": "1.Ea50", "int": "ValueError", "float": "ValueError"}
+{"s": "\r\fixI", "int": "ValueError", "float": "ValueError"}
+{"s": "\tN7.\u001cEI.", "int": "ValueError", "float": "ValueError"}
+{"s": "YN", "int": "ValueError", "float": "ValueError"}
+{"s": "04", "int": 4, "float": "4.0"}
+{"s": " x\ta1F\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "T\u001c_n\u20033", "int": "ValueError", "float": "ValueError"}
+{"s": "6\u000b1fn8\r", "int": "ValueError", "float": "ValueError"}
+{"s": "4\ry-1", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003-\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "27_a3E_n", "int": "ValueError", "float": "ValueError"}
+{"s": "9F0YT", "int": "ValueError", "float": "ValueError"}
+{"s": "-0i9\f", "int": "ValueError", "float": "ValueError"}
+{"s": "\nN6t", "int": "ValueError", "float": "ValueError"}
+{"s": "0tx", "int": "ValueError", "float": "ValueError"}
+{"s": "4I", "int": "ValueError", "float": "ValueError"}
+{"s": "5N\re\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "ynn\r5A", "int": "ValueError", "float": "ValueError"}
+{"s": "At\t0", "int": "ValueError", "float": "ValueError"}
+{"s": "7_ti\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "x\f \u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "E2_9\t", "int": "ValueError", "float": "ValueError"}
+{"s": "5f2", "int": "ValueError", "float": "ValueError"}
+{"s": "\t2", "int": 2, "float": "2.0"}
+{"s": "y+", "int": "ValueError", "float": "ValueError"}
+{"s": "f11", "int": "ValueError", "float": "ValueError"}
+{"s": "t\u000b-", "int": "ValueError", "float": "ValueError"}
+{"s": "6yf", "int": "ValueError", "float": "ValueError"}
+{"s": "5T3", "int": "ValueError", "float": "ValueError"}
+{"s": "50e\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "x 9", "int": "ValueError", "float": "ValueError"}
+{"s": "9a3E314E", "int": "ValueError", "float": "ValueError"}
+{"s": "A33", "int": "ValueError", "float": "ValueError"}
+{"s": "-\u000baf3\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "a3NitF7", "int": "ValueError", "float": "ValueError"}
+{"s": "AE\u200380", "int": "ValueError", "float": "ValueError"}
+{"s": "Ina EN9", "int": "ValueError", "float": "ValueError"}
+{"s": ".\u00a0\u001c3", "int": "ValueError", "float": "ValueError"}
+{"s": "\t\f-T", "int": "ValueError", "float": "ValueError"}
+{"s": "yFy_\f..", "int": "ValueError", "float": "ValueError"}
+{"s": "4\fE0i_\u000b8", "int": "ValueError", "float": "ValueError"}
+{"s": "f_-", "int": "ValueError", "float": "ValueError"}
+{"s": "f4E85f\r", "int": "ValueError", "float": "ValueError"}
+{"s": "i\u001cEeY46", "int": "ValueError", "float": "ValueError"}
+{"s": "T\rY\n", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003-\u000b\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "5\n8FY", "int": "ValueError", "float": "ValueError"}
+{"s": "-x", "int": "ValueError", "float": "ValueError"}
+{"s": "xa\n3", "int": "ValueError", "float": "ValueError"}
+{"s": "2y.F\r", "int": "ValueError", "float": "ValueError"}
+{"s": "4-\u2003y", "int": "ValueError", "float": "ValueError"}
+{"s": "t 5\u000be80", "int": "ValueError", "float": "ValueError"}
+{"s": "A\tn+N_En", "int": "ValueError", "float": "ValueError"}
+{"s": "0ty\u000byT\u001c.", "int": "ValueError", "float": "ValueError"}
+{"s": "\f_", "int": "ValueError", "float": "ValueError"}
+{"s": "+1x2-", "int": "ValueError", "float": "ValueError"}
+{"s": "509+", "int": "ValueError", "float": "ValueError"}
+{"s": "4f38\u001c3\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": " 9591 \n", "int": 9591, "float": "9591.0"}
+{"s": "F92-", "int": "ValueError", "float": "ValueError"}
+{"s": "1\tt25", "int": "ValueError", "float": "ValueError"}
+{"s": "0 f\tF", "int": "ValueError", "float": "ValueError"}
+{"s": "i7Y", "int": "ValueError", "float": "ValueError"}
+{"s": "\u000b7", "int": 7, "float": "7.0"}
+{"s": "3\nT78\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": " 9\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "A59iIa", "int": "ValueError", "float": "ValueError"}
+{"s": "x\fFi\fxt", "int": "ValueError", "float": "ValueError"}
+{"s": "6F7_Ne", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\fT-76A0", "int": "ValueError", "float": "ValueError"}
+{"s": "\u2003F", "int": "ValueError", "float": "ValueError"}
+{"s": "A5a82\u00a0\f", "int": "ValueError", "float": "ValueError"}
+{"s": "a72 7n", "int": "ValueError", "float": "ValueError"}
+{"s": "\u00a0-\rx797", "int": "ValueError", "float": "ValueError"}
+{"s": "\f e5IEA4", "int": "ValueError", "float": "ValueError"}
+{"s": "5\u00a0A7ie\u2003t", "int": "ValueError", "float": "ValueError"}
+{"s": "60\u00a00Tx-", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cE\u001c", "int": "ValueError", "float": "ValueError"}
+{"s": "y_\f+", "int": "ValueError", "float": "ValueError"}
+{"s": "16", "int": 16, "float": "16.0"}
+{"s": "Ay_7\t", "int": "ValueError", "float": "ValueError"}
+{"s": "f 2", "int": "ValueError", "float": "ValueError"}
+{"s": " 1\u000b", "int": 1, "float": "1.0"}
+{"s": " x\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": "+t632", "int": "ValueError", "float": "ValueError"}
+{"s": "\u001cy\u00a0_a \u2003\u00a0", "int": "ValueError", "float": "ValueError"}
+{"s": " en3Ann ", "int": "ValueError", "float": "ValueError"}
+{"s": "Ix", "int": "ValueError", "float": "ValueError"}
+{"s": "99", "int": 99, "float": "99.0"}
+{"s": "i-\u20033e6", "int": "ValueError", "float": "ValueError"}
+{"s": "E5t2\u001cn\r", "int": "ValueError", "float": "ValueError"}
+{"s": "n1", "int": "ValueError", "float": "ValueError"}
+{"s": "f185\u001c\u2003\u000b", "int": "ValueError", "float": "ValueError"}
+{"s": "0\u00a0", "int": 0, "float": "0.0"}
+{"s": "\r984y", "int": "ValueError", "float": "ValueError"}
+{"s": "E56", "int": "ValueError", "float": "ValueError"}
+{"s": "1.Y\rT4", "int": "ValueError", "float": "ValueError"}
+{"s": "nN_aFE\r", "int": "ValueError", "float": "ValueError"}
+{"s": "\f\r5I+", "int": "ValueError", "float": "ValueError"}
