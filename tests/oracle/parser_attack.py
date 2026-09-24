@@ -159,7 +159,14 @@ def main():
 if __name__ == "__main__":
     sys.setrecursionlimit(1_000_000)
     threading.stack_size(512 * 1024 * 1024)
-    th = threading.Thread(target=main)
+    def guarded():
+        try:
+            main()
+        except BaseException as e:
+            print(f"RESUMO ERRO_DO_ORACULO: {type(e).__name__}: {str(e)[:300]}")
+            P.STATUS.append(2)
+
+    th = threading.Thread(target=guarded)
     th.start()
     th.join()
     sys.exit(P.STATUS[0] if P.STATUS else 2)

@@ -202,16 +202,31 @@ def module_sexpr(m):
 
 # ---- profundidade da AST de expressões, com a definição do nosso parser ----
 # (and/or binários associativos à esquerda; parênteses não contam; cada Expr conta 1)
-def depth(e):
-    t = type(e)
-    if t is ast.BoolOp:
-        ds = [depth(v) for v in e.values]
-        d = ds[0]
-        for x in ds[1:]:
-            d = 1 + max(d, x)
-        return d
-    kids = [c for c in ast.iter_child_nodes(e) if isinstance(c, ast.expr)]
-    return 1 + max((depth(c) for c in kids), default=0)
+def _expr_kids(e):
+    if type(e) is ast.BoolOp:
+        return list(e.values)
+    return [c for c in ast.iter_child_nodes(e) if isinstance(c, ast.expr)]
+
+
+def depth(root):
+    res = {}
+    stack = [(root, False)]
+    while stack:
+        e, done = stack.pop()
+        kids = _expr_kids(e)
+        if not done:
+            stack.append((e, True))
+            stack.extend((c, False) for c in kids)
+            continue
+        ds = [res[id(c)] for c in kids]
+        if type(e) is ast.BoolOp:
+            d = ds[0]
+            for x in ds[1:]:
+                d = 1 + max(d, x)
+        else:
+            d = 1 + max(ds, default=0)
+        res[id(e)] = d
+    return res[id(root)]
 
 
 def max_depth_module(m):
@@ -601,7 +616,14 @@ def main():
 if __name__ == "__main__":
     sys.setrecursionlimit(1_000_000)
     threading.stack_size(512 * 1024 * 1024)
-    th = threading.Thread(target=main)
+    def guarded():
+        try:
+            main()
+        except BaseException as e:
+            print(f"RESUMO ERRO_DO_ORACULO: {type(e).__name__}: {str(e)[:300]}")
+            STATUS.append(2)
+
+    th = threading.Thread(target=guarded)
     th.start()
     th.join()
     sys.exit(STATUS[0] if STATUS else 2)
