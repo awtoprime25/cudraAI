@@ -1,0 +1,3 @@
+for float in range(3):
+    pass
+print(1)

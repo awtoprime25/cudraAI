@@ -1,0 +1,7 @@
+erro: o builtin 'max' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_py_builtin_max.cdr:1:7]
+   │
+ 1 │ print(max(1, 2))
+   │       ─┬─  
+   │        ╰─── chamada
+───╯

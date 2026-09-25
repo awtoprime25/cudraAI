@@ -1,0 +1,2 @@
+from cudra import arg_int, arg_float
+print(arg_int(1), arg_float(2))

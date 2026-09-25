@@ -14,6 +14,8 @@ cudra-diagnostics = { path = "../cudra-diagnostics" }
 cudra-lexer = { path = "../cudra-lexer" }
 cudra-ast = { path = "../cudra-ast" }
 cudra-parser = { path = "../cudra-parser" }
+cudra-tir = { path = "../cudra-tir" }
+cudra-sema = { path = "../cudra-sema" }
 clap = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]

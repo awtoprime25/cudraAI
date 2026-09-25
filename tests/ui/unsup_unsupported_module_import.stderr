@@ -1,0 +1,7 @@
+erro: o módulo 'math' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_unsupported_module_import.cdr:1:8]
+   │
+ 1 │ import math
+   │        ──┬─  
+   │          ╰─── import
+───╯

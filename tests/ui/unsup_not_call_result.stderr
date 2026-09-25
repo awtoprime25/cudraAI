@@ -1,0 +1,7 @@
+erro: operações com None ainda não são suportadas
+   ╭─[tests/ui/unsup_not_call_result.cdr:3:7]
+   │
+ 3 │ print(not f())
+   │       ───┬───  
+   │          ╰───── condição None
+───╯

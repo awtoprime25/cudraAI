@@ -1,0 +1,7 @@
+erro: tuplos ainda não é suportado(a) na Fase 1
+   ╭─[tests/ui/unsup_for_over_tuple.cdr:2:10]
+   │
+ 2 │ for i in (x, x):
+   │          ┬  
+   │          ╰── tuplos ainda não é suportado(a) na Fase 1
+───╯

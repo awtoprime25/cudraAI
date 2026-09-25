@@ -1,0 +1,7 @@
+erro: tipo incompatível no argumento de 'f': esperava-se int, veio bool
+   ╭─[tests/ui/static_call_arg_bool_as_int.cdr:3:9]
+   │
+ 3 │ print(f(True))
+   │         ──┬─  
+   │           ╰─── aqui
+───╯

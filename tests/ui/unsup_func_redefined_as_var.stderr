@@ -1,0 +1,14 @@
+erro: redefinir 'f' (já é uma função) ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_func_redefined_as_var.cdr:3:1]
+   │
+ 3 │ f = 2
+   │ ┬  
+   │ ╰── atribuição aqui
+───╯
+erro: funções como valores ainda não são suportadas
+   ╭─[tests/ui/unsup_func_redefined_as_var.cdr:4:7]
+   │
+ 4 │ print(f)
+   │       ┬  
+   │       ╰── aqui
+───╯

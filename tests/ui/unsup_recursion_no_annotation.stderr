@@ -1,0 +1,16 @@
+erro: return inconsistente em 'f'
+   ╭─[tests/ui/unsup_recursion_no_annotation.cdr:1:1]
+   │
+ 1 │ ╭─▶ def f(n: int):
+   ┆ ┆   
+ 4 │ ├─▶     return f(n - 1)
+   │ │                         
+   │ ╰───────────────────────── aqui
+───╯
+erro: funções recursivas sem tipo de retorno anotado ainda não são suportadas na Fase 1
+   ╭─[tests/ui/unsup_recursion_no_annotation.cdr:1:5]
+   │
+ 1 │ def f(n: int):
+   │     ┬  
+   │     ╰── 'f' precisa de um tipo de retorno anotado
+───╯

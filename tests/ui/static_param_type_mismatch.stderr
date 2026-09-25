@@ -1,0 +1,7 @@
+erro: tipo incompatível no argumento de 'f': esperava-se float, veio int
+   ╭─[tests/ui/static_param_type_mismatch.cdr:3:9]
+   │
+ 3 │ print(f(1))
+   │         ┬  
+   │         ╰── aqui
+───╯

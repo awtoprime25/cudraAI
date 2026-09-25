@@ -1,0 +1,7 @@
+erro: decoradores ainda não são suportados na Fase 1
+   ╭─[tests/ui/unsup_decorator_staticmethod.cdr:1:2]
+   │
+ 1 │ @staticmethod
+   │  ──────┬─────  
+   │        ╰─────── decorador aqui
+───╯

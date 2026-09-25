@@ -1,0 +1,7 @@
+erro: 'global' ainda não é suportado(a) na Fase 1
+   ╭─[tests/ui/unsup_global_stmt.cdr:3:5]
+   │
+ 3 │     global x
+   │     ───┬──  
+   │        ╰──── 'global' ainda não é suportado(a) na Fase 1
+───╯

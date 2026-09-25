@@ -1,0 +1,7 @@
+erro: strings ainda não é suportado(a) na Fase 1
+   ╭─[tests/ui/unsup_fstring_literal.cdr:2:7]
+   │
+ 2 │ print(f"{x}")
+   │       ───┬──  
+   │          ╰──── strings ainda não é suportado(a) na Fase 1
+───╯

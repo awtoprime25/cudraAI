@@ -1,0 +1,7 @@
+erro: imports dentro de funções ainda não são suportados
+   ╭─[tests/ui/unsup_import_inside_func.cdr:2:5]
+   │
+ 2 │     import cudra
+   │     ──────┬─────  
+   │           ╰─────── import
+───╯

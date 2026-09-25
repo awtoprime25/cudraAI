@@ -1,0 +1,14 @@
+erro: o tipo 'str' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_str_annotation.cdr:1:4]
+   │
+ 1 │ x: str = 1
+   │    ─┬─  
+   │     ╰─── tipo
+───╯
+erro: tipo incompatível: 'x' é <erro>, mas o valor é int
+   ╭─[tests/ui/unsup_str_annotation.cdr:1:10]
+   │
+ 1 │ x: str = 1
+   │          ┬  
+   │          ╰── atribuído int
+───╯

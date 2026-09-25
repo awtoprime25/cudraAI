@@ -1,0 +1,7 @@
+erro: '*'/'**' em parâmetros ainda não é suportado(a) na Fase 1
+   ╭─[tests/ui/unsup_star_args.cdr:1:7]
+   │
+ 1 │ def f(*args) -> int:
+   │       ┬  
+   │       ╰── '*'/'**' em parâmetros ainda não é suportado(a) na Fase 1
+───╯

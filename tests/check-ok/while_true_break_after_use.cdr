@@ -1,0 +1,7 @@
+def f(a: int) -> int:
+    while True:
+        a += 1
+        if a > 5:
+            break
+    return a
+print(f(1))

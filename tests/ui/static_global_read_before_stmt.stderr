@@ -1,0 +1,7 @@
+erro: variáveis globais não são suportadas na Fase 1
+   ╭─[tests/ui/static_global_read_before_stmt.cdr:3:12]
+   │
+ 3 │     return m
+   │            ┬  
+   │            ╰── aqui
+───╯

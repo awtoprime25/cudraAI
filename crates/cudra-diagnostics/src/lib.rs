@@ -174,6 +174,44 @@ fn insert_after_header(text: &str, lines: &[String]) -> String {
 }
 
 pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
+    let file_ids = diag.labels.iter().map(|l| l.span.file);
+    let mut cache = build_cache(sources, file_ids);
+    render_with_cache(diag, sources, color, &mut cache)
+}
+
+/// Como `render`, mas para vários diagnósticos: a `Source` do ariadne (que
+/// indexa as linhas) é construída uma só vez por ficheiro, não uma vez por
+/// diagnóstico — importante com milhares de diagnósticos no mesmo ficheiro.
+/// Acima disto, só se mostram os primeiros `MAX_SHOWN` diagnósticos (cada
+/// um custa a formatação inteira do ariadne); os restantes só contam para
+/// a nota final. Programas reais nunca chegam perto deste limite.
+const MAX_SHOWN: usize = 300;
+
+pub fn render_all(diags: &[Diagnostic], sources: &SourceMap, color: bool) -> String {
+    let shown = &diags[..diags.len().min(MAX_SHOWN)];
+    let file_ids = shown
+        .iter()
+        .flat_map(|d| d.labels.iter().map(|l| l.span.file));
+    let mut cache = build_cache(sources, file_ids);
+    let mut out = String::new();
+    for d in shown {
+        out.push_str(&render_with_cache(d, sources, color, &mut cache));
+    }
+    if diags.len() > shown.len() {
+        out.push_str(&format!(
+            "nota: mais {} erro(s) não mostrados\n",
+            diags.len() - shown.len()
+        ));
+    }
+    out
+}
+
+fn render_with_cache(
+    diag: &Diagnostic,
+    sources: &SourceMap,
+    color: bool,
+    cache: &mut FileCache,
+) -> String {
     let (header, header_color) = level_style(diag.level);
 
     // Nenhum label pode desaparecer sem aviso. Classificamos cada um:
@@ -249,12 +287,10 @@ pub fn render(diag: &Diagnostic, sources: &SourceMap, color: bool) -> String {
     }
 
     let report = builder.finish();
-    let file_ids = drawable.iter().map(|l| l.span.file).chain([anchor_file]);
-    let mut cache = build_cache(sources, file_ids);
 
     let mut buf = Vec::new();
     report
-        .write(&mut cache, &mut buf)
+        .write(cache, &mut buf)
         .expect("escrita em memória não falha");
     let text = String::from_utf8(buf).expect("ariadne produz UTF-8 válido");
 

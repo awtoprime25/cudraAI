@@ -1,0 +1,14 @@
+erro: nome 'cudra' não definido
+   ╭─[tests/ui/unsup_bare_attr_access.cdr:2:7]
+   │
+ 2 │ print(cudra.arg_str)
+   │       ──┬──  
+   │         ╰──── aqui
+───╯
+erro: atributos ainda não são suportados
+   ╭─[tests/ui/unsup_bare_attr_access.cdr:2:7]
+   │
+ 2 │ print(cudra.arg_str)
+   │       ──────┬──────  
+   │             ╰──────── aqui
+───╯

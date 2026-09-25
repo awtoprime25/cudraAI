@@ -1,0 +1,7 @@
+erro: tipo incompatível: 'x' é int, mas o resultado é float
+   ╭─[tests/ui/static_augassign_int_float.cdr:2:1]
+   │
+ 2 │ x += 0.5
+   │ ────┬───  
+   │     ╰───── aumento aqui
+───╯

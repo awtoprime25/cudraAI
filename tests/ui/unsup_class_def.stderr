@@ -1,0 +1,7 @@
+erro: 'class' ainda não é suportado(a) na Fase 1
+   ╭─[tests/ui/unsup_class_def.cdr:1:1]
+   │
+ 1 │ class C:
+   │ ──┬──  
+   │   ╰──── 'class' ainda não é suportado(a) na Fase 1
+───╯

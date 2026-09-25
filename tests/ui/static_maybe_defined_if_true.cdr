@@ -1,0 +1,3 @@
+if True:
+    y = 1
+print(y)

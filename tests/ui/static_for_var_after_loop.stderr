@@ -1,0 +1,7 @@
+erro: a variável 'i' pode não estar definida aqui
+   ╭─[tests/ui/static_for_var_after_loop.cdr:3:7]
+   │
+ 3 │ print(i)
+   │       ┬  
+   │       ╰── uso aqui
+───╯

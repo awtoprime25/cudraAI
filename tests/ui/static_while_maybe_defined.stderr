@@ -1,0 +1,7 @@
+erro: a variável 'z' pode não estar definida aqui
+   ╭─[tests/ui/static_while_maybe_defined.cdr:5:7]
+   │
+ 5 │ print(z)
+   │       ┬  
+   │       ╰── uso aqui
+───╯

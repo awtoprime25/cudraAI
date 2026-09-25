@@ -1,0 +1,7 @@
+erro: bool usado como int ainda não é suportado
+   ╭─[tests/ui/unsup_bool_abs.cdr:1:11]
+   │
+ 1 │ print(abs(True))
+   │           ──┬─  
+   │             ╰─── aqui
+───╯

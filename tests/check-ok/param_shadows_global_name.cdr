@@ -1,0 +1,4 @@
+def f(m: int) -> int:
+    return m
+m = 5
+print(f(m))

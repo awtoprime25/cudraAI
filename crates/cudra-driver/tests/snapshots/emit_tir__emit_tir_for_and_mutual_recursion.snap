@@ -1,0 +1,24 @@
+---
+source: crates/cudra-driver/tests/emit_tir.rs
+expression: stdout(&out)
+---
+main: f2
+func f0 a(n$0: int) -> int
+  locals:
+    l0 n: int
+  body:
+    If (Compare n$0:int I.Le 0:int):bool
+      Return 0:int
+    Return (Call f1 [(ISub n$0:int 1:int):int]):int
+func f1 b(n$0: int) -> int
+  locals:
+    l0 n: int
+  body:
+    Return (Call f0 [n$0:int]):int
+func f2 main() -> None
+  locals:
+    l0 i: int
+  body:
+    ForRange i$0 = 0:int .. 3:int step 1:int
+      Expr (Intrinsic Print [i$0:int]):None
+    Expr (Intrinsic Print [(Call f0 [3:int]):int]):None

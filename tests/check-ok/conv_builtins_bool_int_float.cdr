@@ -1,0 +1,1 @@
+print(int(True), float(False), bool(3), bool(0.0), bool(-0.0))

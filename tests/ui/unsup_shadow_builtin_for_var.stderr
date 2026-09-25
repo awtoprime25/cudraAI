@@ -1,0 +1,7 @@
+erro: fazer sombra ao builtin 'float' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_shadow_builtin_for_var.cdr:1:5]
+   │
+ 1 │ for float in range(3):
+   │     ──┬──  
+   │       ╰──── sombra aqui
+───╯

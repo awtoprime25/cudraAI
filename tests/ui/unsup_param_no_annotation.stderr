@@ -1,0 +1,7 @@
+erro: parâmetros sem anotação de tipo ainda não são suportados na Fase 1
+   ╭─[tests/ui/unsup_param_no_annotation.cdr:1:7]
+   │
+ 1 │ def f(a) -> int:
+   │       ┬  
+   │       ╰── falta a anotação
+───╯
