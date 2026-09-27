@@ -1,0 +1,5 @@
+# divergencia: debug -> OverflowError + exit 1, release -> 0
+x = 1
+n = 64
+print(0)
+print(x << n)

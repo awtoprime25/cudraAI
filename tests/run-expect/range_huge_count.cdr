@@ -1,0 +1,11 @@
+# fronteira: a contagem de range(-9223372036854775808, 9223372036854775807) e 2^64-1
+for i in range(-9223372036854775808, 9223372036854775807):
+    print(i)
+    break
+print(1)
+n = 0
+last = 0
+for i in range(-9223372036854775808, 9223372036854775807, 9223372036854775807):
+    n += 1
+    last = i
+print(n, last)

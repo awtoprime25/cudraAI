@@ -44,24 +44,25 @@ impl<'a> Parser<'a> {
             },
             TokenKind::At | TokenKind::Def => {
                 let span = self.span();
-                let _: PResult<Stmt> = self.unsupported(span, "definição de função aninhada");
+                let _: PResult<Stmt> =
+                    self.unsupported(span, "definição de função aninhada ainda não é suportada");
                 self.recover_stmt();
             }
             TokenKind::Reserved => {
                 let text = self.cur_text();
-                let msg = format!("'{text}'");
+                let msg = format!("'{text}' ainda não é suportado");
                 let span = self.span();
                 let _: PResult<Stmt> = self.unsupported(span, &msg);
                 self.recover_stmt();
             }
             TokenKind::Name if self.at_match_stmt() => {
                 let span = self.span();
-                let _: PResult<Stmt> = self.unsupported(span, "'match'");
+                let _: PResult<Stmt> = self.unsupported(span, "'match' ainda não é suportado");
                 self.recover_stmt();
             }
             TokenKind::Name if self.at_type_alias() => {
                 let span = self.span();
-                let _: PResult<Stmt> = self.unsupported(span, "'type'");
+                let _: PResult<Stmt> = self.unsupported(span, "'type' ainda não é suportado");
                 self.recover_stmt();
             }
             _ => self.parse_simple_stmt_line(out),
@@ -132,7 +133,7 @@ impl<'a> Parser<'a> {
         let start = self.prev_span();
         if self.eat(TokenKind::Newline).is_some() {
             self.expect(TokenKind::Indent, "um bloco indentado")?;
-            let mut stmts = Vec::new();
+            let mut stmts = Vec::with_capacity(1);
             while !matches!(self.kind(), TokenKind::Dedent | TokenKind::Eof) {
                 let before = self.pos;
                 self.stmt_one(&mut stmts);
@@ -146,7 +147,7 @@ impl<'a> Parser<'a> {
             let span = start.to(end);
             Ok(Block { stmts, span })
         } else {
-            let mut stmts = Vec::new();
+            let mut stmts = Vec::with_capacity(1);
             self.parse_simple_stmt_line(&mut stmts);
             let span = match (stmts.first(), stmts.last()) {
                 (Some(f), Some(l)) => f.span.to(l.span),
@@ -259,7 +260,7 @@ impl<'a> Parser<'a> {
         let (e, _d) = self.parse_expr()?;
         if self.at(TokenKind::Comma) {
             let sp = self.span();
-            return self.unsupported(sp, "tuplos");
+            return self.unsupported(sp, "tuplos ainda não são suportados");
         }
         let span = start.to(e.span);
         let id = self.next_id();
@@ -276,15 +277,15 @@ impl<'a> Parser<'a> {
         let name_tok = self.expect(TokenKind::Name, "o nome do módulo")?;
         if self.at(TokenKind::Dot) {
             let sp = self.span();
-            return self.unsupported(sp, "'import' com módulo composto");
+            return self.unsupported(sp, "'import' com módulo composto ainda não é suportado");
         }
         if self.is_reserved("as") {
             let sp = self.span();
-            return self.unsupported(sp, "'import ... as'");
+            return self.unsupported(sp, "'import ... as' ainda não é suportado");
         }
         if self.at(TokenKind::Comma) {
             let sp = self.span();
-            return self.unsupported(sp, "'import' com vários módulos");
+            return self.unsupported(sp, "'import' com vários módulos ainda não é suportado");
         }
         let module = self.mk_ident(name_tok);
         let span = start.to(name_tok.span);
@@ -301,18 +302,18 @@ impl<'a> Parser<'a> {
         self.bump();
         if self.at(TokenKind::Dot) {
             let sp = self.span();
-            return self.unsupported(sp, "import relativo");
+            return self.unsupported(sp, "import relativo ainda não é suportado");
         }
         let mod_tok = self.expect(TokenKind::Name, "o nome do módulo")?;
         if self.at(TokenKind::Dot) {
             let sp = self.span();
-            return self.unsupported(sp, "'import' com módulo composto");
+            return self.unsupported(sp, "'import' com módulo composto ainda não é suportado");
         }
         let module = self.mk_ident(mod_tok);
         self.expect(TokenKind::Import, "'import'")?;
         if self.at(TokenKind::Star) {
             let sp = self.span();
-            return self.unsupported(sp, "'from ... import *'");
+            return self.unsupported(sp, "'from ... import *' ainda não é suportado");
         }
         let paren = self.eat(TokenKind::LParen).is_some();
         if paren && self.at(TokenKind::RParen) {
@@ -324,7 +325,7 @@ impl<'a> Parser<'a> {
             let n_tok = self.expect(TokenKind::Name, "um nome importado")?;
             if self.is_reserved("as") {
                 let sp = self.span();
-                return self.unsupported(sp, "'import ... as'");
+                return self.unsupported(sp, "'import ... as' ainda não é suportado");
             }
             names.push(self.mk_ident(n_tok));
             if self.eat(TokenKind::Comma).is_some() {
@@ -354,7 +355,7 @@ impl<'a> Parser<'a> {
 
         if self.at(TokenKind::AtEq) {
             let sp = self.span();
-            return self.unsupported(sp, "'@='");
+            return self.unsupported(sp, "'@=' ainda não é suportado");
         }
 
         if let Some(aug_op) = self.aug_op_kind() {
@@ -363,7 +364,7 @@ impl<'a> Parser<'a> {
             let (value, _dv) = self.parse_expr()?;
             if self.at(TokenKind::Comma) {
                 let sp = self.span();
-                return self.unsupported(sp, "tuplos");
+                return self.unsupported(sp, "tuplos ainda não são suportados");
             }
             let span = start.to(value.span);
             let id = self.next_id();
@@ -384,7 +385,7 @@ impl<'a> Parser<'a> {
             let ty = self.parse_type_expr()?;
             if self.eat(TokenKind::Eq).is_none() {
                 let sp = self.span();
-                return self.unsupported(sp, "anotação sem valor");
+                return self.unsupported(sp, "anotação sem valor ainda não é suportada");
             }
             let (value, _dv) = self.parse_expr()?;
             if self.at(TokenKind::Eq) {
@@ -393,7 +394,7 @@ impl<'a> Parser<'a> {
             }
             if self.at(TokenKind::Comma) {
                 let sp = self.span();
-                return self.unsupported(sp, "tuplos");
+                return self.unsupported(sp, "tuplos ainda não são suportados");
             }
             let span = start.to(value.span);
             let id = self.next_id();
@@ -414,11 +415,11 @@ impl<'a> Parser<'a> {
             let (value, _dv) = self.parse_expr()?;
             if self.at(TokenKind::Eq) {
                 let sp = self.span();
-                return self.unsupported(sp, "atribuição múltipla");
+                return self.unsupported(sp, "atribuição múltipla ainda não é suportada");
             }
             if self.at(TokenKind::Comma) {
                 let sp = self.span();
-                return self.unsupported(sp, "tuplos");
+                return self.unsupported(sp, "tuplos ainda não são suportados");
             }
             let span = start.to(value.span);
             let id = self.next_id();
@@ -435,7 +436,7 @@ impl<'a> Parser<'a> {
 
         if self.at(TokenKind::Comma) {
             let sp = self.span();
-            return self.unsupported(sp, "tuplos");
+            return self.unsupported(sp, "tuplos ainda não são suportados");
         }
 
         let span = first_expr.span;
@@ -470,7 +471,10 @@ impl<'a> Parser<'a> {
         match e.kind {
             ExprKind::Name(ident) => Ok(Target::Name(ident)),
             ExprKind::Index { base, index } => Ok(Target::Index { base, index }),
-            ExprKind::Attr { .. } => self.unsupported(e.span, "atributo como alvo de atribuição"),
+            ExprKind::Attr { .. } => self.unsupported(
+                e.span,
+                "atributo como alvo de atribuição ainda não é suportado",
+            ),
             _ => Err(self.bail(e.span, "alvo de atribuição inválido")),
         }
     }
@@ -478,8 +482,12 @@ impl<'a> Parser<'a> {
     fn expr_to_target_for_annotation(&mut self, e: Expr) -> PResult<Target> {
         match e.kind {
             ExprKind::Name(ident) => Ok(Target::Name(ident)),
-            ExprKind::Attr { .. } => self.unsupported(e.span, "anotação em atributo"),
-            ExprKind::Index { .. } => self.unsupported(e.span, "anotação em índice"),
+            ExprKind::Attr { .. } => {
+                self.unsupported(e.span, "anotação em atributo ainda não é suportada")
+            }
+            ExprKind::Index { .. } => {
+                self.unsupported(e.span, "anotação em índice ainda não é suportada")
+            }
             _ => Err(self.bail(e.span, "alvo de atribuição inválido")),
         }
     }
@@ -530,10 +538,7 @@ impl<'a> Parser<'a> {
         let body = self.parse_block()?;
         if self.at(TokenKind::Else) {
             let else_span = self.span();
-            self.err(
-                else_span,
-                "'while ... else' ainda não é suportado(a) na Fase 1",
-            );
+            self.unsup(else_span, "'while ... else' ainda não é suportado");
             self.bump();
             if self.parse_block().is_err() {
                 self.recover_stmt();
@@ -557,15 +562,12 @@ impl<'a> Parser<'a> {
         let (iter, _d) = self.parse_expr()?;
         if self.at(TokenKind::Comma) {
             let sp = self.span();
-            return self.unsupported(sp, "tuplos");
+            return self.unsupported(sp, "tuplos ainda não são suportados");
         }
         let body = self.parse_block()?;
         if self.at(TokenKind::Else) {
             let else_span = self.span();
-            self.err(
-                else_span,
-                "'for ... else' ainda não é suportado(a) na Fase 1",
-            );
+            self.unsup(else_span, "'for ... else' ainda não é suportado");
             self.bump();
             if self.parse_block().is_err() {
                 self.recover_stmt();
@@ -589,7 +591,7 @@ impl<'a> Parser<'a> {
         let ident = self.expect_name("o nome da variável do ciclo")?;
         if self.at(TokenKind::Comma) {
             let sp = self.span();
-            return self.unsupported(sp, "tuplos como alvo do 'for'");
+            return self.unsupported(sp, "tuplos como alvo do 'for' ainda não são suportados");
         }
         while parens > 0 {
             self.expect(TokenKind::RParen, "')'")?;
@@ -616,13 +618,16 @@ impl<'a> Parser<'a> {
         let decorators = self.parse_decorators()?;
         if !self.at(TokenKind::Def) {
             let sp = self.span();
-            return self.unsupported(sp, "declaração decorada");
+            return self.unsupported(sp, "declaração decorada ainda não é suportada");
         }
         self.bump();
         let name = self.expect_name("o nome da função")?;
         if self.at(TokenKind::LBracket) {
             let sp = self.span();
-            return self.unsupported(sp, "parâmetros de tipo (genéricos)");
+            return self.unsupported(
+                sp,
+                "parâmetros de tipo (genéricos) ainda não são suportados",
+            );
         }
         self.expect(TokenKind::LParen, "'('")?;
         let params = self.parse_params()?;
@@ -647,18 +652,20 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_params(&mut self) -> PResult<Vec<Param>> {
-        let mut params = Vec::new();
         if self.at(TokenKind::RParen) {
-            return Ok(params);
+            return Ok(Vec::new());
         }
+        // `Vec::new()` daria capacidade para 4 parâmetros; quase todas as
+        // funções têm um ou dois.
+        let mut params = Vec::with_capacity(1);
         loop {
             if matches!(self.kind(), TokenKind::Star | TokenKind::DoubleStar) {
                 let sp = self.span();
-                return self.unsupported(sp, "'*'/'**' em parâmetros");
+                return self.unsupported(sp, "'*'/'**' em parâmetros ainda não são suportados");
             }
             if self.at(TokenKind::Slash) {
                 let sp = self.span();
-                return self.unsupported(sp, "parâmetros só-posicionais");
+                return self.unsupported(sp, "parâmetros só-posicionais ainda não são suportados");
             }
             let start = self.span();
             let name_tok = self.expect(TokenKind::Name, "o nome do parâmetro")?;
@@ -670,7 +677,10 @@ impl<'a> Parser<'a> {
             };
             if self.at(TokenKind::Eq) {
                 let sp = self.span();
-                return self.unsupported(sp, "parâmetros com valor por omissão");
+                return self.unsupported(
+                    sp,
+                    "parâmetros com valor por omissão ainda não são suportados",
+                );
             }
             let end = ty.as_ref().map(|t| t.span).unwrap_or(name.span);
             let span = start.to(end);
@@ -700,7 +710,7 @@ impl<'a> Parser<'a> {
                 || self.at_expr_operator()
             {
                 let sp = self.span();
-                return self.unsupported(sp, "anotação de tipo");
+                return self.unsupported(sp, "anotação de tipo ainda não é suportada");
             }
             let id = self.next_id();
             return Ok(TypeExpr {
@@ -711,7 +721,7 @@ impl<'a> Parser<'a> {
         }
         if !self.at(TokenKind::Name) {
             let sp = self.span();
-            return self.unsupported(sp, "anotação de tipo");
+            return self.unsupported(sp, "anotação de tipo ainda não é suportada");
         }
         let name_tok = self.bump();
         let ident = self.mk_ident(name_tok);
@@ -734,7 +744,7 @@ impl<'a> Parser<'a> {
         };
         if matches!(self.kind(), TokenKind::Dot | TokenKind::LBracket) || self.at_expr_operator() {
             let sp = self.span();
-            return self.unsupported(sp, "anotação de tipo");
+            return self.unsupported(sp, "anotação de tipo ainda não é suportada");
         }
         let id = self.next_id();
         Ok(TypeExpr {

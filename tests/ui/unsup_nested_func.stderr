@@ -1,7 +1,7 @@
-erro: definição de função aninhada ainda não é suportado(a) na Fase 1
+erro: definição de função aninhada ainda não é suportada na Fase 1
    ╭─[tests/ui/unsup_nested_func.cdr:2:5]
    │
  2 │     def g():
    │     ─┬─  
-   │      ╰─── definição de função aninhada ainda não é suportado(a) na Fase 1
+   │      ╰─── definição de função aninhada ainda não é suportada na Fase 1
 ───╯

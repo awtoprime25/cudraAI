@@ -1,0 +1,18 @@
+i = 0
+while True:
+    i += 1
+    if i % 2 == 0:
+        continue
+    if i > 7:
+        break
+    j = 0
+    while j < 3:
+        j += 1
+        if j == 2:
+            break
+        print(i, j)
+print(i)
+n = 10
+while n > 0:
+    n -= 3
+print(n)

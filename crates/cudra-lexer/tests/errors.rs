@@ -27,7 +27,7 @@ fn tabs_in_indentation_reports_exact_span() {
     let d = only_diag(&diags);
     assert_eq!(
         d.message,
-        "tabs na indentação não são suportados, usa espaços"
+        "tabs na indentação ainda não são suportados na Fase 1; usa espaços"
     );
     let tab = src.find('\t').unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), tab, tab + 1));
@@ -257,7 +257,10 @@ fn complex_int_suffix_is_rejected() {
     let src = "x = 1j\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "números complexos ainda não são suportados");
+    assert_eq!(
+        d.message,
+        "números complexos ainda não são suportados na Fase 1"
+    );
     let lo = src.find("1j").unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 2));
 }
@@ -267,7 +270,10 @@ fn complex_float_suffix_is_rejected() {
     let src = "x = 1.5J\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "números complexos ainda não são suportados");
+    assert_eq!(
+        d.message,
+        "números complexos ainda não são suportados na Fase 1"
+    );
     let lo = src.find("1.5J").unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 4));
 }
@@ -289,7 +295,7 @@ fn non_ascii_identifier_is_one_error_covering_the_whole_name() {
     let d = only_diag(&diags);
     assert_eq!(
         d.message,
-        "identificadores não-ASCII ainda não são suportados"
+        "identificadores não-ASCII ainda não são suportados na Fase 1"
     );
     let lo = src.find("café").unwrap() as u32;
     let hi = lo + "café".len() as u32;
@@ -367,7 +373,7 @@ fn unmatched_rparen_reports_and_still_emits_token() {
     let src = "x = 1)\n";
     let (tokens, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "')' sem correspondência");
+    assert_eq!(d.message, "')' sem abertura");
     let lo = src.find(')').unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
     assert!(tokens
@@ -380,7 +386,7 @@ fn unmatched_rbracket_reports_and_still_emits_token() {
     let src = "x = 1]\n";
     let (tokens, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "']' sem correspondência");
+    assert_eq!(d.message, "']' sem abertura");
     let lo = src.find(']').unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
     assert!(tokens

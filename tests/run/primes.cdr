@@ -1,0 +1,19 @@
+def is_prime(n: int) -> bool:
+    if n < 2:
+        return False
+    d = 2
+    while d * d <= n:
+        if n % d == 0:
+            return False
+        d += 1
+    return True
+
+count = 0
+last = 0
+n = 2
+while n < 5000:
+    if is_prime(n):
+        count += 1
+        last = n
+    n += 1
+print(count, last)

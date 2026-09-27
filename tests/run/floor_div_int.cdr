@@ -1,0 +1,8 @@
+a = -7
+while a <= 7:
+    b = -3
+    while b <= 3:
+        if b != 0:
+            print(a, b, a // b, a % b)
+        b += 1
+    a += 1

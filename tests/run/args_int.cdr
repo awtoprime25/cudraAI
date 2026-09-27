@@ -1,0 +1,6 @@
+# args: 7 2.5 -0.0 42
+from cudra import arg_int, arg_float
+print(arg_int(1), arg_float(2), arg_float(3), arg_int(4))
+print(arg_float(1), arg_int(4))
+n = arg_int(1)
+print(arg_int(n) * 2)

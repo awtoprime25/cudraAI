@@ -1,7 +1,7 @@
-erro: 'with' ainda não é suportado(a) na Fase 1
+erro: 'with' ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_with_stmt.cdr:1:1]
    │
  1 │ with open("x") as f:
    │ ──┬─  
-   │   ╰─── 'with' ainda não é suportado(a) na Fase 1
+   │   ╰─── 'with' ainda não é suportado na Fase 1
 ───╯

@@ -1,7 +1,7 @@
-erro: strings ainda não é suportado(a) na Fase 1
+erro: strings ainda não são suportadas na Fase 1
    ╭─[tests/ui/unsup_print_string.cdr:1:7]
    │
  1 │ print("x")
    │       ─┬─  
-   │        ╰─── strings ainda não é suportado(a) na Fase 1
+   │        ╰─── strings ainda não são suportadas na Fase 1
 ───╯

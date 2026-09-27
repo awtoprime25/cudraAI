@@ -1,4 +1,4 @@
-erro: operações com None ainda não são suportadas
+erro: operações com None ainda não são suportadas na Fase 1
    ╭─[tests/ui/unsup_not_call_result.cdr:3:7]
    │
  3 │ print(not f())

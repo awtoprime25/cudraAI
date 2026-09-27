@@ -2,4 +2,4 @@
 source: crates/cudra-parser/tests/snapshot.rs
 expression: "dump(\"while a:\\n    pass\\nelse:\\n    pass\\n\")"
 ---
-ERROR	'while ... else' ainda não é suportado(a) na Fase 1	3:1
+ERROR	'while ... else' ainda não é suportado na Fase 1	3:1

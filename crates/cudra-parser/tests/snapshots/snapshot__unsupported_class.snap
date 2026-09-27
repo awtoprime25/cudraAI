@@ -2,4 +2,4 @@
 source: crates/cudra-parser/tests/snapshot.rs
 expression: "dump(\"class A:\\n    x = 1\\n\")"
 ---
-ERROR	'class' ainda não é suportado(a) na Fase 1	1:1
+ERROR	'class' ainda não é suportado na Fase 1	1:1

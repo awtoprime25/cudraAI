@@ -1,5 +1,3 @@
-use std::collections::{HashMap, HashSet};
-
 use cudra_ast as ast;
 use cudra_diagnostics::Diagnostic;
 use cudra_span::{FileId, Span, Symbol};
@@ -14,6 +12,40 @@ use crate::{definite, infer, CheckCtx, STy};
 struct LExpr {
     sty: STy,
     t: TExpr,
+}
+
+/// Valor de um literal inteiro da TIR (incluindo `-<literal>`), usado para
+/// provar que um `range` de literais corre pelo menos uma vez.
+fn tir_const_int(e: &TExpr) -> Option<i64> {
+    match &e.kind {
+        TExprKind::ConstInt(v) => Some(*v),
+        TExprKind::Unary {
+            op: cudra_tir::TUnOp::INeg,
+            operand,
+        } => match &operand.kind {
+            TExprKind::ConstInt(v) => v.checked_neg(),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// `true` quando `range(start, stop, step)` de literais corre pelo menos uma
+/// vez (aritmetica de i128: o intervalo pode chegar a 2^64-1).
+fn const_range_nonempty(start: &TExpr, stop: &TExpr, step: &TExpr) -> bool {
+    let (Some(start), Some(stop), Some(step)) = (
+        tir_const_int(start),
+        tir_const_int(stop),
+        tir_const_int(step),
+    ) else {
+        return false;
+    };
+    if step == 0 {
+        return false;
+    }
+    let (lo, hi, st) = (start as i128, stop as i128, step as i128);
+    let span = if st > 0 { hi - lo } else { lo - hi };
+    span > 0
 }
 
 fn error_lexpr(span: Span) -> LExpr {
@@ -52,8 +84,8 @@ struct FuncChecker {
     ret_annotated: bool,
     ret_sty: STy,
     return_sites: Vec<STy>,
-    locals: HashMap<Symbol, (LocalId, STy, Span)>,
-    locals_hint: HashSet<Symbol>,
+    locals: Vec<(Symbol, LocalId, STy, Span)>,
+    locals_hint: Vec<Symbol>,
     tir_locals: Vec<TLocal>,
     defined: Vec<bool>,
     loop_stack: Vec<LoopCtx>,
@@ -79,7 +111,7 @@ impl FuncChecker {
         name: Symbol,
         ret_annotated: bool,
         ret_sty: STy,
-        locals_hint: HashSet<Symbol>,
+        locals_hint: Vec<Symbol>,
         spans: FuncSpans,
     ) -> Self {
         FuncChecker {
@@ -88,7 +120,7 @@ impl FuncChecker {
             ret_annotated,
             ret_sty,
             return_sites: Vec::new(),
-            locals: HashMap::new(),
+            locals: Vec::new(),
             locals_hint,
             tir_locals: Vec::new(),
             defined: Vec::new(),
@@ -100,6 +132,22 @@ impl FuncChecker {
             ret_annot_span: spans.ret_annot,
             body_end: spans.body_end,
         }
+    }
+
+    #[inline]
+    fn is_local(&self, s: Symbol) -> bool {
+        self.locals_hint.binary_search(&s).is_ok()
+    }
+
+    /// O último registo ganha (é o que o `HashMap` fazia quando o mesmo nome
+    /// era declarado duas vezes).
+    #[inline]
+    fn local(&self, s: Symbol) -> Option<(LocalId, STy, Span)> {
+        self.locals
+            .iter()
+            .rev()
+            .find(|l| l.0 == s)
+            .map(|&(_, id, sty, span)| (id, sty, span))
     }
 
     fn new_local(&mut self, ctx: &CheckCtx, name: Symbol, sty: STy) -> LocalId {
@@ -147,7 +195,7 @@ impl FuncChecker {
             },
             STy::NoneTy => {
                 ctx.err(
-                    Diagnostic::error("operações com None ainda não são suportadas")
+                    Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                         .with_primary(span, "condição None"),
                 );
                 TExpr {
@@ -176,14 +224,14 @@ impl FuncChecker {
             infer::BinOutcome::Error => error_lexpr(span),
             infer::BinOutcome::BoolOperand => {
                 ctx.err(
-                    Diagnostic::error("bool usado como int ainda não é suportado")
+                    Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                         .with_primary(span, "operando bool"),
                 );
                 error_lexpr(span)
             }
             infer::BinOutcome::NoneOperand => {
                 ctx.err(
-                    Diagnostic::error("operações com None ainda não são suportadas")
+                    Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                         .with_primary(span, "operando None"),
                 );
                 error_lexpr(span)
@@ -252,14 +300,14 @@ impl FuncChecker {
             infer::UnOutcome::Error => error_lexpr(span),
             infer::UnOutcome::BoolOperand => {
                 ctx.err(
-                    Diagnostic::error("bool usado como int ainda não é suportado")
+                    Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                         .with_primary(span, "operando bool"),
                 );
                 error_lexpr(span)
             }
             infer::UnOutcome::NoneOperand => {
                 ctx.err(
-                    Diagnostic::error("operações com None ainda não são suportadas")
+                    Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                         .with_primary(span, "operando None"),
                 );
                 error_lexpr(span)
@@ -293,8 +341,8 @@ impl FuncChecker {
     }
 
     fn resolve_read(&mut self, ctx: &mut CheckCtx, id: &ast::Ident) -> LExpr {
-        if self.locals_hint.contains(&id.name) {
-            if let Some((lid, sty, _)) = self.locals.get(&id.name).copied() {
+        if self.is_local(id.name) {
+            if let Some((lid, sty, _)) = self.local(id.name) {
                 if self.defined[lid.0 as usize] {
                     return LExpr {
                         sty,
@@ -315,9 +363,9 @@ impl FuncChecker {
             );
             return error_lexpr(id.span);
         }
-        if ctx.functions.contains_key(&id.name) || ctx.imports.names.contains_key(&id.name) {
+        if ctx.has_func(id.name) || ctx.imports.names.contains_key(&id.name) {
             ctx.err(
-                Diagnostic::error("funções como valores ainda não são suportadas")
+                Diagnostic::error("funções como valores ainda não são suportadas na Fase 1")
                     .with_primary(id.span, "aqui"),
             );
             return error_lexpr(id.span);
@@ -325,21 +373,23 @@ impl FuncChecker {
         let text = ctx.sym(id.name).to_string();
         if resolve::BUILTINS.contains(&text.as_str()) {
             ctx.err(
-                Diagnostic::error("funções como valores ainda não são suportadas")
+                Diagnostic::error("funções como valores ainda não são suportadas na Fase 1")
                     .with_primary(id.span, "aqui"),
             );
             return error_lexpr(id.span);
         }
         if text == "cudra" && ctx.imports.cudra_module_pos.is_some() {
             ctx.err(
-                Diagnostic::error("usar o módulo 'cudra' como valor ainda não é suportado")
-                    .with_primary(id.span, "aqui"),
+                Diagnostic::error(
+                    "usar o módulo 'cudra' como valor ainda não é suportado na Fase 1",
+                )
+                .with_primary(id.span, "aqui"),
             );
             return error_lexpr(id.span);
         }
         if !self.is_main && ctx.top_vars.contains(&id.name) {
             ctx.err(
-                Diagnostic::error("variáveis globais não são suportadas na Fase 1")
+                Diagnostic::error("variáveis globais ainda não são suportadas na Fase 1")
                     .with_primary(id.span, "aqui"),
             );
             return error_lexpr(id.span);
@@ -365,7 +415,7 @@ impl FuncChecker {
                 if *v > i64::MAX as u64 {
                     ctx.err(
                         Diagnostic::error(
-                            "inteiro fora do intervalo de 64 bits ainda não é suportado",
+                            "inteiros maiores do que 9223372036854775807 ainda não são suportados na Fase 1",
                         )
                         .with_primary(e.span, "literal"),
                     );
@@ -436,8 +486,10 @@ impl FuncChecker {
                     error_lexpr(e.span)
                 } else if l.sty != STy::Bool || r.sty != STy::Bool {
                     ctx.err(
-                        Diagnostic::error("and/or com operandos não-bool ainda não é suportado")
-                            .with_primary(e.span, "aqui"),
+                        Diagnostic::error(
+                            "and/or com operandos não-bool ainda não é suportado na Fase 1",
+                        )
+                        .with_primary(e.span, "aqui"),
                     );
                     error_lexpr(e.span)
                 } else {
@@ -460,7 +512,7 @@ impl FuncChecker {
             ast::ExprKind::Attr { base, .. } => {
                 let _ = self.lower_expr(ctx, base);
                 ctx.err(
-                    Diagnostic::error("atributos ainda não são suportados")
+                    Diagnostic::error("atributos ainda não são suportados na Fase 1")
                         .with_primary(e.span, "aqui"),
                 );
                 error_lexpr(e.span)
@@ -469,7 +521,7 @@ impl FuncChecker {
                 let _ = self.lower_expr(ctx, base);
                 let _ = self.lower_expr(ctx, index);
                 ctx.err(
-                    Diagnostic::error("índices ainda não são suportados")
+                    Diagnostic::error("índices ainda não são suportados na Fase 1")
                         .with_primary(e.span, "aqui"),
                 );
                 error_lexpr(e.span)
@@ -495,14 +547,14 @@ impl FuncChecker {
                 infer::CmpOutcome::Error => result_sty = STy::Error,
                 infer::CmpOutcome::NoneOperand => {
                     ctx.err(
-                        Diagnostic::error("operações com None ainda não são suportadas")
+                        Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                             .with_primary(rhs_ast.span, "comparação com None"),
                     );
                     result_sty = STy::Error;
                 }
                 infer::CmpOutcome::BoolMismatch => {
                     ctx.err(
-                        Diagnostic::error("bool usado como int ainda não é suportado")
+                        Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                             .with_primary(rhs_ast.span, "comparação com bool"),
                     );
                     result_sty = STy::Error;
@@ -590,7 +642,7 @@ impl FuncChecker {
                     let _ = self.lower_expr(ctx, a);
                 }
                 ctx.err(
-                    Diagnostic::error("o range() fora de um for ainda não é suportado")
+                    Diagnostic::error("o range() fora de um for ainda não é suportado na Fase 1")
                         .with_primary(call_span, "range"),
                 );
                 error_lexpr(call_span)
@@ -606,8 +658,8 @@ impl FuncChecker {
         args: &[ast::Expr],
         call_span: Span,
     ) -> LExpr {
-        if self.locals_hint.contains(&id.name) {
-            if let Some((lid, _sty, _)) = self.locals.get(&id.name).copied() {
+        if self.is_local(id.name) {
+            if let Some((lid, _sty, _)) = self.local(id.name) {
                 if !self.defined[lid.0 as usize] {
                     ctx.err(
                         Diagnostic::error(format!(
@@ -637,26 +689,27 @@ impl FuncChecker {
             return error_lexpr(call_span);
         }
 
-        if let Some(entry) = ctx.functions.get(&id.name) {
+        if let Some(entry) = ctx.func(id.name) {
             let fid = entry.id;
-            let params = entry.params.clone();
+            let n_params = entry.params.len();
             let ret = entry.ret;
             let ready_pos = entry.ready_pos;
             let name_span = entry.name_span;
+            let callee = id.name;
 
             if self.is_main {
                 if let Some(p) = self.top_pos {
                     if ready_pos > p {
                         let msg = if self.dead {
                             format!(
-                                "chamar '{}' antes da sua definição em código inalcançável ainda não é suportado",
+                                "chamar '{}' antes da sua definição em código inalcançável ainda não é suportado na Fase 1",
                                 ctx.sym(id.name)
                             )
                         } else if self.block_depth == 0 {
                             format!("'{}' usada antes de ser definida", ctx.sym(id.name))
                         } else {
                             format!(
-                                "chamar '{}' antes da sua definição dentro de um bloco ainda não é suportado",
+                                "chamar '{}' antes da sua definição dentro de um bloco ainda não é suportado na Fase 1",
                                 ctx.sym(id.name)
                             )
                         };
@@ -673,13 +726,23 @@ impl FuncChecker {
                 }
             }
 
-            if args.len() != params.len() {
+            if args.len() != n_params {
+                let given = args.len();
+                let want = n_params;
                 ctx.err(
                     Diagnostic::error(format!(
-                        "chamada a '{}' com {} argumentos, esperavam-se {}",
+                        "chamada a '{}' com {given} {}, {} {want}",
                         ctx.sym(id.name),
-                        args.len(),
-                        params.len()
+                        if given == 1 {
+                            "argumento"
+                        } else {
+                            "argumentos"
+                        },
+                        if want == 1 {
+                            "esperava-se"
+                        } else {
+                            "esperavam-se"
+                        },
                     ))
                     .with_primary(call_span, "chamada"),
                 );
@@ -690,9 +753,13 @@ impl FuncChecker {
             }
 
             let mut out_args = Vec::with_capacity(args.len());
-            for (a, (_, psty)) in args.iter().zip(params.iter()) {
+            for (i, a) in args.iter().enumerate() {
+                let psty = ctx
+                    .func(callee)
+                    .and_then(|e| e.params.get(i))
+                    .map_or(STy::Error, |(_, t)| *t);
                 let al = self.lower_expr(ctx, a);
-                if *psty != STy::Error && al.sty != STy::Error && al.sty != *psty {
+                if psty != STy::Error && al.sty != STy::Error && al.sty != psty {
                     ctx.err(
                         Diagnostic::error(format!(
                             "tipo incompatível no argumento de '{}': esperava-se {}, veio {}",
@@ -788,7 +855,8 @@ impl FuncChecker {
             let _ = self.lower_expr(ctx, a);
         }
         ctx.err(
-            Diagnostic::error("atributos ainda não são suportados").with_primary(attr.span, "aqui"),
+            Diagnostic::error("atributos ainda não são suportados na Fase 1")
+                .with_primary(attr.span, "aqui"),
         );
         error_lexpr(call_span)
     }
@@ -807,13 +875,13 @@ impl FuncChecker {
                 if pos > p {
                     let msg = if self.dead {
                         format!(
-                            "usar '{text}' antes da sua importação em código inalcançável ainda não é suportado"
+                            "usar '{text}' antes da sua importação em código inalcançável ainda não é suportado na Fase 1"
                         )
                     } else if self.block_depth == 0 {
                         format!("'{text}' usada antes de ser definida")
                     } else {
                         format!(
-                            "usar '{text}' antes da sua importação dentro de um bloco ainda não é suportado"
+                            "usar '{text}' antes da sua importação dentro de um bloco ainda não é suportado na Fase 1"
                         )
                     };
                     ctx.err(Diagnostic::error(msg).with_primary(call_span, "chamada aqui"));
@@ -837,7 +905,7 @@ impl FuncChecker {
         let a = self.lower_expr(ctx, &args[0]);
         if a.sty == STy::Bool {
             ctx.err(
-                Diagnostic::error("bool usado como int ainda não é suportado")
+                Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                     .with_primary(args[0].span, "aqui"),
             );
             return error_lexpr(call_span);
@@ -905,7 +973,7 @@ impl FuncChecker {
         let a = self.lower_expr(ctx, &args[0]);
         if a.sty == STy::NoneTy {
             ctx.err(
-                Diagnostic::error("operações com None ainda não são suportadas")
+                Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                     .with_primary(args[0].span, "aqui"),
             );
             return error_lexpr(call_span);
@@ -954,14 +1022,14 @@ impl FuncChecker {
             STy::Error => error_lexpr(call_span),
             STy::Bool => {
                 ctx.err(
-                    Diagnostic::error("bool usado como int ainda não é suportado")
+                    Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                         .with_primary(args[0].span, "aqui"),
                 );
                 error_lexpr(call_span)
             }
             STy::NoneTy => {
                 ctx.err(
-                    Diagnostic::error("operações com None ainda não são suportadas")
+                    Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                         .with_primary(args[0].span, "aqui"),
                 );
                 error_lexpr(call_span)
@@ -1024,7 +1092,7 @@ impl FuncChecker {
     }
 
     fn declare_for_var(&mut self, ctx: &mut CheckCtx, var: &ast::Ident) -> LocalId {
-        if let Some((lid, es, _)) = self.locals.get(&var.name).copied() {
+        if let Some((lid, es, _)) = self.local(var.name) {
             if es != STy::Int {
                 ctx.err(
                     Diagnostic::error(format!(
@@ -1039,7 +1107,7 @@ impl FuncChecker {
         } else {
             self.check_local_builtin_shadow(ctx, var.name, var.span);
             let lid = self.new_local(ctx, var.name, STy::Int);
-            self.locals.insert(var.name, (lid, STy::Int, var.span));
+            self.locals.push((var.name, lid, STy::Int, var.span));
             lid
         }
     }
@@ -1082,7 +1150,7 @@ impl FuncChecker {
             let l = self.lower_expr(ctx, a);
             if l.sty == STy::Bool {
                 ctx.err(
-                    Diagnostic::error("bool usado como int ainda não é suportado")
+                    Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                         .with_primary(a.span, "aqui"),
                 );
                 ok = false;
@@ -1148,6 +1216,8 @@ impl FuncChecker {
         body: &ast::Block,
     ) -> (Option<TStmt>, bool) {
         let is_range_call = matches!(&iter.kind, ast::ExprKind::Call{callee, ..} if matches!(&callee.kind, ast::ExprKind::Name(n) if ctx.sym(n.name) == "range"));
+        let explicit_start =
+            matches!(&iter.kind, ast::ExprKind::Call { args, .. } if args.len() >= 2);
         let (start, stop, step) = if is_range_call {
             let ast::ExprKind::Call { args, .. } = &iter.kind else {
                 unreachable!()
@@ -1156,7 +1226,7 @@ impl FuncChecker {
         } else {
             let _ = self.lower_expr(ctx, iter);
             ctx.err(
-                Diagnostic::error("o iterável de 'for' só suporta range(...); o resto ainda não é suportado nesta fase")
+                Diagnostic::error("o iterável de 'for' só suporta range(); o resto ainda não é suportado na Fase 1")
                     .with_primary(iter.span, "iterável"),
             );
             let z = TExpr {
@@ -1187,6 +1257,14 @@ impl FuncChecker {
         self.block_depth -= 1;
         self.loop_stack.pop();
         definite::pad(&mut pre, self.tir_locals.len());
+        // regra 14: depois do ciclo a variável fica com o último valor
+        // atribuído, mas um ciclo que possa correr 0 vezes deixa-a por definir.
+        // Só o `range` de literais com início explícito prova que corre pelo
+        // menos uma vez; a forma `range(stop)` conta sempre como podendo
+        // correr 0 vezes.
+        if explicit_start && const_range_nonempty(&start, &stop, &step) {
+            pre[var_id.0 as usize] = true;
+        }
         self.defined = pre;
 
         (
@@ -1413,8 +1491,10 @@ impl FuncChecker {
                         let _ = self.lower_expr(ctx, base);
                         let _ = self.lower_expr(ctx, index);
                         ctx.err(
-                            Diagnostic::error("atribuição a índices ainda não é suportada")
-                                .with_primary(s.span, "atribuição a índice"),
+                            Diagnostic::error(
+                                "atribuição a índices ainda não é suportada na Fase 1",
+                            )
+                            .with_primary(s.span, "atribuição a índice"),
                         );
                         (None, false)
                     }
@@ -1423,7 +1503,7 @@ impl FuncChecker {
             AugAssign { target, op, value } => {
                 let v = self.lower_expr(ctx, value);
                 match target {
-                    ast::Target::Name(id) => match self.locals.get(&id.name).copied() {
+                    ast::Target::Name(id) => match self.local(id.name) {
                         None => {
                             if !self.check_local_builtin_shadow(ctx, id.name, id.span) {
                                 ctx.err(
@@ -1480,8 +1560,10 @@ impl FuncChecker {
                         let _ = self.lower_expr(ctx, base);
                         let _ = self.lower_expr(ctx, index);
                         ctx.err(
-                            Diagnostic::error("atribuição a índices ainda não é suportada")
-                                .with_primary(s.span, "atribuição a índice"),
+                            Diagnostic::error(
+                                "atribuição a índices ainda não é suportada na Fase 1",
+                            )
+                            .with_primary(s.span, "atribuição a índice"),
                         );
                         (None, false)
                     }
@@ -1506,8 +1588,10 @@ impl FuncChecker {
             Import { .. } => {
                 if !self.is_main {
                     ctx.err(
-                        Diagnostic::error("imports dentro de funções ainda não são suportados")
-                            .with_primary(s.span, "import"),
+                        Diagnostic::error(
+                            "imports dentro de funções ainda não são suportados na Fase 1",
+                        )
+                        .with_primary(s.span, "import"),
                     );
                 }
                 (None, false)
@@ -1515,8 +1599,10 @@ impl FuncChecker {
             FromImport { .. } => {
                 if !self.is_main {
                     ctx.err(
-                        Diagnostic::error("imports dentro de funções ainda não são suportados")
-                            .with_primary(s.span, "import"),
+                        Diagnostic::error(
+                            "imports dentro de funções ainda não são suportados na Fase 1",
+                        )
+                        .with_primary(s.span, "import"),
                     );
                 }
                 (None, false)
@@ -1533,7 +1619,7 @@ impl FuncChecker {
         value_span: Span,
     ) -> LocalId {
         let ann_sty = ann.map(|t| resolve::resolve_type_expr(ctx, t));
-        if let Some((lid, es, espan)) = self.locals.get(&id.name).copied() {
+        if let Some((lid, es, espan)) = self.local(id.name) {
             if let Some(a) = ann_sty {
                 if a != STy::Error && a != es {
                     ctx.err(
@@ -1590,7 +1676,7 @@ impl FuncChecker {
             }
             self.check_local_builtin_shadow(ctx, id.name, id.span);
             let lid = self.new_local(ctx, id.name, declared);
-            self.locals.insert(id.name, (lid, declared, id.span));
+            self.locals.push((id.name, lid, declared, id.span));
             self.defined[lid.0 as usize] = true;
             lid
         }
@@ -1603,7 +1689,9 @@ impl FuncChecker {
     // implica NameError do CPython).
     fn lower_block(&mut self, ctx: &mut CheckCtx, stmts: &[ast::Stmt]) -> (Vec<TStmt>, bool) {
         let outer_dead = self.dead;
-        let mut out = Vec::new();
+        // `Vec::new()` daria capacidade para 4 instruções (`TStmt` tem 200
+        // bytes); a maioria dos blocos tem uma ou duas.
+        let mut out = Vec::with_capacity(1);
         let mut terminated = false;
         for s in stmts {
             if terminated {
@@ -1683,7 +1771,7 @@ fn process_function(
     plan: &ResolvePlan,
 ) -> TFunc {
     let (id, params_sty, ret_annotated, ret_sty, locals_hint, func_span) = {
-        let e = &ctx.functions[&name];
+        let e = ctx.func(name).expect("função registada em `resolve`");
         (
             e.id,
             e.params.clone(),
@@ -1705,7 +1793,7 @@ fn process_function(
     for (i, (pname, psty)) in params_sty.iter().enumerate() {
         let span = f.params[i].span;
         let lid = fc.new_local(ctx, *pname, *psty);
-        fc.locals.insert(*pname, (lid, *psty, span));
+        fc.locals.push((*pname, lid, *psty, span));
         fc.defined[lid.0 as usize] = true;
         param_ids.push(lid);
     }
@@ -1718,7 +1806,7 @@ fn process_function(
     } else {
         inferred
     };
-    ctx.functions.get_mut(&name).unwrap().ret = final_ret;
+    ctx.func_mut(name).unwrap().ret = final_ret;
 
     TFunc {
         id,
@@ -1731,7 +1819,8 @@ fn process_function(
 }
 
 fn process_main(ctx: &mut CheckCtx, module: &ast::Module, main_id: FuncId) -> TFunc {
-    let locals_hint = ctx.top_vars.clone();
+    let mut locals_hint: Vec<Symbol> = ctx.top_vars.iter().copied().collect();
+    locals_hint.sort_unstable();
     let no_span = Span::new(FileId(0), 0, 0);
     let spans = FuncSpans {
         name: no_span,
@@ -1739,7 +1828,7 @@ fn process_main(ctx: &mut CheckCtx, module: &ast::Module, main_id: FuncId) -> TF
         body_end: no_span,
     };
     let mut fc = FuncChecker::new(true, Symbol(0), false, STy::NoneTy, locals_hint, spans);
-    let mut out = Vec::new();
+    let mut out = Vec::with_capacity(1);
     let mut terminated = false;
     for (pos, item) in module.items.iter().enumerate() {
         let ast::Item::Stmt(s) = item else { continue };
@@ -1770,10 +1859,13 @@ pub(crate) fn lower_module(
     module: &ast::Module,
     plan: &ResolvePlan,
 ) -> Option<TModule> {
-    let mut defs: HashMap<Symbol, &ast::FuncDef> = HashMap::new();
+    let mut defs: Vec<Option<&ast::FuncDef>> = vec![None; ctx.interner.len()];
     for item in &module.items {
         if let ast::Item::Func(f) = item {
-            defs.entry(f.name.name).or_insert(f);
+            let slot = &mut defs[f.name.name.0 as usize];
+            if slot.is_none() {
+                *slot = Some(f);
+            }
         }
     }
 
@@ -1781,9 +1873,11 @@ pub(crate) fn lower_module(
     let mut tir_funcs: Vec<Option<TFunc>> = (0..n).map(|_| None).collect();
     for scc in &plan.scc_order {
         for &name in scc {
-            let Some(&f) = defs.get(&name) else { continue };
+            let Some(f) = defs[name.0 as usize] else {
+                continue;
+            };
             let tf = process_function(ctx, f, name, plan);
-            let idx = ctx.functions[&name].id.0 as usize;
+            let idx = ctx.func(name).unwrap().id.0 as usize;
             tir_funcs[idx] = Some(tf);
         }
     }

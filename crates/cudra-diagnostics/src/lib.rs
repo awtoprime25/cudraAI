@@ -198,10 +198,12 @@ pub fn render_all(diags: &[Diagnostic], sources: &SourceMap, color: bool) -> Str
         out.push_str(&render_with_cache(d, sources, color, &mut cache));
     }
     if diags.len() > shown.len() {
-        out.push_str(&format!(
-            "nota: mais {} erro(s) não mostrados\n",
-            diags.len() - shown.len()
-        ));
+        let rest = diags.len() - shown.len();
+        if rest == 1 {
+            out.push_str("nota: mais 1 erro não mostrado\n");
+        } else {
+            out.push_str(&format!("nota: mais {rest} erros não mostrados\n"));
+        }
     }
     out
 }
@@ -416,6 +418,28 @@ mod tests {
 
         let output = render(&diag, &sources, false);
         insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn render_all_pluralizes_the_truncation_note() {
+        let sources = SourceMap::new();
+        let base = Diagnostic::error("erro de teste");
+
+        let singular = vec![base.clone(); MAX_SHOWN + 1];
+        let out = render_all(&singular, &sources, false);
+        assert!(out.ends_with("nota: mais 1 erro não mostrado\n"), "{out}");
+
+        let plural = vec![base; MAX_SHOWN + 3];
+        let out = render_all(&plural, &sources, false);
+        assert!(out.ends_with("nota: mais 3 erros não mostrados\n"), "{out}");
+    }
+
+    #[test]
+    fn render_all_exactly_at_the_limit_has_no_note() {
+        let sources = SourceMap::new();
+        let diags = vec![Diagnostic::error("erro de teste"); MAX_SHOWN];
+        let out = render_all(&diags, &sources, false);
+        assert!(!out.contains("nota: mais"), "{out}");
     }
 
     #[test]

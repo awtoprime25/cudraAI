@@ -1,0 +1,4 @@
+# divergencia: nos -> OverflowError + exit 1 nos dois modos (o CPython tambem levanta OverflowError)
+print(1)
+x = 10.0 ** 400
+print(x)

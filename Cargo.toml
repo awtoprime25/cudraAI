@@ -11,3 +11,5 @@ logos = "0.14"
 ariadne = "0.4"
 insta = "1.40"
 clap = "4"
+tempfile = "3"
+inkwell = { version = "0.10.0", features = ["llvm20-1"] }

@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use cudra_ast as ast;
 use cudra_diagnostics::Diagnostic;
@@ -105,7 +105,7 @@ enum TopKind {
 }
 
 pub(crate) fn resolve(ctx: &mut CheckCtx, module: &ast::Module) -> ResolvePlan {
-    let mut top_names: HashMap<Symbol, TopKind> = HashMap::new();
+    let mut top_names: Vec<Option<TopKind>> = vec![None; ctx.interner.len()];
     let mut func_defs: Vec<(usize, &ast::FuncDef)> = Vec::new();
 
     for (pos, item) in module.items.iter().enumerate() {
@@ -122,7 +122,7 @@ pub(crate) fn resolve(ctx: &mut CheckCtx, module: &ast::Module) -> ResolvePlan {
 
     // Assinaturas (parâmetros/retorno anotados) + locais de cada função.
     for (pos, f) in &func_defs {
-        if ctx.functions.contains_key(&f.name.name) {
+        if ctx.has_func(f.name.name) {
             continue; // duplicado: mantemos a primeira definição na tabela.
         }
         let is_builtin_shadow = BUILTINS.contains(&ctx.sym(f.name.name));
@@ -134,56 +134,67 @@ pub(crate) fn resolve(ctx: &mut CheckCtx, module: &ast::Module) -> ResolvePlan {
         let locals_hint = collect_locals(f);
         let id = cudra_tir::FuncId(ctx.func_order.len() as u32);
         ctx.func_order.push(f.name.name);
-        ctx.functions.insert(
-            f.name.name,
-            FuncEntry {
-                id,
-                params,
-                ret,
-                ret_annotated,
-                def_pos: *pos,
-                span: f.span,
-                name_span: f.name.span,
-                ready_pos: *pos,
-                locals_hint,
-            },
-        );
+        ctx.functions[f.name.name.0 as usize] = Some(FuncEntry {
+            id,
+            params,
+            ret,
+            ret_annotated,
+            def_pos: *pos,
+            span: f.span,
+            name_span: f.name.span,
+            ready_pos: *pos,
+            locals_hint,
+        });
     }
 
-    // Grafo de chamadas + dependências de imports, por função.
-    let mut call_edges: HashMap<Symbol, Vec<Symbol>> = HashMap::new();
-    let mut import_deps: HashMap<Symbol, Vec<Symbol>> = HashMap::new();
+    // Grafo de chamadas + dependências de imports, por índice de função.
+    let order: Vec<Symbol> = ctx.func_order.clone();
+    let n_funcs = order.len();
+    let mut call_edges: Vec<Vec<Symbol>> = vec![Vec::new(); n_funcs];
+    let mut import_deps: Vec<Vec<Symbol>> = vec![Vec::new(); n_funcs];
     for (_, f) in &func_defs {
-        if !ctx.functions.contains_key(&f.name.name) {
+        let Some(entry) = ctx.func(f.name.name) else {
             continue;
-        }
-        let locals = &ctx.functions[&f.name.name].locals_hint;
+        };
+        let idx = entry.id.0 as usize;
         let mut calls = Vec::new();
         let mut imports_used = Vec::new();
-        scan_block_deps(&f.body.stmts, locals, &mut calls, &mut imports_used);
-        call_edges.insert(f.name.name, calls);
-        import_deps.insert(f.name.name, imports_used);
+        scan_block_deps(
+            &f.body.stmts,
+            &entry.locals_hint,
+            &mut calls,
+            &mut imports_used,
+        );
+        call_edges[idx] = calls;
+        import_deps[idx] = imports_used;
     }
 
-    let scc_order = compute_order(ctx, &call_edges);
+    let mut sym_to_func = vec![u32::MAX; ctx.interner.len()];
+    for (i, &s) in order.iter().enumerate() {
+        sym_to_func[s.0 as usize] = i as u32;
+    }
+    let (sccs, scc_of) = compute_order(n_funcs, &call_edges, &sym_to_func);
     let mut invalid_recursive: HashSet<Symbol> = HashSet::new();
 
     // Requisito de anotação em ciclos (incluindo auto-recursão).
-    for scc in &scc_order {
+    for scc in &sccs {
         let cyclic = scc.len() > 1
             || (scc.len() == 1
-                && call_edges
-                    .get(&scc[0])
-                    .map(|c| c.contains(&scc[0]))
-                    .unwrap_or(false));
+                && call_edges[scc[0] as usize]
+                    .iter()
+                    .any(|c| sym_to_func[c.0 as usize] == scc[0]));
         if !cyclic {
             continue;
         }
-        for &name in scc {
-            let annotated = ctx.functions[&name].ret_annotated;
+        for &i in scc {
+            let name = order[i as usize];
+            let annotated = ctx.func(name).is_some_and(|e| e.ret_annotated);
             if !annotated {
                 invalid_recursive.insert(name);
-                let span = ctx.functions[&name].name_span;
+                let span = ctx
+                    .func(name)
+                    .map(|e| e.name_span)
+                    .unwrap_or(name_span_of(module));
                 ctx.err(
                     Diagnostic::error(
                         "funções recursivas sem tipo de retorno anotado ainda não são suportadas na Fase 1"
@@ -197,46 +208,57 @@ pub(crate) fn resolve(ctx: &mut CheckCtx, module: &ast::Module) -> ResolvePlan {
 
     // posição "pronta" por SCC, propagada por DP sobre o DAG (já em ordem
     // de dependência): max(def_pos, imports usados, pronta(chamadas)).
-    let mut scc_ready: HashMap<Symbol, usize> = HashMap::new();
-    for scc in &scc_order {
-        // `scc.contains(...)` seria O(|scc|) por chamada; com um único SCC
-        // grande (ex.: ciclo com 100000 funções) isso é O(n²). Um HashSet
-        // construído uma vez por SCC torna a verificação O(1).
-        let scc_set: HashSet<Symbol> = scc.iter().copied().collect();
-        let mut ready = scc
+    let mut ready = vec![0usize; n_funcs];
+    for scc in &sccs {
+        let mut r = scc
             .iter()
-            .map(|s| ctx.functions[s].def_pos)
+            .map(|&i| ctx.func(order[i as usize]).map_or(0, |e| e.def_pos))
             .max()
             .unwrap_or(0);
-        for &name in scc {
-            for dep in import_deps.get(&name).into_iter().flatten() {
-                let is_import = ctx.sym(*dep) == "cudra" || ctx.imports.names.contains_key(dep);
+        for &i in scc {
+            for &dep in &import_deps[i as usize] {
+                let is_import = ctx.sym(dep) == "cudra" || ctx.imports.names.contains_key(&dep);
                 if is_import {
-                    let p = import_position(ctx, *dep);
-                    ready = ready.max(p);
+                    r = r.max(import_position(ctx, dep));
                 }
             }
-            for callee in call_edges.get(&name).into_iter().flatten() {
-                if scc_set.contains(callee) {
+            for &callee in &call_edges[i as usize] {
+                let j = sym_to_func[callee.0 as usize];
+                if j == u32::MAX || scc_of[j as usize] == scc_of[i as usize] {
                     continue;
                 }
-                if let Some(&r) = scc_ready.get(callee) {
-                    ready = ready.max(r);
-                }
+                r = r.max(ready[j as usize]);
             }
         }
-        for &name in scc {
-            scc_ready.insert(name, ready);
+        for &i in scc {
+            ready[i as usize] = r;
         }
     }
-    for (name, r) in &scc_ready {
-        ctx.functions.get_mut(name).unwrap().ready_pos = *r;
+    for (i, &name) in order.iter().enumerate() {
+        if let Some(e) = ctx.func_mut(name) {
+            e.ready_pos = ready[i];
+        }
     }
+
+    let scc_order: Vec<Vec<Symbol>> = sccs
+        .iter()
+        .map(|scc| scc.iter().map(|&i| order[i as usize]).collect())
+        .collect();
 
     ResolvePlan {
         scc_order,
         invalid_recursive,
     }
+}
+
+fn name_span_of(module: &ast::Module) -> cudra_span::Span {
+    module.items.first().map_or(
+        cudra_span::Span::new(cudra_span::FileId(0), 0, 0),
+        |i| match i {
+            ast::Item::Func(f) => f.name.span,
+            ast::Item::Stmt(s) => s.span,
+        },
+    )
 }
 
 pub(crate) fn import_position(ctx: &CheckCtx, name: Symbol) -> usize {
@@ -249,7 +271,7 @@ pub(crate) fn import_position(ctx: &CheckCtx, name: Symbol) -> usize {
 
 fn register_func_name(
     ctx: &mut CheckCtx,
-    top_names: &mut HashMap<Symbol, TopKind>,
+    top_names: &mut [Option<TopKind>],
     f: &ast::FuncDef,
     _pos: usize,
 ) {
@@ -270,7 +292,7 @@ fn register_func_name(
         );
         return;
     }
-    match top_names.get(&name) {
+    match top_names[name.0 as usize] {
         Some(TopKind::Func) => {
             let text = ctx.sym(name).to_string();
             ctx.err(
@@ -299,14 +321,14 @@ fn register_func_name(
             );
         }
         None => {
-            top_names.insert(name, TopKind::Func);
+            top_names[name.0 as usize] = Some(TopKind::Func);
         }
     }
 }
 
 fn collect_top_names_in_stmt(
     ctx: &mut CheckCtx,
-    top_names: &mut HashMap<Symbol, TopKind>,
+    top_names: &mut [Option<TopKind>],
     s: &ast::Stmt,
     pos: usize,
 ) {
@@ -379,11 +401,11 @@ fn collect_top_names_in_stmt(
                     );
                     continue;
                 }
-                match top_names.get(&n.name) {
+                match top_names[n.name.0 as usize] {
                     Some(TopKind::Func) => {
                         ctx.err(
                             Diagnostic::error(format!(
-                                "redefinir '{nt}' (já é uma função) ainda não é suportado"
+                                "redefinir '{nt}' (já é uma função) ainda não é suportado na Fase 1"
                             ))
                             .with_primary(n.span, "import aqui"),
                         );
@@ -391,13 +413,13 @@ fn collect_top_names_in_stmt(
                     Some(TopKind::Var) => {
                         ctx.err(
                             Diagnostic::error(format!(
-                                "redefinir '{nt}' (já é uma variável) ainda não é suportado"
+                                "redefinir '{nt}' (já é uma variável) ainda não é suportado na Fase 1"
                             ))
                             .with_primary(n.span, "import aqui"),
                         );
                     }
                     Some(TopKind::Import) | None => {
-                        top_names.insert(n.name, TopKind::Import);
+                        top_names[n.name.0 as usize] = Some(TopKind::Import);
                     }
                 }
                 let e = ctx.imports.names.entry(n.name).or_insert(pos);
@@ -410,8 +432,8 @@ fn collect_top_names_in_stmt(
     }
 }
 
-fn declare_top_var(ctx: &mut CheckCtx, top_names: &mut HashMap<Symbol, TopKind>, id: &ast::Ident) {
-    if BUILTINS.contains(&ctx.sym(id.name)) && !top_names.contains_key(&id.name) {
+fn declare_top_var(ctx: &mut CheckCtx, top_names: &mut [Option<TopKind>], id: &ast::Ident) {
+    if BUILTINS.contains(&ctx.sym(id.name)) && top_names[id.name.0 as usize].is_none() {
         let text = ctx.sym(id.name).to_string();
         ctx.err(
             Diagnostic::error(format!(
@@ -420,7 +442,7 @@ fn declare_top_var(ctx: &mut CheckCtx, top_names: &mut HashMap<Symbol, TopKind>,
             .with_primary(id.span, "sombra aqui"),
         );
     }
-    match top_names.get(&id.name) {
+    match top_names[id.name.0 as usize] {
         Some(TopKind::Func) => {
             let text = ctx.sym(id.name).to_string();
             ctx.err(
@@ -441,17 +463,16 @@ fn declare_top_var(ctx: &mut CheckCtx, top_names: &mut HashMap<Symbol, TopKind>,
         }
         Some(TopKind::Var) => {}
         None => {
-            top_names.insert(id.name, TopKind::Var);
+            top_names[id.name.0 as usize] = Some(TopKind::Var);
             ctx.top_vars.insert(id.name);
         }
     }
 }
 
 fn resolve_params(ctx: &mut CheckCtx, f: &ast::FuncDef) -> Vec<(Symbol, STy)> {
-    let mut seen = HashSet::new();
-    let mut out = Vec::new();
+    let mut out = Vec::with_capacity(f.params.len());
     for p in &f.params {
-        if !seen.insert(p.name.name) {
+        if out.iter().any(|(s, _)| *s == p.name.name) {
             ctx.err(
                 Diagnostic::error(format!("parâmetro '{}' repetido", ctx.sym(p.name.name)))
                     .with_primary(p.span, "repetido"),
@@ -535,19 +556,21 @@ pub(crate) fn resolve_type_expr(ctx: &mut CheckCtx, t: &ast::TypeExpr) -> STy {
     }
 }
 
-fn collect_locals(f: &ast::FuncDef) -> HashSet<Symbol> {
-    let mut s: HashSet<Symbol> = f.params.iter().map(|p| p.name.name).collect();
-    walk_block_locals(&f.body.stmts, &mut s);
-    s
+fn collect_locals(f: &ast::FuncDef) -> Vec<Symbol> {
+    let mut v: Vec<Symbol> = f.params.iter().map(|p| p.name.name).collect();
+    walk_block_locals(&f.body.stmts, &mut v);
+    v.sort_unstable();
+    v.dedup();
+    v
 }
 
-fn walk_block_locals(stmts: &[ast::Stmt], s: &mut HashSet<Symbol>) {
+fn walk_block_locals(stmts: &[ast::Stmt], s: &mut Vec<Symbol>) {
     for st in stmts {
         walk_stmt_locals(st, s);
     }
 }
 
-fn walk_stmt_locals(st: &ast::Stmt, s: &mut HashSet<Symbol>) {
+fn walk_stmt_locals(st: &ast::Stmt, s: &mut Vec<Symbol>) {
     match &st.kind {
         ast::StmtKind::Assign {
             target: ast::Target::Name(id),
@@ -557,10 +580,10 @@ fn walk_stmt_locals(st: &ast::Stmt, s: &mut HashSet<Symbol>) {
             target: ast::Target::Name(id),
             ..
         } => {
-            s.insert(id.name);
+            s.push(id.name);
         }
         ast::StmtKind::For { var, body, .. } => {
-            s.insert(var.name);
+            s.push(var.name);
             walk_block_locals(&body.stmts, s);
         }
         ast::StmtKind::While { body, .. } => walk_block_locals(&body.stmts, s),
@@ -587,7 +610,7 @@ fn walk_stmt_locals(st: &ast::Stmt, s: &mut HashSet<Symbol>) {
 /// (`arg_int`/`arg_float`/`cudra`), em todo o corpo.
 fn scan_block_deps(
     stmts: &[ast::Stmt],
-    locals: &HashSet<Symbol>,
+    locals: &[Symbol],
     calls: &mut Vec<Symbol>,
     imports_used: &mut Vec<Symbol>,
 ) {
@@ -598,7 +621,7 @@ fn scan_block_deps(
 
 fn scan_stmt_deps(
     st: &ast::Stmt,
-    locals: &HashSet<Symbol>,
+    locals: &[Symbol],
     calls: &mut Vec<Symbol>,
     imports_used: &mut Vec<Symbol>,
 ) {
@@ -644,7 +667,7 @@ fn scan_stmt_deps(
 
 fn scan_target_deps(
     target: &ast::Target,
-    locals: &HashSet<Symbol>,
+    locals: &[Symbol],
     calls: &mut Vec<Symbol>,
     imports_used: &mut Vec<Symbol>,
 ) {
@@ -657,14 +680,14 @@ fn scan_target_deps(
 // versão sem `ctx` (não precisa resolver texto de símbolos para o scan).
 fn scan_expr_deps(
     e: &ast::Expr,
-    locals: &HashSet<Symbol>,
+    locals: &[Symbol],
     calls: &mut Vec<Symbol>,
     imports_used: &mut Vec<Symbol>,
 ) {
     walk_expr(e, &mut |ex| {
         if let ast::ExprKind::Call { callee, .. } = &ex.kind {
             if let ast::ExprKind::Name(id) = &callee.kind {
-                if !locals.contains(&id.name) {
+                if locals.binary_search(&id.name).is_err() {
                     calls.push(id.name);
                 }
             }
@@ -709,85 +732,93 @@ fn walk_expr(e: &ast::Expr, f: &mut impl FnMut(&ast::Expr)) {
     }
 }
 
-fn compute_order(ctx: &CheckCtx, call_edges: &HashMap<Symbol, Vec<Symbol>>) -> Vec<Vec<Symbol>> {
-    let names: Vec<Symbol> = ctx.func_order.clone();
-    let idx_of: HashMap<Symbol, usize> = names.iter().enumerate().map(|(i, &s)| (s, i)).collect();
-    let n = names.len();
-    let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
-    for (name, callees) in call_edges {
-        let Some(&fi) = idx_of.get(name) else {
-            continue;
-        };
-        for c in callees {
-            if let Some(&ci) = idx_of.get(c) {
-                adj[fi].push(ci);
+/// SCCs do grafo de chamadas, em ordem de dependência (quem é chamado vem
+/// primeiro), mais o id do SCC de cada função.
+///
+/// A adjacência vai numa representação CSR (dois `Vec` contíguos) em vez de
+/// uma `Vec` por função: num grafo com uma `Vec` por nó, 100000 funções
+/// custam 100000 alocações só para o grafo.
+fn compute_order(
+    n: usize,
+    call_edges: &[Vec<Symbol>],
+    sym_to_func: &[u32],
+) -> (Vec<Vec<u32>>, Vec<u32>) {
+    let mut starts: Vec<u32> = Vec::with_capacity(n + 1);
+    let mut targets: Vec<u32> = Vec::with_capacity(n);
+    for edges in call_edges.iter().take(n) {
+        starts.push(targets.len() as u32);
+        for c in edges {
+            let j = sym_to_func[c.0 as usize];
+            if j != u32::MAX {
+                targets.push(j);
             }
         }
     }
-    let (_, sccs) = tarjan(n, &adj);
-    sccs.iter()
-        .map(|comp| comp.iter().map(|&i| names[i]).collect())
-        .collect()
+    starts.push(targets.len() as u32);
+    tarjan(n, &starts, &targets)
 }
 
-fn tarjan(n: usize, adj: &[Vec<usize>]) -> (Vec<i64>, Vec<Vec<usize>>) {
+fn tarjan(n: usize, starts: &[u32], targets: &[u32]) -> (Vec<Vec<u32>>, Vec<u32>) {
     let mut index = vec![-1i64; n];
     let mut lowlink = vec![0i64; n];
     let mut on_stack = vec![false; n];
-    let mut scc_id = vec![-1i64; n];
-    let mut stack: Vec<usize> = Vec::new();
+    let mut scc_id = vec![u32::MAX; n];
+    let mut stack: Vec<u32> = Vec::new();
     let mut next_index: i64 = 0;
-    let mut next_scc: i64 = 0;
-    let mut sccs: Vec<Vec<usize>> = Vec::new();
+    let mut sccs: Vec<Vec<u32>> = Vec::new();
 
     for start in 0..n {
         if index[start] != -1 {
             continue;
         }
-        let mut work: Vec<(usize, usize)> = vec![(start, 0)];
+        let mut work: Vec<(u32, u32)> = vec![(start as u32, starts[start])];
         index[start] = next_index;
         lowlink[start] = next_index;
         next_index += 1;
-        stack.push(start);
+        stack.push(start as u32);
         on_stack[start] = true;
 
-        while let Some(&mut (v, ref mut ci)) = work.last_mut() {
-            if *ci < adj[v].len() {
-                let w = adj[v][*ci];
-                *ci += 1;
-                if index[w] == -1 {
-                    index[w] = next_index;
-                    lowlink[w] = next_index;
+        while let Some(&mut (v, ref mut next)) = work.last_mut() {
+            let vi = v as usize;
+            let end = starts[vi + 1];
+            if *next < end {
+                let w = targets[*next as usize];
+                *next += 1;
+                let wi = w as usize;
+                if index[wi] == -1 {
+                    index[wi] = next_index;
+                    lowlink[wi] = next_index;
                     next_index += 1;
                     stack.push(w);
-                    on_stack[w] = true;
-                    work.push((w, 0));
-                } else if on_stack[w] && index[w] < lowlink[v] {
-                    lowlink[v] = index[w];
+                    on_stack[wi] = true;
+                    work.push((w, starts[wi]));
+                } else if on_stack[wi] && index[wi] < lowlink[vi] {
+                    lowlink[vi] = index[wi];
                 }
             } else {
                 work.pop();
                 if let Some(&(parent, _)) = work.last() {
-                    if lowlink[v] < lowlink[parent] {
-                        lowlink[parent] = lowlink[v];
+                    let pi = parent as usize;
+                    if lowlink[vi] < lowlink[pi] {
+                        lowlink[pi] = lowlink[vi];
                     }
                 }
-                if lowlink[v] == index[v] {
+                if lowlink[vi] == index[vi] {
+                    let id = sccs.len() as u32;
                     let mut comp = Vec::new();
                     loop {
                         let w = stack.pop().expect("pilha do Tarjan não pode esvaziar aqui");
-                        on_stack[w] = false;
-                        scc_id[w] = next_scc;
+                        on_stack[w as usize] = false;
+                        scc_id[w as usize] = id;
                         comp.push(w);
                         if w == v {
                             break;
                         }
                     }
                     sccs.push(comp);
-                    next_scc += 1;
                 }
             }
         }
     }
-    (scc_id, sccs)
+    (sccs, scc_id)
 }

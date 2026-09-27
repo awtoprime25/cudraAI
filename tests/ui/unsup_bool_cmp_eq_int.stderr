@@ -1,4 +1,4 @@
-erro: bool usado como int ainda não é suportado
+erro: bool usado como int ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_bool_cmp_eq_int.cdr:1:12]
    │
  1 │ print(1 == True)

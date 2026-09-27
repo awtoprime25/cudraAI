@@ -1,0 +1,7 @@
+print(not 0, not 3, not 0.0, not 2.5, True == True, True != False, True and False, True or False)
+print(bool(1) and bool(2), bool(0) or bool(3))
+x = 1
+print(not x == 7)
+inf = 1e308 * 10
+nan = inf - inf
+print(not nan, bool(nan), bool(-0.0), not -0.0)

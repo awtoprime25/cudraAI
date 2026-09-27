@@ -1,0 +1,9 @@
+# args: 25
+from cudra import arg_int
+
+def fib(n: int) -> int:
+    if n < 2:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+print(fib(arg_int(1)))

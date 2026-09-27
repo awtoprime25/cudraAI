@@ -1,0 +1,30 @@
+def main() -> int:
+    return 1
+
+def printf() -> int:
+    return 2
+
+def cudra_panic() -> int:
+    return 3
+
+def exit() -> int:
+    return 4
+
+def main_2() -> int:
+    return 5
+
+def a_b() -> int:
+    return 6
+
+def a_5fb() -> int:
+    return 7
+
+def A() -> int:
+    return 8
+
+def a() -> int:
+    return 9
+
+print(main(), printf(), cudra_panic(), exit(), main_2())
+print(a_b(), a_5fb(), A(), a())
+print(main() + printf() + cudra_panic() + exit())

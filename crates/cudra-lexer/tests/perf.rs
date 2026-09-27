@@ -90,7 +90,7 @@ fn handles_100k_consecutive_open_parens_without_panic() {
     assert!(diags
         .iter()
         .any(|d| d.message == "demasiados parênteses aninhados (máximo 200)"));
-    assert!(diags.iter().any(|d| d.message == "'(' nunca foi fechado"));
+    assert!(diags.iter().any(|d| d.message == "'(' sem fecho"));
     assert!(
         elapsed.as_secs_f64() < 1.0,
         "100k '(' consecutivos demoraram {elapsed:?}"
@@ -152,7 +152,7 @@ fn one_million_open_parens_lexes_in_under_one_second_debug() {
     let elapsed = start.elapsed();
     assert!(
         !diags.is_empty(),
-        "esperava erros (limite L8 + '(' nunca foi fechado)"
+        "esperava erros (limite L8 + '(' sem fecho)"
     );
     assert!(elapsed.as_secs_f64() < 1.0, "1M '(' demoraram {elapsed:?}");
 }

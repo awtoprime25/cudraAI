@@ -1,0 +1,4 @@
+# divergencia: debug -> OverflowError + exit 1, release -> i64::MIN
+x = -9223372036854775808
+print(1)
+print(x // -1)

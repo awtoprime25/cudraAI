@@ -2,4 +2,4 @@
 source: crates/cudra-parser/tests/snapshot.rs
 expression: "dump(\"x = (y := 1)\\n\")"
 ---
-ERROR	o operador ':=' (walrus) ainda não é suportado(a) na Fase 1	1:8
+ERROR	o operador ':=' (walrus) ainda não é suportado na Fase 1	1:8

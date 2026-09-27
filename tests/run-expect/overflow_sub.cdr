@@ -1,0 +1,3 @@
+# divergencia: debug -> OverflowError + exit 1, release -> wrapping
+x = -9223372036854775808
+print(x - 1)

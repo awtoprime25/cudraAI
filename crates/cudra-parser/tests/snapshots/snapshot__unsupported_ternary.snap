@@ -2,4 +2,4 @@
 source: crates/cudra-parser/tests/snapshot.rs
 expression: "dump(\"x = 1 if a else 2\\n\")"
 ---
-ERROR	expressões condicionais ('a if c else b') ainda não é suportado(a) na Fase 1	1:7
+ERROR	expressões condicionais ('a if c else b') ainda não são suportadas na Fase 1	1:7

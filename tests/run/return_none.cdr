@@ -1,0 +1,14 @@
+def nada():
+    x = 1
+
+def nada_cond(c: bool):
+    if c:
+        return
+    print(9)
+
+v = nada()
+print(v)
+print(nada_cond(True))
+print(nada_cond(False))
+z = None
+print(z, z)

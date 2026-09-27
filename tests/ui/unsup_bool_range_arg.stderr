@@ -1,4 +1,4 @@
-erro: bool usado como int ainda não é suportado
+erro: bool usado como int ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_bool_range_arg.cdr:1:16]
    │
  1 │ for i in range(True):

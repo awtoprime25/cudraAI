@@ -1,4 +1,4 @@
-erro: variáveis globais não são suportadas na Fase 1
+erro: variáveis globais ainda não são suportadas na Fase 1
    ╭─[tests/ui/static_global_read_before_def.cdr:2:12]
    │
  2 │     return m

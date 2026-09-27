@@ -1,0 +1,4 @@
+# args: x7
+from cudra import arg_int
+print(1)
+print(arg_int(1))

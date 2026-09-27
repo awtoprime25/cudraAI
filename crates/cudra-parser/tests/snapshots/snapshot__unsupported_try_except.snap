@@ -2,4 +2,4 @@
 source: crates/cudra-parser/tests/snapshot.rs
 expression: "dump(\"try:\\n    x = 1\\nexcept E:\\n    pass\\n\")"
 ---
-ERROR	'try' ainda não é suportado(a) na Fase 1	1:1
+ERROR	'try' ainda não é suportado na Fase 1	1:1

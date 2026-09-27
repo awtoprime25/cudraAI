@@ -1,4 +1,4 @@
-erro: operações com None ainda não são suportadas
+erro: operações com None ainda não são suportadas na Fase 1
    ╭─[tests/ui/unsup_none_eq.cdr:2:12]
    │
  2 │ print(x == None)

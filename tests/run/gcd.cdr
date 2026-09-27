@@ -1,0 +1,11 @@
+def gcd(a: int, b: int) -> int:
+    while b != 0:
+        t = a % b
+        a = b
+        b = t
+    if a < 0:
+        return -a
+    return a
+
+print(gcd(48, 18), gcd(270, 192), gcd(17, 5), gcd(0, 9), gcd(-24, 36))
+print(gcd(1071, 462), gcd(1000000007, 998244353))

@@ -279,7 +279,7 @@ impl<'a> Lexer<'a> {
             if let Some(tp) = tab_pos {
                 self.push_error(
                     Span::new(self.file, tp as u32, tp as u32 + 1),
-                    "tabs na indentação não são suportados, usa espaços",
+                    "tabs na indentação ainda não são suportados na Fase 1; usa espaços",
                 );
             }
         }
@@ -303,7 +303,7 @@ impl<'a> Lexer<'a> {
                         if let Some(tp) = tab_pos2 {
                             self.push_error(
                                 Span::new(self.file, tp as u32, tp as u32 + 1),
-                                "tabs na indentação não são suportados, usa espaços",
+                                "tabs na indentação ainda não são suportados na Fase 1; usa espaços",
                             );
                         }
                     }
@@ -374,7 +374,7 @@ impl<'a> Lexer<'a> {
         if let Some(&(ch, lo)) = self.open_brackets.first() {
             self.push_error(
                 Span::new(self.file, lo as u32, lo as u32 + 1),
-                format!("'{}' nunca foi fechado", ch as char),
+                format!("'{}' sem fecho", ch as char),
             );
         }
         let count = self.indent_stack.remaining_dedents();
@@ -442,7 +442,7 @@ impl<'a> Lexer<'a> {
         }
         self.push_error(
             self.span_from(start),
-            "identificadores não-ASCII ainda não são suportados",
+            "identificadores não-ASCII ainda não são suportados na Fase 1",
         );
     }
 
@@ -506,7 +506,7 @@ impl<'a> Lexer<'a> {
                         if self.open_brackets.is_empty() {
                             self.push_error(
                                 self.span_from(start),
-                                format!("'{}' sem correspondência", close_ch as char),
+                                format!("'{}' sem abertura", close_ch as char),
                             );
                         } else {
                             let (open_ch, open_pos) = self.pop_bracket_depth().unwrap();
@@ -1204,7 +1204,7 @@ impl<'a> Lexer<'a> {
             self.pos += 1;
             self.push_error(
                 self.span_from(start),
-                "números complexos ainda não são suportados",
+                "números complexos ainda não são suportados na Fase 1",
             );
             return;
         }

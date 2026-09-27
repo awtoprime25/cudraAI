@@ -1,0 +1,5 @@
+print(int(2.9), int(-2.9), int(-0.5), int(1e18), float(3), float(-0), bool(0), bool(-3), bool(0.0), bool(2.5))
+print(abs(-5), abs(5), abs(-2.5), abs(-0.0), abs(0))
+print(int(True), float(True), int(False), float(False))
+x = 3.99
+print(int(x), int(-x), float(int(x)))

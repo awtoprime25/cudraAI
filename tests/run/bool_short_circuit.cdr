@@ -1,0 +1,10 @@
+def t(x: int) -> bool:
+    print(x)
+    return True
+
+def f(x: int) -> bool:
+    print(x)
+    return False
+
+print(t(1) and t(2), f(3) and t(4), t(5) or f(6), f(7) or t(8))
+print(f(9) and f(10), t(11) or t(12))

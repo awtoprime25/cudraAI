@@ -1,6 +1,5 @@
-use std::fs;
 use std::io::{self, IsTerminal, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::thread;
 
@@ -10,6 +9,9 @@ use cudra_ast::{
     Block, Expr, ExprKind, Item, Module, Stmt, StmtKind, Target, TypeExpr, TypeExprKind,
 };
 use cudra_diagnostics::render_all;
+use cudra_driver::{
+    check_source, codegen, default_output, read_source, BuildFailure, CompileError,
+};
 use cudra_lexer::{lex, TokenKind};
 use cudra_parser::parse as parse_module;
 use cudra_span::{FileId, Interner, SourceMap};
@@ -49,6 +51,7 @@ enum Emit {
     Tokens,
     Ast,
     Tir,
+    Llvm,
 }
 
 fn install_panic_hook() {
@@ -94,28 +97,80 @@ fn run(cli: Cli) -> ExitCode {
         Command::Build {
             src,
             emit: Some(emit),
+            release,
             ..
-        } => cmd_emit(&src, emit),
-        Command::Build { .. } | Command::Run { .. } => {
-            eprintln!("erro: ainda não implementado nesta fase do desenvolvimento");
+        } => cmd_emit(&src, emit, release),
+        Command::Build {
+            src,
+            out,
+            release,
+            emit: None,
+        } => cmd_build(&src, out, release),
+        Command::Run { src, release, args } => cmd_run(&src, release, &args),
+    }
+}
+
+fn source_text(path: &Path) -> Result<String, ExitCode> {
+    match read_source(path) {
+        Ok(s) => Ok(s),
+        Err((msg, code)) => {
+            eprintln!("{msg}");
+            Err(ExitCode::from(code))
+        }
+    }
+}
+
+fn report_failure(f: BuildFailure) -> ExitCode {
+    match f {
+        BuildFailure::Source(msg, code) => {
+            eprintln!("{msg}");
+            ExitCode::from(code)
+        }
+        BuildFailure::Compile(CompileError::Diagnostics(d)) => {
+            eprint!("{d}");
+            ExitCode::from(1)
+        }
+        BuildFailure::Compile(CompileError::Internal(e)) | BuildFailure::Link(e) => {
+            eprintln!("erro interno do compilador: {e}");
             ExitCode::from(2)
         }
     }
 }
 
-fn read_source(path: &PathBuf) -> Result<String, ExitCode> {
-    let bytes = match fs::read(path) {
-        Ok(b) => b,
+fn cmd_build(src: &Path, out: Option<PathBuf>, release: bool) -> ExitCode {
+    let out = out.unwrap_or_else(|| default_output(src));
+    match cudra_driver::build_executable(src, &out, release) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(f) => report_failure(f),
+    }
+}
+
+fn cmd_run(src: &Path, release: bool, args: &[String]) -> ExitCode {
+    let dir = match tempfile::tempdir() {
+        Ok(d) => d,
         Err(e) => {
-            eprintln!("erro: não foi possível ler '{}': {e}", path.display());
-            return Err(ExitCode::from(2));
+            eprintln!("erro: não foi possível criar um diretório temporário: {e}");
+            return ExitCode::from(2);
         }
     };
-    match String::from_utf8(bytes) {
-        Ok(s) => Ok(s),
+    let exe = dir.path().join("prog");
+    if let Err(f) = cudra_driver::build_executable(src, &exe, release) {
+        return report_failure(f);
+    }
+    let status = match std::process::Command::new(&exe).args(args).status() {
+        Ok(s) => s,
         Err(e) => {
-            eprintln!("erro: '{}' não é UTF-8 válido: {e}", path.display());
-            Err(ExitCode::from(1))
+            eprintln!("erro: não foi possível executar o programa: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    match status.code() {
+        Some(c) => ExitCode::from(c as u8),
+        None => {
+            use std::os::unix::process::ExitStatusExt;
+            let sig = status.signal().unwrap_or(0);
+            eprintln!("o programa terminou com o sinal {sig}");
+            ExitCode::from(2)
         }
     }
 }
@@ -139,42 +194,33 @@ fn render_diags(diags: &[cudra_diagnostics::Diagnostic], sources: &SourceMap) {
     eprint!("{}", render_all(diags, sources, color));
 }
 
-fn cmd_check(src_path: &PathBuf) -> ExitCode {
-    let src = match read_source(src_path) {
+fn cmd_check(src_path: &Path) -> ExitCode {
+    let src = match source_text(src_path) {
         Ok(s) => s,
         Err(c) => return c,
     };
-    let mut sources = SourceMap::new();
-    let file = sources.add(src_path.display().to_string(), src.clone());
-    let (tokens, lex_diags) = lex(file, &src);
-    let mut interner = Interner::new();
-    let (module, parse_diags) = parse_module(file, &src, &tokens, &mut interner);
-    let diags = if lex_diags.is_empty() {
-        parse_diags
-    } else {
-        lex_diags
-    };
-    if !diags.is_empty() {
-        render_diags(&diags, &sources);
-        return ExitCode::from(1);
-    }
-    match cudra_sema::check(&module, &interner) {
-        Ok(tir_module) => {
-            if let Err(e) = cudra_tir::verify(&tir_module) {
-                eprintln!("erro interno do compilador: {e}");
-                return ExitCode::from(2);
-            }
-            ExitCode::SUCCESS
-        }
-        Err(sema_diags) => {
-            render_diags(&sema_diags, &sources);
+    match check_source(
+        &src_path.display().to_string(),
+        &src,
+        io::stderr().is_terminal(),
+    ) {
+        Ok(_) => ExitCode::SUCCESS,
+        Err(CompileError::Diagnostics(d)) => {
+            eprint!("{d}");
             ExitCode::from(1)
+        }
+        Err(CompileError::Internal(e)) => {
+            eprintln!("erro interno do compilador: {e}");
+            ExitCode::from(2)
         }
     }
 }
 
-fn cmd_emit(src_path: &PathBuf, emit: Emit) -> ExitCode {
-    let src = match read_source(src_path) {
+fn cmd_emit(src_path: &Path, emit: Emit, release: bool) -> ExitCode {
+    if let Emit::Llvm = emit {
+        return cmd_emit_llvm(src_path, release);
+    }
+    let src = match source_text(src_path) {
         Ok(s) => s,
         Err(c) => return c,
     };
@@ -251,6 +297,40 @@ fn cmd_emit(src_path: &PathBuf, emit: Emit) -> ExitCode {
                     ExitCode::from(1)
                 }
             }
+        }
+        Emit::Llvm => unreachable!("tratado em cmd_emit_llvm"),
+    }
+}
+
+fn cmd_emit_llvm(src_path: &Path, release: bool) -> ExitCode {
+    let src = match source_text(src_path) {
+        Ok(s) => s,
+        Err(c) => return c,
+    };
+    let tir = match check_source(
+        &src_path.display().to_string(),
+        &src,
+        io::stderr().is_terminal(),
+    ) {
+        Ok(m) => m,
+        Err(CompileError::Diagnostics(d)) => {
+            eprint!("{d}");
+            return ExitCode::from(1);
+        }
+        Err(CompileError::Internal(e)) => {
+            eprintln!("erro interno do compilador: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    let opts = codegen::Options { release };
+    match codegen::emit_llvm_ir(&tir, &opts) {
+        Ok(ir) => {
+            print!("{ir}");
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            eprintln!("erro interno do compilador: {e}");
+            ExitCode::from(2)
         }
     }
 }

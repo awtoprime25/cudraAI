@@ -53,7 +53,10 @@ pub(crate) struct FuncEntry {
     /// posição a partir da qual a função (e tudo o que chama,
     /// transitivamente) está pronta; usada só para chamadas no topo.
     pub ready_pos: usize,
-    pub locals_hint: std::collections::HashSet<Symbol>,
+    /// locais da função, ordenados por `Symbol` (ordem definida, procura
+    /// binária): um `Vec` ordenado em vez de um `HashSet` evita uma alocação
+    /// de tabela por função e o hashing em cada leitura de nome.
+    pub locals_hint: Vec<Symbol>,
 }
 
 pub(crate) struct Imports {
@@ -65,7 +68,9 @@ pub(crate) struct Imports {
 
 pub(crate) struct CheckCtx<'a> {
     pub interner: &'a Interner,
-    pub functions: HashMap<Symbol, FuncEntry>,
+    /// Tabela de funções indexada pelo próprio `Symbol` (os símbolos são
+    /// densos e todos vêm do interner), sem hashing.
+    pub functions: Vec<Option<FuncEntry>>,
     pub func_order: Vec<Symbol>,
     pub imports: Imports,
     pub top_vars: std::collections::HashSet<Symbol>,
@@ -80,6 +85,25 @@ impl<'a> CheckCtx<'a> {
     fn sym(&self, s: Symbol) -> &str {
         self.interner.resolve(s)
     }
+
+    #[inline]
+    fn func(&self, s: Symbol) -> Option<&FuncEntry> {
+        self.functions.get(s.0 as usize).and_then(|e| e.as_ref())
+    }
+
+    #[inline]
+    fn func_mut(&mut self, s: Symbol) -> Option<&mut FuncEntry> {
+        self.functions
+            .get_mut(s.0 as usize)
+            .and_then(|e| e.as_mut())
+    }
+
+    #[inline]
+    fn has_func(&self, s: Symbol) -> bool {
+        self.functions
+            .get(s.0 as usize)
+            .is_some_and(|e| e.is_some())
+    }
 }
 
 pub fn check(
@@ -88,7 +112,7 @@ pub fn check(
 ) -> Result<cudra_tir::Module, Vec<Diagnostic>> {
     let mut ctx = CheckCtx {
         interner,
-        functions: HashMap::new(),
+        functions: (0..interner.len()).map(|_| None).collect(),
         func_order: Vec::new(),
         imports: Imports {
             names: HashMap::new(),

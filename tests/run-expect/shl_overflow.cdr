@@ -1,0 +1,4 @@
+# divergencia: debug -> OverflowError + exit 1, release -> wrapping
+x = 3
+n = 62
+print(x << n)

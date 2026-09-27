@@ -1,0 +1,13 @@
+lo = 3
+hi = 12
+result = 0
+for i in range(lo, hi, lo // 2):
+    result += i
+print(result)
+for i in range(hi - lo, hi + lo, 3):
+    print(i)
+k = 0
+i = 0
+for i in range(lo * 2, lo, -1):
+    k += 1
+print(k, i)

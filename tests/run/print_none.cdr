@@ -1,0 +1,7 @@
+def nada():
+    print(3)
+
+x = print()
+print(x)
+print(nada(), nada())
+print(x, x, x)

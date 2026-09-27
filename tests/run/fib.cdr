@@ -1,0 +1,16 @@
+def fib(n: int) -> int:
+    if n < 2:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+def fib_iter(n: int) -> int:
+    a = 0
+    b = 1
+    for i in range(n):
+        c = a + b
+        a = b
+        b = c
+    return a
+
+print(fib(20))
+print(fib_iter(70))

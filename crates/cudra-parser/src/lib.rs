@@ -8,6 +8,10 @@ use cudra_span::{FileId, Interner, Span, Symbol};
 
 const MAX_DEPTH: u32 = 1000;
 
+fn too_deep_msg() -> String {
+    format!("expressões com mais de {MAX_DEPTH} níveis de aninhamento ainda não são suportadas")
+}
+
 // Marcador de "a instrução atual falhou": o erro já foi registado no ponto
 // onde foi detetado, e isto só serve para desviar o controlo até ao sítio
 // que sabe recuperar (ver `recover_stmt`).
@@ -157,8 +161,21 @@ impl<'a> Parser<'a> {
         Bail
     }
 
+    // Concordância: `what` traz o sujeito e o verbo já na forma certa
+    // ("tuplos ainda não são suportados", "strings ainda não são
+    // suportadas", "'is' ainda não é suportado"); o helper só acrescenta a
+    // fase, para o contrato "ainda não é/são suportad..." ser uniforme.
+    fn unsup(&mut self, span: Span, what: &str) {
+        let msg = format!("{what} na Fase 1");
+        debug_assert!(
+            msg.contains("ainda não é suportad") || msg.contains("ainda não são suportad"),
+            "mensagem fora do contrato de funcionalidade em falta: {msg}"
+        );
+        self.err(span, msg);
+    }
+
     fn unsupported<T>(&mut self, span: Span, what: &str) -> PResult<T> {
-        self.err(span, format!("{what} ainda não é suportado(a) na Fase 1"));
+        self.unsup(span, what);
         Err(Bail)
     }
 
@@ -180,10 +197,7 @@ impl<'a> Parser<'a> {
 
     fn check_depth(&mut self, d: u32, span: Span) -> PResult<u32> {
         if d > MAX_DEPTH {
-            Err(self.bail(
-                span,
-                "expressões com mais de 1000 níveis de aninhamento ainda não são suportadas",
-            ))
+            Err(self.bail(span, too_deep_msg()))
         } else {
             Ok(d)
         }
@@ -191,10 +205,7 @@ impl<'a> Parser<'a> {
 
     fn depth_bail<T>(&mut self) -> PResult<T> {
         let span = self.span();
-        Err(self.bail(
-            span,
-            "expressões com mais de 1000 níveis de aninhamento ainda não são suportadas",
-        ))
+        Err(self.bail(span, too_deep_msg()))
     }
 
     // --- recuperação de erros ---------------------------------------------

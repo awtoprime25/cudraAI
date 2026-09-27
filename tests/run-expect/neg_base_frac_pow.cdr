@@ -1,0 +1,4 @@
+# divergencia: o CPython devolve um complexo; nos -> ValueError + exit 1 nos dois modos
+x = -8.0
+print(1)
+print(x ** 0.5)

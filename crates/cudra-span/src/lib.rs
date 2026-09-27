@@ -1,4 +1,67 @@
 use std::collections::HashMap;
+use std::hash::{BuildHasherDefault, Hasher};
+use std::rc::Rc;
+
+/// Hasher não criptográfico (estilo FxHash do rustc): o interner e as tabelas
+/// de símbolos indexam-se por inteiros e por nomes curtos, onde o SipHash do
+/// `RandomState` custa mais do que a procura.
+#[derive(Default)]
+pub struct FxHasher {
+    hash: u64,
+}
+
+const FX_SEED: u64 = 0x51_7c_c1_b7_27_22_0a_95;
+
+impl FxHasher {
+    #[inline]
+    fn add(&mut self, i: u64) {
+        self.hash = (self.hash.rotate_left(5) ^ i).wrapping_mul(FX_SEED);
+    }
+}
+
+impl Hasher for FxHasher {
+    #[inline]
+    fn finish(&self) -> u64 {
+        self.hash
+    }
+
+    #[inline]
+    fn write(&mut self, bytes: &[u8]) {
+        let mut rest = bytes;
+        while rest.len() >= 8 {
+            let (head, tail) = rest.split_at(8);
+            self.add(u64::from_le_bytes(head.try_into().unwrap()));
+            rest = tail;
+        }
+        if !rest.is_empty() {
+            let mut buf = [0u8; 8];
+            buf[..rest.len()].copy_from_slice(rest);
+            self.add(u64::from_le_bytes(buf));
+        }
+    }
+
+    #[inline]
+    fn write_u8(&mut self, i: u8) {
+        self.add(i as u64);
+    }
+
+    #[inline]
+    fn write_u32(&mut self, i: u32) {
+        self.add(i as u64);
+    }
+
+    #[inline]
+    fn write_u64(&mut self, i: u64) {
+        self.add(i);
+    }
+
+    #[inline]
+    fn write_usize(&mut self, i: usize) {
+        self.add(i as u64);
+    }
+}
+
+pub type FxBuild = BuildHasherDefault<FxHasher>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct FileId(pub u32);
@@ -165,13 +228,13 @@ fn line_col_of(data: &FileData, offset: u32) -> (u32, u32) {
     (line_idx as u32 + 1, col)
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol(pub u32);
 
 #[derive(Default)]
 pub struct Interner {
-    strings: Vec<String>,
-    map: HashMap<String, Symbol>,
+    strings: Vec<Rc<str>>,
+    map: HashMap<Rc<str>, Symbol, FxBuild>,
 }
 
 impl Interner {
@@ -183,10 +246,20 @@ impl Interner {
         if let Some(&sym) = self.map.get(s) {
             return sym;
         }
+        // Uma só alocação para a string, partilhada pela chave e pela lista.
         let sym = Symbol(self.strings.len() as u32);
-        self.strings.push(s.to_string());
-        self.map.insert(s.to_string(), sym);
+        let owned: Rc<str> = Rc::from(s);
+        self.map.insert(Rc::clone(&owned), sym);
+        self.strings.push(owned);
         sym
+    }
+
+    pub fn len(&self) -> usize {
+        self.strings.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.strings.is_empty()
     }
 
     pub fn resolve(&self, sym: Symbol) -> &str {

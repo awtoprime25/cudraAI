@@ -1,4 +1,4 @@
-erro: o iterável de 'for' só suporta range(...); o resto ainda não é suportado nesta fase
+erro: o iterável de 'for' só suporta range(); o resto ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_for_over_int.cdr:1:10]
    │
  1 │ for x in 5:

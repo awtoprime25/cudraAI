@@ -1,4 +1,4 @@
-erro: usar o módulo 'cudra' como valor ainda não é suportado
+erro: usar o módulo 'cudra' como valor ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_cudra_module_plus_int.cdr:2:7]
    │
  2 │ print(cudra + 1)
