@@ -6,4 +6,4 @@ Eq	=	1:6
 Int	1	1:8
 Newline	\n	1:9
 Eof		2:1
-ERROR	identificadores não-ASCII ainda não são suportados	1:1
+ERROR	identificadores não-ASCII ainda não são suportados na Fase 1	1:1

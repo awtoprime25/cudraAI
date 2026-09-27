@@ -1,0 +1,7 @@
+erro: usar 'arg_int' antes da sua importação dentro de um bloco ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_use_import_before_block.cdr:2:11]
+   │
+ 2 │     print(cudra.arg_int(1))
+   │           ────────┬───────  
+   │                   ╰───────── chamada aqui
+───╯

@@ -1,0 +1,7 @@
+erro: 'not in' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_not_in.cdr:1:7]
+   │
+ 1 │ x = 1 not in y
+   │       ─┬─  
+   │        ╰─── 'not in' ainda não é suportado na Fase 1
+───╯

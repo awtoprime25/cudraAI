@@ -1,4 +1,4 @@
-erro: chamar 'f' antes da sua definição dentro de um bloco ainda não é suportado
+erro: chamar 'f' antes da sua definição dentro de um bloco ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_call_before_def_in_block.cdr:2:5]
    │
  2 │     f()

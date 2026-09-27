@@ -1,0 +1,14 @@
+erro: 'return' fora de uma função
+   ╭─[tests/ui/unsup_use_import_dead_code.cdr:1:1]
+   │
+ 1 │ return
+   │ ───┬──  
+   │    ╰──── return
+───╯
+erro: usar 'arg_int' antes da sua importação em código inalcançável ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_use_import_dead_code.cdr:3:7]
+   │
+ 3 │ print(cudra.arg_int(1))
+   │       ────────┬───────  
+   │               ╰───────── chamada aqui
+───╯

@@ -1,7 +1,7 @@
-erro: 'try' ainda não é suportado(a) na Fase 1
+erro: 'try' ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_try_except.cdr:1:1]
    │
  1 │ try:
    │ ─┬─  
-   │  ╰─── 'try' ainda não é suportado(a) na Fase 1
+   │  ╰─── 'try' ainda não é suportado na Fase 1
 ───╯

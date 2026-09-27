@@ -1,0 +1,7 @@
+erro: 'from ... import *' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_from_import_star.cdr:1:16]
+   │
+ 1 │ from os import *
+   │                ┬  
+   │                ╰── 'from ... import *' ainda não é suportado na Fase 1
+───╯

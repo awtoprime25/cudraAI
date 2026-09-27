@@ -134,7 +134,7 @@ fn unclosed_paren_at_eof_is_rejected_at_the_opening_paren() {
     let src = "x = (1 + 2\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "'(' nunca foi fechado");
+    assert_eq!(d.message, "'(' sem fecho");
     let lo = src.find('(').unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
 }
@@ -144,7 +144,7 @@ fn unclosed_nested_brackets_report_only_the_outermost() {
     let src = "x = (1, [2, 3\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "'(' nunca foi fechado");
+    assert_eq!(d.message, "'(' sem fecho");
     let lo = src.find('(').unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 1));
 }

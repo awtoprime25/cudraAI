@@ -1,0 +1,7 @@
+erro: redefinir 'arg_int' (já é um nome importado) ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_redefine_import_name.cdr:4:5]
+   │
+ 4 │ def arg_int(a: int) -> int:
+   │     ───┬───  
+   │        ╰───── def aqui
+───╯

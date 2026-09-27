@@ -76,7 +76,7 @@ fn unclosed_brace_at_eof_is_rejected() {
     let src = "x = {1: 2\n";
     let (_, diags) = lex_src(src);
     assert_eq!(diags.len(), 1, "esperava exatamente 1 erro: {diags:?}");
-    assert_eq!(diags[0].message, "'{' nunca foi fechado");
+    assert_eq!(diags[0].message, "'{' sem fecho");
 }
 
 #[test]

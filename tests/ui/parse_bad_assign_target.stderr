@@ -1,0 +1,7 @@
+erro: alvo de atribuição inválido
+   ╭─[tests/ui/parse_bad_assign_target.cdr:1:1]
+   │
+ 1 │ 1 = 2
+   │ ┬  
+   │ ╰── alvo de atribuição inválido
+───╯

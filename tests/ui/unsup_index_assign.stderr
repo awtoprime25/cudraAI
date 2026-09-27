@@ -1,0 +1,7 @@
+erro: atribuição a índices ainda não é suportada na Fase 1
+   ╭─[tests/ui/unsup_index_assign.cdr:2:1]
+   │
+ 2 │ x[0] = 1
+   │ ────┬───  
+   │     ╰───── atribuição a índice
+───╯

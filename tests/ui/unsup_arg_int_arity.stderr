@@ -1,0 +1,7 @@
+erro: arg_int() espera exatamente 1 argumento
+   ╭─[tests/ui/unsup_arg_int_arity.cdr:3:7]
+   │
+ 3 │ print(arg_int(1, 2))
+   │       ──────┬──────  
+   │             ╰──────── chamada
+───╯

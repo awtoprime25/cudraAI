@@ -1,0 +1,7 @@
+erro: 'import' com vários módulos ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_import_multiple.cdr:1:10]
+   │
+ 1 │ import os, sys
+   │          ┬  
+   │          ╰── 'import' com vários módulos ainda não é suportado na Fase 1
+───╯

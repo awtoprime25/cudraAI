@@ -1,4 +1,4 @@
-erro: o range() fora de um for ainda não é suportado
+erro: o range() fora de um for ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_range_outside_for.cdr:1:5]
    │
  1 │ x = range(3)

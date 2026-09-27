@@ -1,0 +1,7 @@
+erro: esperava-se um nome importado
+   ╭─[tests/ui/parse_expected_imported_name.cdr:1:15]
+   │
+ 1 │ from os import
+   │               ┬  
+   │               ╰── esperava-se um nome importado
+───╯

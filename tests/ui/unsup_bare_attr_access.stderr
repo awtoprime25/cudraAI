@@ -1,11 +1,11 @@
-erro: usar o módulo 'cudra' como valor ainda não é suportado
+erro: usar o módulo 'cudra' como valor ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_bare_attr_access.cdr:2:7]
    │
  2 │ print(cudra.arg_str)
    │       ──┬──  
    │         ╰──── aqui
 ───╯
-erro: atributos ainda não são suportados
+erro: atributos ainda não são suportados na Fase 1
    ╭─[tests/ui/unsup_bare_attr_access.cdr:2:7]
    │
  2 │ print(cudra.arg_str)

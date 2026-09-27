@@ -1,0 +1,7 @@
+erro: esperava-se um nome de atributo
+   ╭─[tests/ui/parse_expected_attr_name.cdr:1:7]
+   │
+ 1 │ x = y.def
+   │       ─┬─  
+   │        ╰─── esperava-se um nome de atributo
+───╯

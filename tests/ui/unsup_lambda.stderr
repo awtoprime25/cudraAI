@@ -1,7 +1,7 @@
-erro: 'lambda' ainda não é suportado(a) na Fase 1
+erro: 'lambda' ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_lambda.cdr:1:5]
    │
  1 │ f = lambda x: x + 1
    │     ───┬──  
-   │        ╰──── 'lambda' ainda não é suportado(a) na Fase 1
+   │        ╰──── 'lambda' ainda não é suportado na Fase 1
 ───╯

@@ -19,4 +19,4 @@ Newline	\n	3:10
 Dedent		4:1
 Dedent		4:1
 Eof		4:1
-ERROR	tabs na indentação não são suportados, usa espaços	2:1
+ERROR	tabs na indentação ainda não são suportados na Fase 1; usa espaços	2:1

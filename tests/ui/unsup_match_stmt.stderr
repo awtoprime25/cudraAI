@@ -1,0 +1,7 @@
+erro: 'match' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_match_stmt.cdr:2:1]
+   │
+ 2 │ match x:
+   │ ──┬──  
+   │   ╰──── 'match' ainda não é suportado na Fase 1
+───╯

@@ -1,0 +1,18 @@
+erro: 'return' fora de uma função
+   ╭─[tests/ui/unsup_call_before_def_dead_code.cdr:1:1]
+   │
+ 1 │ return
+   │ ───┬──  
+   │    ╰──── return
+───╯
+erro: chamar 'f' antes da sua definição em código inalcançável ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_call_before_def_dead_code.cdr:3:7]
+   │
+ 3 │ print(f(1))
+   │       ──┬─  
+   │         ╰─── chamada aqui
+   │ 
+ 6 │ def f(a: int) -> int:
+   │     ┬  
+   │     ╰── definida aqui
+───╯

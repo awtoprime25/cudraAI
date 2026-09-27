@@ -1,0 +1,7 @@
+erro: anotação em atributo ainda não é suportada na Fase 1
+   ╭─[tests/ui/unsup_annot_attr.cdr:2:1]
+   │
+ 2 │ a.b: int = 1
+   │ ─┬─  
+   │  ╰─── anotação em atributo ainda não é suportada na Fase 1
+───╯

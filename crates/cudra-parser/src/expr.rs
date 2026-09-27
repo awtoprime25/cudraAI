@@ -14,7 +14,10 @@ impl<'a> Parser<'a> {
         let (e, d) = self.parse_or()?;
         if self.at(TokenKind::If) {
             let sp = self.span();
-            return self.unsupported(sp, "expressões condicionais ('a if c else b')");
+            return self.unsupported(
+                sp,
+                "expressões condicionais ('a if c else b') ainda não são suportadas",
+            );
         }
         Ok((e, d))
     }
@@ -111,15 +114,15 @@ impl<'a> Parser<'a> {
             }
             if self.at(TokenKind::Not) && self.kind_at(1) == TokenKind::In {
                 let sp = self.span();
-                return self.unsupported(sp, "'not in'");
+                return self.unsupported(sp, "'not in' ainda não é suportado");
             }
             if self.at(TokenKind::In) {
                 let sp = self.span();
-                return self.unsupported(sp, "'in' numa comparação");
+                return self.unsupported(sp, "'in' numa comparação ainda não é suportado");
             }
             if self.is_reserved("is") {
                 let sp = self.span();
-                return self.unsupported(sp, "'is'");
+                return self.unsupported(sp, "'is' ainda não é suportado");
             }
             break;
         }
@@ -216,7 +219,8 @@ impl<'a> Parser<'a> {
         loop {
             if self.at(TokenKind::At) {
                 let sp = self.span();
-                return self.unsupported(sp, "'@' (multiplicação de matrizes)");
+                return self
+                    .unsupported(sp, "'@' (multiplicação de matrizes) ainda não é suportado");
             }
             let op = match self.kind() {
                 TokenKind::Star => BinOp::Mul,
@@ -302,7 +306,7 @@ impl<'a> Parser<'a> {
         let (mut base, mut d) = self.parse_atom()?;
         if self.at(TokenKind::ColonEq) {
             let sp = self.span();
-            return self.unsupported(sp, "o operador ':=' (walrus)");
+            return self.unsupported(sp, "o operador ':=' (walrus) ainda não é suportado");
         }
         loop {
             match self.kind() {
@@ -314,16 +318,25 @@ impl<'a> Parser<'a> {
                         loop {
                             if matches!(self.kind(), TokenKind::Star | TokenKind::DoubleStar) {
                                 let sp = self.span();
-                                return self.unsupported(sp, "argumentos com '*'/'**'");
+                                return self.unsupported(
+                                    sp,
+                                    "argumentos com '*'/'**' ainda não são suportados",
+                                );
                             }
                             if self.at(TokenKind::Name) && self.kind_at(1) == TokenKind::Eq {
                                 let sp = self.span();
-                                return self.unsupported(sp, "argumentos nomeados");
+                                return self.unsupported(
+                                    sp,
+                                    "argumentos nomeados ainda não são suportados",
+                                );
                             }
                             let (a, da) = self.parse_expr()?;
                             if self.at(TokenKind::For) {
                                 let sp = self.span();
-                                return self.unsupported(sp, "expressões geradoras");
+                                return self.unsupported(
+                                    sp,
+                                    "expressões geradoras ainda não são suportadas",
+                                );
                             }
                             argd = argd.max(da);
                             args.push(a);
@@ -365,16 +378,16 @@ impl<'a> Parser<'a> {
                     self.bump();
                     if self.at(TokenKind::Colon) {
                         let sp = self.span();
-                        return self.unsupported(sp, "slices");
+                        return self.unsupported(sp, "slices ainda não são suportados");
                     }
                     let (idx, di) = self.parse_expr()?;
                     if self.at(TokenKind::Colon) {
                         let sp = self.span();
-                        return self.unsupported(sp, "slices");
+                        return self.unsupported(sp, "slices ainda não são suportados");
                     }
                     if self.at(TokenKind::Comma) {
                         let sp = self.span();
-                        return self.unsupported(sp, "índice com tuplo");
+                        return self.unsupported(sp, "índice com tuplo ainda não é suportado");
                     }
                     let close = self.expect(TokenKind::RBracket, "']'")?;
                     let span = base.span.to(close.span);
@@ -398,14 +411,14 @@ impl<'a> Parser<'a> {
         self.bump();
         if self.at(TokenKind::RParen) {
             self.bump();
-            return self.unsupported(open_span, "tuplos");
+            return self.unsupported(open_span, "tuplos ainda não são suportados");
         }
         let (inner, d) = self.parse_expr()?;
         if self.at(TokenKind::Comma) {
-            return self.unsupported(open_span, "tuplos");
+            return self.unsupported(open_span, "tuplos ainda não são suportados");
         }
         if self.at(TokenKind::For) {
-            return self.unsupported(open_span, "expressões geradoras");
+            return self.unsupported(open_span, "expressões geradoras ainda não são suportadas");
         }
         self.expect(TokenKind::RParen, "')'")?;
         Ok((inner, d))
@@ -442,39 +455,39 @@ impl<'a> Parser<'a> {
             TokenKind::LParen => self.parse_paren_atom(),
             TokenKind::Str => {
                 self.bump();
-                self.unsupported(span, "strings")
+                self.unsupported(span, "strings ainda não são suportadas")
             }
             TokenKind::Ellipsis => {
                 self.bump();
-                self.unsupported(span, "'...'")
+                self.unsupported(span, "'...' ainda não é suportado")
             }
             TokenKind::LBracket => {
                 self.bump();
-                self.unsupported(span, "listas")
+                self.unsupported(span, "listas ainda não são suportadas")
             }
             TokenKind::LBrace => {
                 self.bump();
-                self.unsupported(span, "dicionários/conjuntos")
+                self.unsupported(span, "dicionários/conjuntos ainda não são suportados")
             }
             TokenKind::Star => {
                 self.bump();
-                self.unsupported(span, "'*' em expressões")
+                self.unsupported(span, "'*' em expressões ainda não é suportado")
             }
             TokenKind::ColonEq => {
                 self.bump();
-                self.unsupported(span, "operador ':='")
+                self.unsupported(span, "operador ':=' ainda não é suportado")
             }
             TokenKind::Reserved if self.cur_text() == "lambda" => {
                 self.bump();
-                self.unsupported(span, "'lambda'")
+                self.unsupported(span, "'lambda' ainda não é suportado")
             }
             TokenKind::Reserved if self.cur_text() == "yield" => {
                 self.bump();
-                self.unsupported(span, "'yield'")
+                self.unsupported(span, "'yield' ainda não é suportado")
             }
             TokenKind::Reserved if self.cur_text() == "await" => {
                 self.bump();
-                self.unsupported(span, "'await'")
+                self.unsupported(span, "'await' ainda não é suportado")
             }
             _ => Err(self.bail(span, "esperava-se uma expressão")),
         }
@@ -499,16 +512,18 @@ impl<'a> Parser<'a> {
             && digits.as_bytes()[0] == b'0'
             && digits.bytes().any(|b| b != b'0')
         {
+            // Mesma mensagem que o lexer usa para este caso (lá é o caminho
+            // habitual; esta guarda só cobre um Int que chegue ao parser).
             self.err(
                 span,
-                "zeros à esquerda em literais inteiros decimais ainda não são suportados",
+                "zeros à esquerda em literais decimais não são permitidos; usa 0o para octal",
             );
             return Err(Bail);
         }
         match u64::from_str_radix(digits, radix) {
             Ok(v) => Ok((self.mk_expr(ExprKind::Int(v), span), 1)),
             Err(_) => {
-                self.err(
+                self.unsup(
                     span,
                     "inteiros maiores do que 18446744073709551615 ainda não são suportados",
                 );

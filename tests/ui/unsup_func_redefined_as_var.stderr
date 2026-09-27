@@ -5,7 +5,7 @@ erro: redefinir 'f' (já é uma função) ainda não é suportado na Fase 1
    │ ┬  
    │ ╰── atribuição aqui
 ───╯
-erro: funções como valores ainda não são suportadas
+erro: funções como valores ainda não são suportadas na Fase 1
    ╭─[tests/ui/unsup_func_redefined_as_var.cdr:4:7]
    │
  4 │ print(f)

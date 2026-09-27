@@ -1,0 +1,7 @@
+return
+
+print(f(1))
+
+
+def f(a: int) -> int:
+    return a

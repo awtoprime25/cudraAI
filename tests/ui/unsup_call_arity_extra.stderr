@@ -1,0 +1,7 @@
+erro: chamada a 'f' com 2 argumentos, esperava-se 1
+   ╭─[tests/ui/unsup_call_arity_extra.cdr:4:7]
+   │
+ 4 │ print(f(1, 2))
+   │       ───┬───  
+   │          ╰───── chamada
+───╯

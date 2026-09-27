@@ -1,4 +1,4 @@
-erro: and/or com operandos não-bool ainda não é suportado
+erro: and/or com operandos não-bool ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_and_int_operands.cdr:1:7]
    │
  1 │ print(1 and 2)

@@ -1,7 +1,7 @@
-erro: parâmetros com valor por omissão ainda não é suportado(a) na Fase 1
+erro: parâmetros com valor por omissão ainda não são suportados na Fase 1
    ╭─[tests/ui/unsup_default_param.cdr:1:14]
    │
  1 │ def f(a: int = 1) -> int:
    │              ┬  
-   │              ╰── parâmetros com valor por omissão ainda não é suportado(a) na Fase 1
+   │              ╰── parâmetros com valor por omissão ainda não são suportados na Fase 1
 ───╯

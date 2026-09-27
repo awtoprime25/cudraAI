@@ -1,0 +1,7 @@
+erro: 'yield' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_yield.cdr:2:5]
+   │
+ 2 │     yield 1
+   │     ──┬──  
+   │       ╰──── 'yield' ainda não é suportado na Fase 1
+───╯

@@ -1,0 +1,7 @@
+erro: range(): os argumentos têm de ser int
+   ╭─[tests/ui/unsup_range_arg_type.cdr:1:16]
+   │
+ 1 │ for i in range(1.5, 3):
+   │                ─┬─  
+   │                 ╰─── aqui
+───╯

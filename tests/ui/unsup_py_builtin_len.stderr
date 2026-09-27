@@ -1,7 +1,7 @@
-erro: strings ainda não é suportado(a) na Fase 1
+erro: strings ainda não são suportadas na Fase 1
    ╭─[tests/ui/unsup_py_builtin_len.cdr:1:11]
    │
  1 │ print(len("ab"))
    │           ──┬─  
-   │             ╰─── strings ainda não é suportado(a) na Fase 1
+   │             ╰─── strings ainda não são suportadas na Fase 1
 ───╯

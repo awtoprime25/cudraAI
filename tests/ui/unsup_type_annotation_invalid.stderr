@@ -1,0 +1,7 @@
+erro: anotação de tipo ainda não é suportada na Fase 1
+   ╭─[tests/ui/unsup_type_annotation_invalid.cdr:1:10]
+   │
+ 1 │ def f(a: 1) -> int:
+   │          ┬  
+   │          ╰── anotação de tipo ainda não é suportada na Fase 1
+───╯

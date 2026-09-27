@@ -1,0 +1,7 @@
+erro: esperava-se o fim da instrução
+   ╭─[tests/ui/parse_expected_stmt_end.cdr:1:7]
+   │
+ 1 │ x = 1 2
+   │       ┬  
+   │       ╰── esperava-se o fim da instrução
+───╯

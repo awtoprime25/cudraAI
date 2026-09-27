@@ -1,0 +1,7 @@
+erro: índice com tuplo ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_index_tuple.cdr:1:8]
+   │
+ 1 │ x = a[1, 2]
+   │        ┬  
+   │        ╰── índice com tuplo ainda não é suportado na Fase 1
+───╯

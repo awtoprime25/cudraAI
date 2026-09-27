@@ -1,0 +1,7 @@
+erro: int() aceita no máximo 1 argumento
+   ╭─[tests/ui/unsup_conv_arity.cdr:1:7]
+   │
+ 1 │ print(int(1, 2))
+   │       ────┬────  
+   │           ╰────── chamada
+───╯

@@ -1,0 +1,7 @@
+erro: operando inválido para este operador
+   ╭─[tests/ui/unsup_unop_invalid_operand.cdr:1:5]
+   │
+ 1 │ x = ~1.5
+   │     ──┬─  
+   │       ╰─── aqui
+───╯

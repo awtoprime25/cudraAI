@@ -1,0 +1,7 @@
+erro: não se pode encadear uma atribuição anotada
+   ╭─[tests/ui/parse_chain_annot_assign.cdr:1:12]
+   │
+ 1 │ x: int = y = 1
+   │            ┬  
+   │            ╰── não se pode encadear uma atribuição anotada
+───╯

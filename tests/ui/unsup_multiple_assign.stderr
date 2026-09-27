@@ -1,0 +1,7 @@
+erro: atribuição múltipla ainda não é suportada na Fase 1
+   ╭─[tests/ui/unsup_multiple_assign.cdr:1:7]
+   │
+ 1 │ a = b = 1
+   │       ┬  
+   │       ╰── atribuição múltipla ainda não é suportada na Fase 1
+───╯

@@ -1,0 +1,7 @@
+erro: 'import ... as' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_import_as.cdr:1:11]
+   │
+ 1 │ import os as sistema
+   │           ─┬  
+   │            ╰── 'import ... as' ainda não é suportado na Fase 1
+───╯

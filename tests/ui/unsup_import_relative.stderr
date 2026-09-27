@@ -1,0 +1,7 @@
+erro: import relativo ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_import_relative.cdr:1:6]
+   │
+ 1 │ from . import os
+   │      ┬  
+   │      ╰── import relativo ainda não é suportado na Fase 1
+───╯

@@ -1,0 +1,7 @@
+erro: 'await' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_await.cdr:1:5]
+   │
+ 1 │ x = await f()
+   │     ──┬──  
+   │       ╰──── 'await' ainda não é suportado na Fase 1
+───╯

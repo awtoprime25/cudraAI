@@ -1,0 +1,7 @@
+erro: 'type' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_type_stmt.cdr:1:1]
+   │
+ 1 │ type X = int
+   │ ──┬─  
+   │   ╰─── 'type' ainda não é suportado na Fase 1
+───╯

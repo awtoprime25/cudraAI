@@ -1,0 +1,5 @@
+return
+
+print(cudra.arg_int(1))
+
+import cudra

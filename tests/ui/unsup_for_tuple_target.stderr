@@ -1,0 +1,7 @@
+erro: tuplos como alvo do 'for' ainda não são suportados na Fase 1
+   ╭─[tests/ui/unsup_for_tuple_target.cdr:1:6]
+   │
+ 1 │ for a, b in x:
+   │      ┬  
+   │      ╰── tuplos como alvo do 'for' ainda não são suportados na Fase 1
+───╯

@@ -97,7 +97,7 @@ fn run(cli: Cli) -> ExitCode {
             ..
         } => cmd_emit(&src, emit),
         Command::Build { .. } | Command::Run { .. } => {
-            eprintln!("erro: ainda não implementado nesta fase do desenvolvimento");
+            eprintln!("erro: ainda não implementado na Fase 1");
             ExitCode::from(2)
         }
     }

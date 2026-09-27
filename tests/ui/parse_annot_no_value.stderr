@@ -1,0 +1,7 @@
+erro: anotação sem valor ainda não é suportada na Fase 1
+   ╭─[tests/ui/parse_annot_no_value.cdr:1:7]
+   │
+ 1 │ x: int
+   │       ┬  
+   │       ╰── anotação sem valor ainda não é suportada na Fase 1
+───╯

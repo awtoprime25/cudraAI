@@ -1,0 +1,7 @@
+erro: esperava-se uma expressão
+   ╭─[tests/ui/parse_expected_expr.cdr:1:5]
+   │
+ 1 │ x = =
+   │     ┬  
+   │     ╰── esperava-se uma expressão
+───╯

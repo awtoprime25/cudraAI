@@ -1,0 +1,7 @@
+erro: fazer sombra ao nome importado 'arg_int' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_shadow_import_name.cdr:5:5]
+   │
+ 5 │     arg_int = 1
+   │     ───┬───  
+   │        ╰───── sombra aqui
+───╯

@@ -1,0 +1,7 @@
+erro: slices ainda não são suportados na Fase 1
+   ╭─[tests/ui/unsup_slice.cdr:1:8]
+   │
+ 1 │ x = a[1:2]
+   │        ┬  
+   │        ╰── slices ainda não são suportados na Fase 1
+───╯

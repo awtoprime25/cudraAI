@@ -1,0 +1,7 @@
+erro: abs() espera exatamente 1 argumento
+   ╭─[tests/ui/unsup_abs_arity.cdr:1:7]
+   │
+ 1 │ print(abs())
+   │       ──┬──  
+   │         ╰──── chamada
+───╯

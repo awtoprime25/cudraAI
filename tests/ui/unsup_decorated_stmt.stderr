@@ -1,0 +1,7 @@
+erro: declaração decorada ainda não é suportada na Fase 1
+   ╭─[tests/ui/unsup_decorated_stmt.cdr:2:1]
+   │
+ 2 │ x = 1
+   │ ┬  
+   │ ╰── declaração decorada ainda não é suportada na Fase 1
+───╯

@@ -1,4 +1,4 @@
-erro: operações com None ainda não são suportadas
+erro: operações com None ainda não são suportadas na Fase 1
    ╭─[tests/ui/unsup_call_in_if_cond.cdr:3:4]
    │
  3 │ if f():

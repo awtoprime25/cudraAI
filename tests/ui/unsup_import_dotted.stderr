@@ -1,0 +1,7 @@
+erro: 'import' com módulo composto ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_import_dotted.cdr:1:10]
+   │
+ 1 │ import os.path
+   │          ┬  
+   │          ╰── 'import' com módulo composto ainda não é suportado na Fase 1
+───╯

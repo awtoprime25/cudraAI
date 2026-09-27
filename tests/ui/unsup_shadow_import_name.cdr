@@ -1,0 +1,9 @@
+from cudra import arg_int
+
+
+def g() -> int:
+    arg_int = 1
+    return arg_int
+
+
+print(g())

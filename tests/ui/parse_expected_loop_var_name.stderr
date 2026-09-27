@@ -1,0 +1,7 @@
+erro: esperava-se o nome da variável do ciclo
+   ╭─[tests/ui/parse_expected_loop_var_name.cdr:1:5]
+   │
+ 1 │ for 1 in range(3):
+   │     ┬  
+   │     ╰── esperava-se o nome da variável do ciclo
+───╯

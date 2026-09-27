@@ -1,0 +1,7 @@
+erro: parâmetros só-posicionais ainda não são suportados na Fase 1
+   ╭─[tests/ui/unsup_pos_only_params.cdr:1:15]
+   │
+ 1 │ def f(a: int, /, b: int) -> int:
+   │               ┬  
+   │               ╰── parâmetros só-posicionais ainda não são suportados na Fase 1
+───╯

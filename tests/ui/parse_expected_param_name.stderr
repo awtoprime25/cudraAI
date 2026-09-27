@@ -1,0 +1,7 @@
+erro: esperava-se o nome do parâmetro
+   ╭─[tests/ui/parse_expected_param_name.cdr:1:7]
+   │
+ 1 │ def f(1):
+   │       ┬  
+   │       ╰── esperava-se o nome do parâmetro
+───╯

@@ -1,0 +1,7 @@
+erro: anotação em índice ainda não é suportada na Fase 1
+   ╭─[tests/ui/unsup_annot_index.cdr:2:1]
+   │
+ 2 │ a[0]: int = 1
+   │ ──┬─  
+   │   ╰─── anotação em índice ainda não é suportada na Fase 1
+───╯

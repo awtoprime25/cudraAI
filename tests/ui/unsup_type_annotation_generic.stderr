@@ -1,0 +1,7 @@
+erro: o tipo 'list[...]' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_type_annotation_generic.cdr:1:10]
+   │
+ 1 │ def f(a: list[int]) -> int:
+   │          ────┬────  
+   │              ╰────── tipo
+───╯

@@ -1,0 +1,7 @@
+erro: esperava-se pelo menos um nome importado
+   ╭─[tests/ui/parse_expected_imported_name_parens.cdr:1:17]
+   │
+ 1 │ from os import ()
+   │                 ┬  
+   │                 ╰── esperava-se pelo menos um nome importado
+───╯

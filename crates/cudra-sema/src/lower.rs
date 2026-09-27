@@ -147,7 +147,7 @@ impl FuncChecker {
             },
             STy::NoneTy => {
                 ctx.err(
-                    Diagnostic::error("operações com None ainda não são suportadas")
+                    Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                         .with_primary(span, "condição None"),
                 );
                 TExpr {
@@ -176,14 +176,14 @@ impl FuncChecker {
             infer::BinOutcome::Error => error_lexpr(span),
             infer::BinOutcome::BoolOperand => {
                 ctx.err(
-                    Diagnostic::error("bool usado como int ainda não é suportado")
+                    Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                         .with_primary(span, "operando bool"),
                 );
                 error_lexpr(span)
             }
             infer::BinOutcome::NoneOperand => {
                 ctx.err(
-                    Diagnostic::error("operações com None ainda não são suportadas")
+                    Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                         .with_primary(span, "operando None"),
                 );
                 error_lexpr(span)
@@ -252,14 +252,14 @@ impl FuncChecker {
             infer::UnOutcome::Error => error_lexpr(span),
             infer::UnOutcome::BoolOperand => {
                 ctx.err(
-                    Diagnostic::error("bool usado como int ainda não é suportado")
+                    Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                         .with_primary(span, "operando bool"),
                 );
                 error_lexpr(span)
             }
             infer::UnOutcome::NoneOperand => {
                 ctx.err(
-                    Diagnostic::error("operações com None ainda não são suportadas")
+                    Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                         .with_primary(span, "operando None"),
                 );
                 error_lexpr(span)
@@ -317,7 +317,7 @@ impl FuncChecker {
         }
         if ctx.functions.contains_key(&id.name) || ctx.imports.names.contains_key(&id.name) {
             ctx.err(
-                Diagnostic::error("funções como valores ainda não são suportadas")
+                Diagnostic::error("funções como valores ainda não são suportadas na Fase 1")
                     .with_primary(id.span, "aqui"),
             );
             return error_lexpr(id.span);
@@ -325,21 +325,23 @@ impl FuncChecker {
         let text = ctx.sym(id.name).to_string();
         if resolve::BUILTINS.contains(&text.as_str()) {
             ctx.err(
-                Diagnostic::error("funções como valores ainda não são suportadas")
+                Diagnostic::error("funções como valores ainda não são suportadas na Fase 1")
                     .with_primary(id.span, "aqui"),
             );
             return error_lexpr(id.span);
         }
         if text == "cudra" && ctx.imports.cudra_module_pos.is_some() {
             ctx.err(
-                Diagnostic::error("usar o módulo 'cudra' como valor ainda não é suportado")
-                    .with_primary(id.span, "aqui"),
+                Diagnostic::error(
+                    "usar o módulo 'cudra' como valor ainda não é suportado na Fase 1",
+                )
+                .with_primary(id.span, "aqui"),
             );
             return error_lexpr(id.span);
         }
         if !self.is_main && ctx.top_vars.contains(&id.name) {
             ctx.err(
-                Diagnostic::error("variáveis globais não são suportadas na Fase 1")
+                Diagnostic::error("variáveis globais ainda não são suportadas na Fase 1")
                     .with_primary(id.span, "aqui"),
             );
             return error_lexpr(id.span);
@@ -365,7 +367,7 @@ impl FuncChecker {
                 if *v > i64::MAX as u64 {
                     ctx.err(
                         Diagnostic::error(
-                            "inteiro fora do intervalo de 64 bits ainda não é suportado",
+                            "inteiros maiores do que 9223372036854775807 ainda não são suportados na Fase 1",
                         )
                         .with_primary(e.span, "literal"),
                     );
@@ -436,8 +438,10 @@ impl FuncChecker {
                     error_lexpr(e.span)
                 } else if l.sty != STy::Bool || r.sty != STy::Bool {
                     ctx.err(
-                        Diagnostic::error("and/or com operandos não-bool ainda não é suportado")
-                            .with_primary(e.span, "aqui"),
+                        Diagnostic::error(
+                            "and/or com operandos não-bool ainda não é suportado na Fase 1",
+                        )
+                        .with_primary(e.span, "aqui"),
                     );
                     error_lexpr(e.span)
                 } else {
@@ -460,7 +464,7 @@ impl FuncChecker {
             ast::ExprKind::Attr { base, .. } => {
                 let _ = self.lower_expr(ctx, base);
                 ctx.err(
-                    Diagnostic::error("atributos ainda não são suportados")
+                    Diagnostic::error("atributos ainda não são suportados na Fase 1")
                         .with_primary(e.span, "aqui"),
                 );
                 error_lexpr(e.span)
@@ -469,7 +473,7 @@ impl FuncChecker {
                 let _ = self.lower_expr(ctx, base);
                 let _ = self.lower_expr(ctx, index);
                 ctx.err(
-                    Diagnostic::error("índices ainda não são suportados")
+                    Diagnostic::error("índices ainda não são suportados na Fase 1")
                         .with_primary(e.span, "aqui"),
                 );
                 error_lexpr(e.span)
@@ -495,14 +499,14 @@ impl FuncChecker {
                 infer::CmpOutcome::Error => result_sty = STy::Error,
                 infer::CmpOutcome::NoneOperand => {
                     ctx.err(
-                        Diagnostic::error("operações com None ainda não são suportadas")
+                        Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                             .with_primary(rhs_ast.span, "comparação com None"),
                     );
                     result_sty = STy::Error;
                 }
                 infer::CmpOutcome::BoolMismatch => {
                     ctx.err(
-                        Diagnostic::error("bool usado como int ainda não é suportado")
+                        Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                             .with_primary(rhs_ast.span, "comparação com bool"),
                     );
                     result_sty = STy::Error;
@@ -590,7 +594,7 @@ impl FuncChecker {
                     let _ = self.lower_expr(ctx, a);
                 }
                 ctx.err(
-                    Diagnostic::error("o range() fora de um for ainda não é suportado")
+                    Diagnostic::error("o range() fora de um for ainda não é suportado na Fase 1")
                         .with_primary(call_span, "range"),
                 );
                 error_lexpr(call_span)
@@ -649,14 +653,14 @@ impl FuncChecker {
                     if ready_pos > p {
                         let msg = if self.dead {
                             format!(
-                                "chamar '{}' antes da sua definição em código inalcançável ainda não é suportado",
+                                "chamar '{}' antes da sua definição em código inalcançável ainda não é suportado na Fase 1",
                                 ctx.sym(id.name)
                             )
                         } else if self.block_depth == 0 {
                             format!("'{}' usada antes de ser definida", ctx.sym(id.name))
                         } else {
                             format!(
-                                "chamar '{}' antes da sua definição dentro de um bloco ainda não é suportado",
+                                "chamar '{}' antes da sua definição dentro de um bloco ainda não é suportado na Fase 1",
                                 ctx.sym(id.name)
                             )
                         };
@@ -674,12 +678,22 @@ impl FuncChecker {
             }
 
             if args.len() != params.len() {
+                let given = args.len();
+                let want = params.len();
                 ctx.err(
                     Diagnostic::error(format!(
-                        "chamada a '{}' com {} argumentos, esperavam-se {}",
+                        "chamada a '{}' com {given} {}, {} {want}",
                         ctx.sym(id.name),
-                        args.len(),
-                        params.len()
+                        if given == 1 {
+                            "argumento"
+                        } else {
+                            "argumentos"
+                        },
+                        if want == 1 {
+                            "esperava-se"
+                        } else {
+                            "esperavam-se"
+                        },
                     ))
                     .with_primary(call_span, "chamada"),
                 );
@@ -788,7 +802,8 @@ impl FuncChecker {
             let _ = self.lower_expr(ctx, a);
         }
         ctx.err(
-            Diagnostic::error("atributos ainda não são suportados").with_primary(attr.span, "aqui"),
+            Diagnostic::error("atributos ainda não são suportados na Fase 1")
+                .with_primary(attr.span, "aqui"),
         );
         error_lexpr(call_span)
     }
@@ -807,13 +822,13 @@ impl FuncChecker {
                 if pos > p {
                     let msg = if self.dead {
                         format!(
-                            "usar '{text}' antes da sua importação em código inalcançável ainda não é suportado"
+                            "usar '{text}' antes da sua importação em código inalcançável ainda não é suportado na Fase 1"
                         )
                     } else if self.block_depth == 0 {
                         format!("'{text}' usada antes de ser definida")
                     } else {
                         format!(
-                            "usar '{text}' antes da sua importação dentro de um bloco ainda não é suportado"
+                            "usar '{text}' antes da sua importação dentro de um bloco ainda não é suportado na Fase 1"
                         )
                     };
                     ctx.err(Diagnostic::error(msg).with_primary(call_span, "chamada aqui"));
@@ -837,7 +852,7 @@ impl FuncChecker {
         let a = self.lower_expr(ctx, &args[0]);
         if a.sty == STy::Bool {
             ctx.err(
-                Diagnostic::error("bool usado como int ainda não é suportado")
+                Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                     .with_primary(args[0].span, "aqui"),
             );
             return error_lexpr(call_span);
@@ -905,7 +920,7 @@ impl FuncChecker {
         let a = self.lower_expr(ctx, &args[0]);
         if a.sty == STy::NoneTy {
             ctx.err(
-                Diagnostic::error("operações com None ainda não são suportadas")
+                Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                     .with_primary(args[0].span, "aqui"),
             );
             return error_lexpr(call_span);
@@ -954,14 +969,14 @@ impl FuncChecker {
             STy::Error => error_lexpr(call_span),
             STy::Bool => {
                 ctx.err(
-                    Diagnostic::error("bool usado como int ainda não é suportado")
+                    Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                         .with_primary(args[0].span, "aqui"),
                 );
                 error_lexpr(call_span)
             }
             STy::NoneTy => {
                 ctx.err(
-                    Diagnostic::error("operações com None ainda não são suportadas")
+                    Diagnostic::error("operações com None ainda não são suportadas na Fase 1")
                         .with_primary(args[0].span, "aqui"),
                 );
                 error_lexpr(call_span)
@@ -1082,7 +1097,7 @@ impl FuncChecker {
             let l = self.lower_expr(ctx, a);
             if l.sty == STy::Bool {
                 ctx.err(
-                    Diagnostic::error("bool usado como int ainda não é suportado")
+                    Diagnostic::error("bool usado como int ainda não é suportado na Fase 1")
                         .with_primary(a.span, "aqui"),
                 );
                 ok = false;
@@ -1156,7 +1171,7 @@ impl FuncChecker {
         } else {
             let _ = self.lower_expr(ctx, iter);
             ctx.err(
-                Diagnostic::error("o iterável de 'for' só suporta range(...); o resto ainda não é suportado nesta fase")
+                Diagnostic::error("o iterável de 'for' só suporta range(); o resto ainda não é suportado na Fase 1")
                     .with_primary(iter.span, "iterável"),
             );
             let z = TExpr {
@@ -1413,8 +1428,10 @@ impl FuncChecker {
                         let _ = self.lower_expr(ctx, base);
                         let _ = self.lower_expr(ctx, index);
                         ctx.err(
-                            Diagnostic::error("atribuição a índices ainda não é suportada")
-                                .with_primary(s.span, "atribuição a índice"),
+                            Diagnostic::error(
+                                "atribuição a índices ainda não é suportada na Fase 1",
+                            )
+                            .with_primary(s.span, "atribuição a índice"),
                         );
                         (None, false)
                     }
@@ -1480,8 +1497,10 @@ impl FuncChecker {
                         let _ = self.lower_expr(ctx, base);
                         let _ = self.lower_expr(ctx, index);
                         ctx.err(
-                            Diagnostic::error("atribuição a índices ainda não é suportada")
-                                .with_primary(s.span, "atribuição a índice"),
+                            Diagnostic::error(
+                                "atribuição a índices ainda não é suportada na Fase 1",
+                            )
+                            .with_primary(s.span, "atribuição a índice"),
                         );
                         (None, false)
                     }
@@ -1506,8 +1525,10 @@ impl FuncChecker {
             Import { .. } => {
                 if !self.is_main {
                     ctx.err(
-                        Diagnostic::error("imports dentro de funções ainda não são suportados")
-                            .with_primary(s.span, "import"),
+                        Diagnostic::error(
+                            "imports dentro de funções ainda não são suportados na Fase 1",
+                        )
+                        .with_primary(s.span, "import"),
                     );
                 }
                 (None, false)
@@ -1515,8 +1536,10 @@ impl FuncChecker {
             FromImport { .. } => {
                 if !self.is_main {
                     ctx.err(
-                        Diagnostic::error("imports dentro de funções ainda não são suportados")
-                            .with_primary(s.span, "import"),
+                        Diagnostic::error(
+                            "imports dentro de funções ainda não são suportados na Fase 1",
+                        )
+                        .with_primary(s.span, "import"),
                     );
                 }
                 (None, false)

@@ -1,0 +1,7 @@
+erro: '*' em expressões ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_star_expr.cdr:2:5]
+   │
+ 2 │ x = *a
+   │     ┬  
+   │     ╰── '*' em expressões ainda não é suportado na Fase 1
+───╯

@@ -1,0 +1,2 @@
+def identidade[T](a: int) -> int:
+    return a

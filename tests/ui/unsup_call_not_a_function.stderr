@@ -1,0 +1,7 @@
+erro: isto não é uma função
+   ╭─[tests/ui/unsup_call_not_a_function.cdr:4:7]
+   │
+ 4 │ print(f(1)(2))
+   │       ───┬───  
+   │          ╰───── chamada
+───╯

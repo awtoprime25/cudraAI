@@ -1,0 +1,7 @@
+erro: parâmetros de tipo (genéricos) ainda não são suportados na Fase 1
+   ╭─[tests/ui/unsup_type_params.cdr:1:15]
+   │
+ 1 │ def identidade[T](a: int) -> int:
+   │               ┬  
+   │               ╰── parâmetros de tipo (genéricos) ainda não são suportados na Fase 1
+───╯

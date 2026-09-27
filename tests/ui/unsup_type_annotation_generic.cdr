@@ -1,0 +1,5 @@
+def f(a: list[int]) -> int:
+    return a
+
+
+print(f(1))

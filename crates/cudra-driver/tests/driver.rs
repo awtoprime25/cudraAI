@@ -40,6 +40,11 @@ fn check_syntax_error_exits_1() {
 fn check_missing_file_exits_2() {
     let out = run(&["check", "/caminho/que/nao/existe/xyz.cdr"]);
     assert_eq!(out.status.code(), Some(2));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("erro: não foi possível ler '/caminho/que/nao/existe/xyz.cdr'"),
+        "stderr inesperado: {err}"
+    );
 }
 
 #[test]
@@ -47,6 +52,11 @@ fn check_non_utf8_exits_1() {
     let path = write_tmp("check_binary", &[0xFF, 0xFE, 0x00, 0x01]);
     let out = run(&["check", path.to_str().unwrap()]);
     assert_eq!(out.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("não é UTF-8 válido") && err.contains("check_binary"),
+        "stderr inesperado: {err}"
+    );
 }
 
 #[test]
@@ -54,7 +64,10 @@ fn build_without_emit_exits_2() {
     let path = write_tmp("build_no_emit", b"x = 1\n");
     let out = run(&["build", path.to_str().unwrap()]);
     assert_eq!(out.status.code(), Some(2));
-    assert!(String::from_utf8_lossy(&out.stderr).contains("ainda não implementado"));
+    assert_eq!(
+        String::from_utf8_lossy(&out.stderr).trim(),
+        "erro: ainda não implementado na Fase 1"
+    );
 }
 
 #[test]
@@ -62,7 +75,10 @@ fn run_exits_2() {
     let path = write_tmp("run_stub", b"x = 1\n");
     let out = run(&["run", path.to_str().unwrap()]);
     assert_eq!(out.status.code(), Some(2));
-    assert!(String::from_utf8_lossy(&out.stderr).contains("ainda não implementado"));
+    assert_eq!(
+        String::from_utf8_lossy(&out.stderr).trim(),
+        "erro: ainda não implementado na Fase 1"
+    );
 }
 
 #[test]

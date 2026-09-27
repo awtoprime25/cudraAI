@@ -383,7 +383,7 @@ fn collect_top_names_in_stmt(
                     Some(TopKind::Func) => {
                         ctx.err(
                             Diagnostic::error(format!(
-                                "redefinir '{nt}' (já é uma função) ainda não é suportado"
+                                "redefinir '{nt}' (já é uma função) ainda não é suportado na Fase 1"
                             ))
                             .with_primary(n.span, "import aqui"),
                         );
@@ -391,7 +391,7 @@ fn collect_top_names_in_stmt(
                     Some(TopKind::Var) => {
                         ctx.err(
                             Diagnostic::error(format!(
-                                "redefinir '{nt}' (já é uma variável) ainda não é suportado"
+                                "redefinir '{nt}' (já é uma variável) ainda não é suportado na Fase 1"
                             ))
                             .with_primary(n.span, "import aqui"),
                         );

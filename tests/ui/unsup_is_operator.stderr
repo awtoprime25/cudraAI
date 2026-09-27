@@ -1,7 +1,7 @@
-erro: 'is' ainda não é suportado(a) na Fase 1
+erro: 'is' ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_is_operator.cdr:2:9]
    │
  2 │ print(x is 1)
    │         ─┬  
-   │          ╰── 'is' ainda não é suportado(a) na Fase 1
+   │          ╰── 'is' ainda não é suportado na Fase 1
 ───╯

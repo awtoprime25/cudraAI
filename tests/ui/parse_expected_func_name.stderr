@@ -1,0 +1,7 @@
+erro: esperava-se o nome da função
+   ╭─[tests/ui/parse_expected_func_name.cdr:1:5]
+   │
+ 1 │ def 1() -> int:
+   │     ┬  
+   │     ╰── esperava-se o nome da função
+───╯

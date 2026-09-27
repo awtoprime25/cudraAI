@@ -1,7 +1,7 @@
-erro: '@' (multiplicação de matrizes) ainda não é suportado(a) na Fase 1
+erro: '@' (multiplicação de matrizes) ainda não é suportado na Fase 1
    ╭─[tests/ui/unsup_matmul_operator.cdr:2:7]
    │
  2 │ y = x @ x
    │       ┬  
-   │       ╰── '@' (multiplicação de matrizes) ainda não é suportado(a) na Fase 1
+   │       ╰── '@' (multiplicação de matrizes) ainda não é suportado na Fase 1
 ───╯

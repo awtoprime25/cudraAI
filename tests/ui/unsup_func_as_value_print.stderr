@@ -1,4 +1,4 @@
-erro: funções como valores ainda não são suportadas
+erro: funções como valores ainda não são suportadas na Fase 1
    ╭─[tests/ui/unsup_func_as_value_print.cdr:3:7]
    │
  3 │ print(f)

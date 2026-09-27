@@ -1,0 +1,7 @@
+erro: inteiros maiores do que 18446744073709551615 ainda não são suportados na Fase 1
+   ╭─[tests/ui/unsup_int_too_big.cdr:1:5]
+   │
+ 1 │ x = 99999999999999999999999999999999
+   │     ────────────────┬───────────────  
+   │                     ╰───────────────── inteiros maiores do que 18446744073709551615 ainda não são suportados na Fase 1
+───╯

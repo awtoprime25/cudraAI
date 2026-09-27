@@ -1,0 +1,7 @@
+erro: '...' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_ellipsis.cdr:1:5]
+   │
+ 1 │ x = ...
+   │     ─┬─  
+   │      ╰─── '...' ainda não é suportado na Fase 1
+───╯

@@ -1,0 +1,7 @@
+erro: índices ainda não são suportados na Fase 1
+   ╭─[tests/ui/unsup_index_read.cdr:2:7]
+   │
+ 2 │ print(x[0])
+   │       ──┬─  
+   │         ╰─── aqui
+───╯

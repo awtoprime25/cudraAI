@@ -1,0 +1,7 @@
+erro: expressões geradoras ainda não são suportadas na Fase 1
+   ╭─[tests/ui/unsup_generator_expr.cdr:1:5]
+   │
+ 1 │ x = (i for i in range(3))
+   │     ┬  
+   │     ╰── expressões geradoras ainda não são suportadas na Fase 1
+───╯

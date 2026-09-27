@@ -1,0 +1,7 @@
+erro: esperava-se o nome do módulo
+   ╭─[tests/ui/parse_expected_module_name.cdr:1:8]
+   │
+ 1 │ import 1
+   │        ┬  
+   │        ╰── esperava-se o nome do módulo
+───╯

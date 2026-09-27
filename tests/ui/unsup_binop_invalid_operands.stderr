@@ -1,0 +1,7 @@
+erro: operandos inválidos para este operador
+   ╭─[tests/ui/unsup_binop_invalid_operands.cdr:1:5]
+   │
+ 1 │ x = 1.5 & 2
+   │     ───┬───  
+   │        ╰───── aqui
+───╯
