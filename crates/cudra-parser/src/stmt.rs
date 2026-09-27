@@ -133,7 +133,7 @@ impl<'a> Parser<'a> {
         let start = self.prev_span();
         if self.eat(TokenKind::Newline).is_some() {
             self.expect(TokenKind::Indent, "um bloco indentado")?;
-            let mut stmts = Vec::new();
+            let mut stmts = Vec::with_capacity(1);
             while !matches!(self.kind(), TokenKind::Dedent | TokenKind::Eof) {
                 let before = self.pos;
                 self.stmt_one(&mut stmts);
@@ -147,7 +147,7 @@ impl<'a> Parser<'a> {
             let span = start.to(end);
             Ok(Block { stmts, span })
         } else {
-            let mut stmts = Vec::new();
+            let mut stmts = Vec::with_capacity(1);
             self.parse_simple_stmt_line(&mut stmts);
             let span = match (stmts.first(), stmts.last()) {
                 (Some(f), Some(l)) => f.span.to(l.span),
@@ -652,10 +652,12 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_params(&mut self) -> PResult<Vec<Param>> {
-        let mut params = Vec::new();
         if self.at(TokenKind::RParen) {
-            return Ok(params);
+            return Ok(Vec::new());
         }
+        // `Vec::new()` daria capacidade para 4 parâmetros; quase todas as
+        // funções têm um ou dois.
+        let mut params = Vec::with_capacity(1);
         loop {
             if matches!(self.kind(), TokenKind::Star | TokenKind::DoubleStar) {
                 let sp = self.span();

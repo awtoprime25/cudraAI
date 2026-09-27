@@ -5,6 +5,16 @@
 // mais, sem sinal '+'). Extraimos os digitos e o expoente decimal E (posicao
 // do primeiro digito) e reformatamos seguindo as regras do repr() do Python.
 
+fn significant_digits(formatted: &str) -> usize {
+    formatted
+        .split('e')
+        .next()
+        .unwrap_or("")
+        .bytes()
+        .filter(u8::is_ascii_digit)
+        .count()
+}
+
 pub fn float_repr(x: f64) -> String {
     if x.is_nan() {
         return "nan".to_string();
@@ -17,7 +27,19 @@ pub fn float_repr(x: f64) -> String {
         };
     }
 
-    let formatted = format!("{x:e}");
+    // O `{:e}` do Rust dá os dígitos mais curtos com round-trip, mas no
+    // empate do último dígito arredonda para longe do zero, enquanto o dtoa
+    // do CPython arredonda para o par (ex.: -0.191745758056640625 imprime
+    // -0.19174575805664062). Reformatar com a mesma precisão usa o
+    // arredondamento correto e continua a fazer round-trip.
+    let mut formatted = format!("{x:e}");
+    let prec = significant_digits(&formatted);
+    if prec >= 2 {
+        let rounded = format!("{:.*e}", prec - 1, x);
+        if rounded.parse::<f64>().is_ok_and(|v| v == x) {
+            formatted = rounded;
+        }
+    }
     let (sign, rest) = match formatted.strip_prefix('-') {
         Some(r) => ("-", r),
         None => ("", formatted.as_str()),
@@ -144,6 +166,17 @@ mod tests {
     case!(t_1e22, 1e22, "1e+22");
     case!(t_1e_7, 1e-7, "1e-07");
     case!(t_123_456, 123.456, "123.456");
+
+    // Estes valores duplos terminam exatamente em ...625, pelo que o 17.º
+    // dígito do repr é um empate: o CPython arredonda para o par e o `{:e}`
+    // do Rust arredonda para longe do zero. A precisão a mais é o ponto do
+    // teste.
+    #[test]
+    #[allow(clippy::excessive_precision)]
+    fn t_empate_arredonda_para_par() {
+        assert_eq!(float_repr(-0.191745758056640625), "-0.19174575805664062");
+        assert_eq!(float_repr(0.191745758056640625), "0.19174575805664062");
+    }
     case!(t_2_pow_53, 9007199254740992.0_f64, "9007199254740992.0");
     case!(
         t_2_pow_63,

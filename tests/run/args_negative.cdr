@@ -1,0 +1,4 @@
+# args: 7 2.5 -0.0 42
+import cudra
+print(cudra.arg_int(-1), cudra.arg_float(-3), cudra.arg_int(1))
+print(cudra.arg_float(2) + 1)

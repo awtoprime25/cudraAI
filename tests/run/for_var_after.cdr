@@ -1,0 +1,9 @@
+for i in range(10, 0, -3):
+    print(i)
+print(i)
+for j in range(0, 10, 3):
+    print(j)
+print(j)
+for k in range(3, 0, -1):
+    print(k)
+print(k)

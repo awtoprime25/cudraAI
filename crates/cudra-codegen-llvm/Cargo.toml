@@ -1,0 +1,12 @@
+[package]
+name = "cudra-codegen-llvm"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+cudra-tir = { path = "../cudra-tir" }
+inkwell = { workspace = true }
+
+[dev-dependencies]
+cudra-span = { path = "../cudra-span" }

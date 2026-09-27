@@ -315,6 +315,7 @@ impl<'a> Parser<'a> {
                     let mut args = Vec::new();
                     let mut argd = 0u32;
                     if !self.at(TokenKind::RParen) {
+                        args.reserve_exact(1);
                         loop {
                             if matches!(self.kind(), TokenKind::Star | TokenKind::DoubleStar) {
                                 let sp = self.span();

@@ -1,0 +1,3 @@
+# args: inf -nan 1e-400 1_0.5
+from cudra import arg_float
+print(arg_float(1), arg_float(2), arg_float(3), arg_float(4))

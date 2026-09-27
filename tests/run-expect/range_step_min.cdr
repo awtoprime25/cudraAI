@@ -1,0 +1,4 @@
+# fronteira: passo i64::MIN (a magnitude 2^63 nao cabe num i64 com sinal)
+for i in range(9223372036854775807, -9223372036854775808, -9223372036854775808):
+    print(i)
+print(7)

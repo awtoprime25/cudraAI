@@ -1,0 +1,15 @@
+a = 0
+b = 0
+if True:
+    a = 1
+else:
+    a = 2
+for i in range(0, 3):
+    b = i
+print(a, b, i)
+while_count = 0
+inner = 0
+while while_count < 3:
+    inner = while_count * 2
+    while_count += 1
+print(inner)

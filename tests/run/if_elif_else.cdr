@@ -1,0 +1,16 @@
+x = 1
+if x > 5: print(1)
+elif x > 0: print(2)
+else: print(3)
+while x < 3: x += 1
+print(x)
+if True:
+    y = 10
+elif False:
+    y = 20
+else:
+    y = 30
+print(y)
+v = 7
+if v > 0 and v < 10:
+    print(v * 2)

@@ -59,26 +59,69 @@ fn check_non_utf8_exits_1() {
     );
 }
 
-#[test]
-fn build_without_emit_exits_2() {
-    let path = write_tmp("build_no_emit", b"x = 1\n");
-    let out = run(&["build", path.to_str().unwrap()]);
-    assert_eq!(out.status.code(), Some(2));
-    assert_eq!(
-        String::from_utf8_lossy(&out.stderr).trim(),
-        "erro: ainda não implementado na Fase 1"
-    );
+fn tmp_exe(name: &str) -> PathBuf {
+    let mut path = std::env::temp_dir();
+    path.push(format!("cudrac_test_{}_{}", std::process::id(), name));
+    path
 }
 
 #[test]
-fn run_exits_2() {
-    let path = write_tmp("run_stub", b"x = 1\n");
+fn build_without_emit_creates_a_running_executable() {
+    let path = write_tmp("build_no_emit", b"print(1)\n");
+    let exe = tmp_exe("build_no_emit_exe");
+    let out = run(&["build", path.to_str().unwrap(), "-o", exe.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(0), "{out:?}");
+    let run_out = Command::new(&exe).output().unwrap();
+    assert_eq!(run_out.status.code(), Some(0));
+    assert_eq!(String::from_utf8_lossy(&run_out.stdout), "1\n");
+    let _ = fs::remove_file(&exe);
+}
+
+#[test]
+fn run_prints_stdout_and_returns_exit_code() {
+    let path = write_tmp("run_ok", b"print(2 + 3)\n");
     let out = run(&["run", path.to_str().unwrap()]);
-    assert_eq!(out.status.code(), Some(2));
-    assert_eq!(
-        String::from_utf8_lossy(&out.stderr).trim(),
-        "erro: ainda não implementado na Fase 1"
+    assert_eq!(out.status.code(), Some(0));
+    assert_eq!(String::from_utf8_lossy(&out.stdout), "5\n");
+}
+
+#[test]
+fn run_propagates_exit_1_and_partial_stdout() {
+    let path = write_tmp("run_div0", b"print(1)\nx = 0\nprint(5 // x)\n");
+    let out = run(&["run", path.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(1));
+    assert_eq!(String::from_utf8_lossy(&out.stdout), "1\n");
+    assert!(String::from_utf8_lossy(&out.stderr).contains("ZeroDivisionError"));
+}
+
+#[test]
+fn run_passes_extra_args() {
+    let path = write_tmp(
+        "run_args",
+        b"from cudra import arg_int\nprint(arg_int(1) * 2)\n",
     );
+    let out = run(&["run", path.to_str().unwrap(), "--", "21"]);
+    assert_eq!(out.status.code(), Some(0));
+    assert_eq!(String::from_utf8_lossy(&out.stdout), "42\n");
+}
+
+#[test]
+fn build_emit_llvm_prints_ir() {
+    let path = write_tmp("emit_llvm", b"print(1)\n");
+    let out = run(&["build", path.to_str().unwrap(), "--emit=llvm"]);
+    assert_eq!(out.status.code(), Some(0));
+    let ir = stdout(&out);
+    assert!(ir.contains("define i32 @main"), "{ir}");
+    assert!(ir.contains("@cudra_print_int"), "{ir}");
+}
+
+#[test]
+fn build_emit_llvm_on_invalid_source_exits_1_with_empty_stdout() {
+    let path = write_tmp("emit_llvm_err", b"x = \n");
+    let out = run(&["build", path.to_str().unwrap(), "--emit=llvm"]);
+    assert_eq!(out.status.code(), Some(1));
+    assert!(stdout(&out).is_empty());
+    assert!(!out.stderr.is_empty());
 }
 
 #[test]
