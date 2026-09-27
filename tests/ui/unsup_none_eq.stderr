@@ -1,0 +1,7 @@
+erro: operações com None ainda não são suportadas
+   ╭─[tests/ui/unsup_none_eq.cdr:2:12]
+   │
+ 2 │ print(x == None)
+   │            ──┬─  
+   │              ╰─── comparação com None
+───╯

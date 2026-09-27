@@ -1,0 +1,7 @@
+erro: tipo incompatível: 'i' é float, mas o for atribui int
+   ╭─[tests/ui/static_for_var_type_conflict.cdr:2:5]
+   │
+ 2 │ for i in range(3):
+   │     ┬  
+   │     ╰── aqui
+───╯

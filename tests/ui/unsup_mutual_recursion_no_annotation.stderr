@@ -1,0 +1,7 @@
+erro: funções recursivas sem tipo de retorno anotado ainda não são suportadas na Fase 1
+   ╭─[tests/ui/unsup_mutual_recursion_no_annotation.cdr:5:5]
+   │
+ 5 │ def b(n: int):
+   │     ┬  
+   │     ╰── 'b' precisa de um tipo de retorno anotado
+───╯

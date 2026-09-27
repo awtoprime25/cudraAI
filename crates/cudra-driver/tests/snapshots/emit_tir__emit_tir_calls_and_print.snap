@@ -1,0 +1,15 @@
+---
+source: crates/cudra-driver/tests/emit_tir.rs
+expression: stdout(&out)
+---
+main: f1
+func f0 add(a$0: int, b$1: int) -> int
+  locals:
+    l0 a: int
+    l1 b: int
+  body:
+    Return (IAdd a$0:int b$1:int):int
+func f1 main() -> None
+  locals:
+  body:
+    Expr (Intrinsic Print [(Call f0 [1:int, 2:int]):int, (Call f0 [3:int, 4:int]):int]):None

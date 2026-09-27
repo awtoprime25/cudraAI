@@ -1,0 +1,11 @@
+[package]
+name = "cudra-sema"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+cudra-span = { path = "../cudra-span" }
+cudra-diagnostics = { path = "../cudra-diagnostics" }
+cudra-ast = { path = "../cudra-ast" }
+cudra-tir = { path = "../cudra-tir" }

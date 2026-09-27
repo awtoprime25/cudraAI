@@ -1,0 +1,5 @@
+def g() -> int:
+    return h()
+def h() -> int:
+    return 1
+print(g())

@@ -1,0 +1,14 @@
+erro: redefinir 'f' (já é uma variável) ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_var_redefined_as_func.cdr:2:5]
+   │
+ 2 │ def f() -> int:
+   │     ┬  
+   │     ╰── def aqui
+───╯
+erro: 'f' não é uma função
+   ╭─[tests/ui/unsup_var_redefined_as_func.cdr:4:7]
+   │
+ 4 │ print(f())
+   │       ┬  
+   │       ╰── chamada
+───╯

@@ -1,0 +1,7 @@
+erro: 'in' numa comparação ainda não é suportado(a) na Fase 1
+   ╭─[tests/ui/unsup_in_operator_outside_for.cdr:2:9]
+   │
+ 2 │ print(x in (1, 2))
+   │         ─┬  
+   │          ╰── 'in' numa comparação ainda não é suportado(a) na Fase 1
+───╯

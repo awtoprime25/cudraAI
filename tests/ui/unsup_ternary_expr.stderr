@@ -1,0 +1,7 @@
+erro: expressões condicionais ('a if c else b') ainda não é suportado(a) na Fase 1
+   ╭─[tests/ui/unsup_ternary_expr.cdr:1:7]
+   │
+ 1 │ x = 1 if True else 2
+   │       ─┬  
+   │        ╰── expressões condicionais ('a if c else b') ainda não é suportado(a) na Fase 1
+───╯

@@ -1,0 +1,7 @@
+erro: a variável 'y' pode não estar definida aqui
+   ╭─[tests/ui/static_maybe_defined_if_no_else.cdr:4:7]
+   │
+ 4 │ print(y)
+   │       ┬  
+   │       ╰── uso aqui
+───╯

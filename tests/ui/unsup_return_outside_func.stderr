@@ -1,0 +1,7 @@
+erro: 'return' fora de uma função
+   ╭─[tests/ui/unsup_return_outside_func.cdr:1:1]
+   │
+ 1 │ return 1
+   │ ────┬───  
+   │     ╰───── return
+───╯

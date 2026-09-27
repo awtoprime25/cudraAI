@@ -1,5 +1,5 @@
 mod common;
-use common::parse_src;
+use common::{drop_on_big_stack, parse_src};
 use std::time::{Duration, Instant};
 
 // Entradas adversárias que não podem degradar para O(n^2): cada uma tem de
@@ -14,8 +14,12 @@ const LIMIT: Duration = Duration::from_secs(2);
 
 fn assert_fast(name: &str, src: &str) {
     let start = Instant::now();
-    let (_m, _diags) = parse_src(src);
+    let (m, _diags) = parse_src(src);
     let elapsed = start.elapsed();
+    // cadeias associativas à esquerda aceites (ex.: `add_500k`) podem
+    // produzir árvores com dezenas/centenas de milhares de níveis; largá-las
+    // na pilha pequena da própria thread de testes recursaria demasiado.
+    drop_on_big_stack(m);
     assert!(
         elapsed < LIMIT,
         "{name} demorou {elapsed:?} (limite {LIMIT:?})"

@@ -1,0 +1,4 @@
+def f() -> int:
+    return arg_int(1)
+from cudra import arg_int
+print(f())

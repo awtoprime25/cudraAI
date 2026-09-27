@@ -1,0 +1,10 @@
+erro: chamar 'f' antes da sua definição dentro de um bloco ainda não é suportado
+   ╭─[tests/ui/unsup_call_before_def_in_block.cdr:2:5]
+   │
+ 2 │     f()
+   │     ─┬─  
+   │      ╰─── chamada aqui
+ 3 │ def f():
+   │     ┬  
+   │     ╰── definida aqui
+───╯

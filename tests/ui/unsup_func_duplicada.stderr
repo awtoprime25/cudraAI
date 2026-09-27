@@ -1,0 +1,7 @@
+erro: redefinir a função 'f' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_func_duplicada.cdr:3:5]
+   │
+ 3 │ def f() -> int:
+   │     ┬  
+   │     ╰── segunda definição
+───╯

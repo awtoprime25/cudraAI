@@ -1,0 +1,7 @@
+def a(n: int) -> int:
+    if n <= 0:
+        return 0
+    return b(n - 1)
+def b(n: int):
+    return a(n)
+print(a(3))

@@ -1,0 +1,7 @@
+erro: a variável 'x' pode não estar definida aqui
+   ╭─[tests/ui/static_local_shadows_global_read_first.cdr:3:9]
+   │
+ 3 │     y = x
+   │         ┬  
+   │         ╰── uso aqui
+───╯

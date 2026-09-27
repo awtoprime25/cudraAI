@@ -1,0 +1,7 @@
+erro: a variável 'y' pode não estar definida aqui
+   ╭─[tests/ui/static_maybe_defined_elif_no_else.cdr:6:7]
+   │
+ 6 │ print(y)
+   │       ┬  
+   │       ╰── uso aqui
+───╯

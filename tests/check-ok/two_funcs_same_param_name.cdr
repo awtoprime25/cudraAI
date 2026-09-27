@@ -1,0 +1,5 @@
+def f(a: int):
+    print(a)
+def g(a: int):
+    print(a)
+print(f(1), g(2))

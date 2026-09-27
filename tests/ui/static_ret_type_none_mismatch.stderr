@@ -1,0 +1,7 @@
+erro: tipo de retorno incompatível: 'f' devolve None, mas este return dá int
+   ╭─[tests/ui/static_ret_type_none_mismatch.cdr:2:5]
+   │
+ 2 │     return 1
+   │     ────┬───  
+   │         ╰───── return aqui
+───╯

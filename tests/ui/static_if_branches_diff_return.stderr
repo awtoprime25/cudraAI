@@ -1,0 +1,9 @@
+erro: return inconsistente em 'f'
+   ╭─[tests/ui/static_if_branches_diff_return.cdr:1:1]
+   │
+ 1 │ ╭─▶ def f(a: int):
+   ┆ ┆   
+ 4 │ ├─▶     return 1.5
+   │ │                    
+   │ ╰──────────────────── aqui
+───╯

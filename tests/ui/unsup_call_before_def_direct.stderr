@@ -1,0 +1,10 @@
+erro: 'f' usada antes de ser definida
+   ╭─[tests/ui/unsup_call_before_def_direct.cdr:1:5]
+   │
+ 1 │ x = f(1)
+   │     ──┬─  
+   │       ╰─── chamada aqui
+ 2 │ def f(a: int) -> int:
+   │     ┬  
+   │     ╰── definida aqui
+───╯

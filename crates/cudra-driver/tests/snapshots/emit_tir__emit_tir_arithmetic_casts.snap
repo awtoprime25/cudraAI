@@ -1,0 +1,19 @@
+---
+source: crates/cudra-driver/tests/emit_tir.rs
+expression: stdout(&out)
+---
+main: f1
+func f0 f(a$0: int, b$1: float) -> float
+  locals:
+    l0 a: int
+    l1 b: float
+    l2 x: int
+    l3 y: float
+  body:
+    Store x$2 = (IAdd a$0:int 1:int):int
+    Store y$3 = (ITrueDiv x$2:int 2:int):float
+    Return (FMul y$3:float b$1:float):float
+func f1 main() -> None
+  locals:
+  body:
+    Expr (Intrinsic Print [(Call f0 [3:int, 2.5:float]):float]):None

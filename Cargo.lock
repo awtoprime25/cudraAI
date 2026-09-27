@@ -162,7 +162,9 @@ dependencies = [
  "cudra-diagnostics",
  "cudra-lexer",
  "cudra-parser",
+ "cudra-sema",
  "cudra-span",
+ "cudra-tir",
  "insta",
 ]
 
@@ -192,8 +194,25 @@ name = "cudra-runtime"
 version = "0.1.0"
 
 [[package]]
+name = "cudra-sema"
+version = "0.1.0"
+dependencies = [
+ "cudra-ast",
+ "cudra-diagnostics",
+ "cudra-span",
+ "cudra-tir",
+]
+
+[[package]]
 name = "cudra-span"
 version = "0.1.0"
+
+[[package]]
+name = "cudra-tir"
+version = "0.1.0"
+dependencies = [
+ "cudra-span",
+]
 
 [[package]]
 name = "encode_unicode"

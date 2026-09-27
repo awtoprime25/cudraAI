@@ -9,7 +9,7 @@ use clap::{Parser as ClapParser, Subcommand, ValueEnum};
 use cudra_ast::{
     Block, Expr, ExprKind, Item, Module, Stmt, StmtKind, Target, TypeExpr, TypeExprKind,
 };
-use cudra_diagnostics::render;
+use cudra_diagnostics::render_all;
 use cudra_lexer::{lex, TokenKind};
 use cudra_parser::parse as parse_module;
 use cudra_span::{FileId, Interner, SourceMap};
@@ -48,9 +48,24 @@ enum Command {
 enum Emit {
     Tokens,
     Ast,
+    Tir,
+}
+
+fn install_panic_hook() {
+    std::panic::set_hook(Box::new(|info| {
+        let msg = if let Some(s) = info.payload().downcast_ref::<&str>() {
+            (*s).to_string()
+        } else if let Some(s) = info.payload().downcast_ref::<String>() {
+            s.clone()
+        } else {
+            "erro desconhecido".to_string()
+        };
+        eprintln!("erro interno do compilador: {msg}");
+    }));
 }
 
 fn main() -> ExitCode {
+    install_panic_hook();
     let cli = match Cli::try_parse() {
         Ok(c) => c,
         Err(e) => {
@@ -58,7 +73,11 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    let builder = thread::Builder::new().stack_size(256 << 20);
+    // cadeias de `and`/`or`/operadores binários já não contam para o limite
+    // estrutural de aninhamento do parser (podem ter dezenas de milhares de
+    // termos), mas continuam a ser árvores genuinamente aninhadas que a
+    // sema/TIR percorrem recursivamente — por isso a pilha tem de ser grande.
+    let builder = thread::Builder::new().stack_size(1024 << 20);
     let handle = match builder.spawn(move || run(cli)) {
         Ok(h) => h,
         Err(_) => return ExitCode::from(2),
@@ -67,6 +86,9 @@ fn main() -> ExitCode {
 }
 
 fn run(cli: Cli) -> ExitCode {
+    if std::env::var("CUDRAC_TEST_PANIC").is_ok() {
+        panic!("panic de teste (CUDRAC_TEST_PANIC)");
+    }
     match cli.command {
         Command::Check { src } => cmd_check(&src),
         Command::Build {
@@ -114,9 +136,7 @@ fn escape(text: &str) -> String {
 
 fn render_diags(diags: &[cudra_diagnostics::Diagnostic], sources: &SourceMap) {
     let color = io::stderr().is_terminal();
-    for d in diags {
-        eprint!("{}", render(d, sources, color));
-    }
+    eprint!("{}", render_all(diags, sources, color));
 }
 
 fn cmd_check(src_path: &PathBuf) -> ExitCode {
@@ -128,17 +148,28 @@ fn cmd_check(src_path: &PathBuf) -> ExitCode {
     let file = sources.add(src_path.display().to_string(), src.clone());
     let (tokens, lex_diags) = lex(file, &src);
     let mut interner = Interner::new();
-    let (_module, parse_diags) = parse_module(file, &src, &tokens, &mut interner);
+    let (module, parse_diags) = parse_module(file, &src, &tokens, &mut interner);
     let diags = if lex_diags.is_empty() {
         parse_diags
     } else {
         lex_diags
     };
-    render_diags(&diags, &sources);
-    if diags.is_empty() {
-        ExitCode::SUCCESS
-    } else {
-        ExitCode::from(1)
+    if !diags.is_empty() {
+        render_diags(&diags, &sources);
+        return ExitCode::from(1);
+    }
+    match cudra_sema::check(&module, &interner) {
+        Ok(tir_module) => {
+            if let Err(e) = cudra_tir::verify(&tir_module) {
+                eprintln!("erro interno do compilador: {e}");
+                return ExitCode::from(2);
+            }
+            ExitCode::SUCCESS
+        }
+        Err(sema_diags) => {
+            render_diags(&sema_diags, &sources);
+            ExitCode::from(1)
+        }
     }
 }
 
@@ -192,6 +223,33 @@ fn cmd_emit(src_path: &PathBuf, emit: Emit) -> ExitCode {
                 ExitCode::SUCCESS
             } else {
                 ExitCode::from(1)
+            }
+        }
+        Emit::Tir => {
+            let mut interner = Interner::new();
+            let (module, parse_diags) = parse_module(file, &src, &tokens, &mut interner);
+            let diags = if lex_diags.is_empty() {
+                parse_diags
+            } else {
+                lex_diags
+            };
+            if !diags.is_empty() {
+                render_diags(&diags, &sources);
+                return ExitCode::from(1);
+            }
+            match cudra_sema::check(&module, &interner) {
+                Ok(tir_module) => {
+                    if let Err(e) = cudra_tir::verify(&tir_module) {
+                        eprintln!("erro interno do compilador: {e}");
+                        return ExitCode::from(2);
+                    }
+                    print!("{}", cudra_tir::print_module(&tir_module));
+                    ExitCode::SUCCESS
+                }
+                Err(sema_diags) => {
+                    render_diags(&sema_diags, &sources);
+                    ExitCode::from(1)
+                }
             }
         }
     }

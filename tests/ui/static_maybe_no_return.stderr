@@ -1,0 +1,9 @@
+erro: return inconsistente em 'f'
+   ╭─[tests/ui/static_maybe_no_return.cdr:1:1]
+   │
+ 1 │ ╭─▶ def f(a: int):
+   ┆ ┆   
+ 3 │ ├─▶         return 1
+   │ │                      
+   │ ╰────────────────────── aqui
+───╯

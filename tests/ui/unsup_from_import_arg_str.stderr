@@ -1,0 +1,7 @@
+erro: 'cudra' não tem 'arg_str'
+   ╭─[tests/ui/unsup_from_import_arg_str.cdr:1:19]
+   │
+ 1 │ from cudra import arg_str
+   │                   ───┬───  
+   │                      ╰───── nome importado inválido
+───╯

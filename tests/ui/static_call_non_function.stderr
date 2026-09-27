@@ -1,0 +1,7 @@
+erro: 'g' não é uma função
+   ╭─[tests/ui/static_call_non_function.cdr:2:1]
+   │
+ 2 │ g()
+   │ ┬  
+   │ ╰── chamada
+───╯

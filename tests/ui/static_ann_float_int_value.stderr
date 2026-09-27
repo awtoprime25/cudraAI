@@ -1,0 +1,7 @@
+erro: tipo incompatível: 'x' é float, mas o valor é int
+   ╭─[tests/ui/static_ann_float_int_value.cdr:1:12]
+   │
+ 1 │ x: float = 1
+   │            ┬  
+   │            ╰── atribuído int
+───╯

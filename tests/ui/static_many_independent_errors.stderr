@@ -1,0 +1,38 @@
+erro: tipo incompatível: 'a' é int, mas o valor é float
+   ╭─[tests/ui/static_many_independent_errors.cdr:2:5]
+   │
+ 1 │ a = 1
+   │ ┬  
+   │ ╰── 'a' declarada como int aqui
+ 2 │ a = 2.5
+   │     ─┬─  
+   │      ╰─── atribuído float
+───╯
+erro: tipo desconhecido 'foo'
+   ╭─[tests/ui/static_many_independent_errors.cdr:3:4]
+   │
+ 3 │ b: foo = 1
+   │    ─┬─  
+   │     ╰─── tipo
+───╯
+erro: fazer sombra ao builtin 'print' ainda não é suportado na Fase 1
+   ╭─[tests/ui/static_many_independent_errors.cdr:4:1]
+   │
+ 4 │ print = 3
+   │ ──┬──  
+   │   ╰──── sombra aqui
+───╯
+erro: nome 'nao_definido' não definido
+   ╭─[tests/ui/static_many_independent_errors.cdr:5:5]
+   │
+ 5 │ c = nao_definido
+   │     ──────┬─────  
+   │           ╰─────── aqui
+───╯
+erro: 'return' fora de uma função
+   ╭─[tests/ui/static_many_independent_errors.cdr:6:1]
+   │
+ 6 │ return
+   │ ───┬──  
+   │    ╰──── return
+───╯

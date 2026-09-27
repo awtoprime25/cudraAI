@@ -1,0 +1,10 @@
+erro: tipo incompatível: 'x' é int, mas o valor é float
+   ╭─[tests/ui/static_int_then_float.cdr:2:5]
+   │
+ 1 │ x = 1
+   │ ┬  
+   │ ╰── 'x' declarada como int aqui
+ 2 │ x = 2.5
+   │     ─┬─  
+   │      ╰─── atribuído float
+───╯

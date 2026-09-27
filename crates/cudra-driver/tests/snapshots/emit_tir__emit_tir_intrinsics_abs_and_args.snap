@@ -1,0 +1,13 @@
+---
+source: crates/cudra-driver/tests/emit_tir.rs
+expression: stdout(&out)
+---
+main: f0
+func f0 main() -> None
+  locals:
+    l0 x: int
+    l1 y: float
+  body:
+    Store x$0 = (Intrinsic ArgInt [1:int]):int
+    Store y$1 = (Intrinsic ArgFloat [2:int]):float
+    Expr (Intrinsic Print [(Intrinsic AbsInt [x$0:int]):int, (Intrinsic AbsFloat [y$1:float]):float]):None

@@ -1,0 +1,7 @@
+erro: funções como valores ainda não são suportadas
+   ╭─[tests/ui/unsup_func_as_value_assign.cdr:3:5]
+   │
+ 3 │ x = f
+   │     ┬  
+   │     ╰── aqui
+───╯

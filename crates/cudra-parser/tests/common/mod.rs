@@ -57,6 +57,15 @@ pub fn dump(src: &str) -> String {
     })
 }
 
+// larga uma árvore devolvida por `parse_src` na mesma pilha grande em que
+// foi construída: cadeias associativas à esquerda com dezenas de milhares
+// de nós (ex.: `and`/`+` sem limite de profundidade, ver ronda 2 da parte
+// D) recursam na Drop tal como na construção, e a pilha da própria thread
+// de testes é pequena demais para isso.
+pub fn drop_on_big_stack<T: Send + 'static>(v: T) {
+    on_big_stack(move || drop(v));
+}
+
 pub fn parse_src(src: &str) -> (cudra_ast::Module, Vec<cudra_diagnostics::Diagnostic>) {
     let src = src.to_string();
     on_big_stack(move || {

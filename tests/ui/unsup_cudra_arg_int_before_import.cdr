@@ -1,0 +1,3 @@
+x = cudra.arg_int(1)
+import cudra
+print(x)

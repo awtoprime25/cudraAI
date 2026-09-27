@@ -1,0 +1,7 @@
+erro: usar o módulo 'cudra' como valor ainda não é suportado
+   ╭─[tests/ui/unsup_cudra_module_bare.cdr:2:1]
+   │
+ 2 │ cudra
+   │ ──┬──  
+   │   ╰──── aqui
+───╯

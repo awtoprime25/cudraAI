@@ -1,0 +1,7 @@
+erro: listas ainda não é suportado(a) na Fase 1
+   ╭─[tests/ui/unsup_list_literal.cdr:1:5]
+   │
+ 1 │ x = [1, 2, 3]
+   │     ┬  
+   │     ╰── listas ainda não é suportado(a) na Fase 1
+───╯

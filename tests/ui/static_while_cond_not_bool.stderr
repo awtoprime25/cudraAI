@@ -1,0 +1,11 @@
+erro: a função 'f' pode terminar sem return (devolveria None)
+   ╭─[tests/ui/static_while_cond_not_bool.cdr:1:5]
+   │
+ 1 │ def f(a: int) -> int:
+   │     ────────┬───────  
+   │             ╰───────── declarada com '-> int'
+   │ 
+ 3 │         return a
+   │                  │ 
+   │                  ╰─ a execução pode chegar ao fim aqui
+───╯

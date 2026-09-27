@@ -1,0 +1,7 @@
+erro: fazer sombra ao builtin 'int' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_shadow_builtin_param.cdr:1:7]
+   │
+ 1 │ def f(int: int) -> int:
+   │       ─┬─  
+   │        ╰─── sombra aqui
+───╯

@@ -1,0 +1,5 @@
+def f(a: int):
+    if a > 0:
+        return 1
+    return 1.5
+print(f(1))

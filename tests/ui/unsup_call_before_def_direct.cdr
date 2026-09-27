@@ -1,0 +1,4 @@
+x = f(1)
+def f(a: int) -> int:
+    return a
+print(x)

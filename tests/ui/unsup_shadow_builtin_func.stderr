@@ -1,0 +1,14 @@
+erro: fazer sombra ao builtin 'range' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_shadow_builtin_func.cdr:1:5]
+   │
+ 1 │ def range(a: int) -> int:
+   │     ──┬──  
+   │       ╰──── sombra aqui
+───╯
+erro: o range() fora de um for ainda não é suportado
+   ╭─[tests/ui/unsup_shadow_builtin_func.cdr:3:7]
+   │
+ 3 │ print(range(3))
+   │       ────┬───  
+   │           ╰───── range
+───╯

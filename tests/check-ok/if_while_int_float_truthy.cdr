@@ -1,0 +1,6 @@
+x = 3
+if x:
+    print(1)
+while x:
+    x -= 1
+print(x)

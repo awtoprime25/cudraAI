@@ -1,0 +1,7 @@
+erro: 'continue' fora de um ciclo
+   ╭─[tests/ui/unsup_continue_outside_loop.cdr:1:1]
+   │
+ 1 │ continue
+   │ ────┬───  
+   │     ╰───── continue
+───╯

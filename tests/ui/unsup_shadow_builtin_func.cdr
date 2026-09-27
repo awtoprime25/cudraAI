@@ -1,0 +1,3 @@
+def range(a: int) -> int:
+    return a
+print(range(3))

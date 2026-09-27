@@ -1,0 +1,7 @@
+erro: fazer sombra ao builtin 'print' ainda não é suportado na Fase 1
+   ╭─[tests/ui/unsup_shadow_builtin_assign.cdr:1:1]
+   │
+ 1 │ print = 3
+   │ ──┬──  
+   │   ╰──── sombra aqui
+───╯

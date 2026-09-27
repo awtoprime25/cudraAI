@@ -1,0 +1,7 @@
+erro: inteiro fora do intervalo de 64 bits ainda não é suportado
+   ╭─[tests/ui/unsup_int_literal_too_big.cdr:1:7]
+   │
+ 1 │ print(9223372036854775808)
+   │       ─────────┬─────────  
+   │                ╰─────────── literal
+───╯
