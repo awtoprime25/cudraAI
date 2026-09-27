@@ -1,0 +1,6 @@
+a = 1
+a = 2.5
+b: foo = 1
+print = 3
+c = nao_definido
+return

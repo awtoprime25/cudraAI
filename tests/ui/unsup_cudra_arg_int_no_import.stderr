@@ -1,0 +1,7 @@
+erro: nome 'cudra' não definido
+   ╭─[tests/ui/unsup_cudra_arg_int_no_import.cdr:1:7]
+   │
+ 1 │ print(cudra.arg_int(1))
+   │       ──┬──  
+   │         ╰──── aqui
+───╯

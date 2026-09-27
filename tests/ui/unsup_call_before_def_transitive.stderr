@@ -1,0 +1,10 @@
+erro: 'a' usada antes de ser definida
+   ╭─[tests/ui/unsup_call_before_def_transitive.cdr:1:5]
+   │
+ 1 │ x = a(1)
+   │     ──┬─  
+   │       ╰─── chamada aqui
+ 2 │ def a(n: int) -> int:
+   │     ┬  
+   │     ╰── definida aqui
+───╯

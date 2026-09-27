@@ -1,0 +1,7 @@
+erro: parâmetro 'a' repetido
+   ╭─[tests/ui/unsup_param_repeated.cdr:1:15]
+   │
+ 1 │ def f(a: int, a: int) -> int:
+   │               ───┬──  
+   │                  ╰──── repetido
+───╯

@@ -3,11 +3,17 @@
   tests/check-ok/*.cdr: têm de correr sem erro no Python (são um
     subconjunto válido de Python) e o `cudrac check` tem de aceitar.
   tests/ui/*.cdr: o `cudrac check` tem de rejeitar (o harness em Rust
-    já garante isto via os `.stderr` gravados). Além disso, os ficheiros
-    cujo nome começa por "unsup_" e que o CPython aceita têm de ser
-    rejeitados com a frase "ainda não é/são suportad" (contrato UNSUP);
-    se o próprio CPython já falhar para esse caso (ex.: `return` fora de
-    uma função é SyntaxError), não há contrato UNSUP a verificar.
+    já garante isto via os `.stderr` gravados). Além disso, para TODOS os
+    ficheiros (independentemente do nome) que o CPython aceita, o `.stderr`
+    gravado tem de justificar a rejeição: ou com a frase
+    "ainda não é/são suportad" (contrato UNSUP), ou com uma das exceções
+    específicas abaixo (restrições da Fase 1 que o CPython não impõe).
+    Se o próprio CPython já falhar para esse caso, não há contrato a
+    verificar — exceto a frase "usada antes de ser definida", que só é
+    permitida quando o próprio CPython falha com NameError (ver ronda 2
+    da parte D, ponto 1: essa frase terse implica que o CPython lançaria
+    NameError; se não lançar, tem de vir embrulhada em "ainda não é
+    suportado" ou nem sequer ser rejeitada).
 
 uso: python3 ui_subset_check.py <cudrac>
 """
@@ -19,6 +25,15 @@ import tempfile
 SHIM = "import sys\ndef arg_int(i):\n    return int(sys.argv[i])\ndef arg_float(i):\n    return float(sys.argv[i])\n"
 ARGS = ["5", "2.5"]
 UNSUP = ("ainda não é suportad", "ainda não são suportad")
+ALLOWED_EXCEPTIONS = (
+    "tipo incompatível",
+    "tipo de retorno incompatível",
+    "pode não estar definida",
+    "return inconsistente",
+    "pode terminar sem return",
+    "variáveis globais não são suportadas",
+)
+FORWARD_REF_TERSE = "usada antes de ser definida"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 UI_DIR = os.path.join(ROOT, "tests", "ui")
@@ -92,17 +107,31 @@ def main():
 
         rc_py, _out_py, err_py = run(["python3", path] + ARGS, env=env)
         py_ok = rc_py == 0
+        py_name_error = (not py_ok) and "NameError" in err_py
 
-        if name.startswith("unsup_") and py_ok:
-            count("unsup_py_ok")
-            if not any(u in recorded for u in UNSUP):
+        if py_ok:
+            count("py_ok")
+            justified = any(u in recorded for u in UNSUP) or any(
+                e in recorded for e in ALLOWED_EXCEPTIONS
+            )
+            if not justified:
                 fails.append(("SEM_AINDA_NAO", name, "", recorded[-400:]))
             else:
-                count("unsup_com_frase_ainda_nao")
-        elif name.startswith("unsup_"):
-            count("unsup_py_falha_tambem")
-        elif name.startswith("static_"):
-            count("static_py_ok" if py_ok else "static_py_falha_tambem")
+                count("py_ok_justificado")
+        else:
+            count("py_falha_tambem")
+
+        if FORWARD_REF_TERSE in recorded and not py_name_error:
+            fails.append(
+                (
+                    "FORWARD_REF_TERSE_SEM_NAMEERROR",
+                    name,
+                    "",
+                    f"rc_py={rc_py} err_py={err_py[-300:]!r} recorded={recorded[-300:]!r}",
+                )
+            )
+        elif FORWARD_REF_TERSE in recorded:
+            count("forward_ref_terse_com_nameerror")
 
     print("casos:", counts)
     print(f"RESUMO ui_subset_check: {len(fails)} falhas")

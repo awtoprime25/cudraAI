@@ -1,0 +1,7 @@
+erro: tipo desconhecido 'foo'
+   ╭─[tests/ui/unsup_unknown_type_annotation.cdr:1:4]
+   │
+ 1 │ x: foo = 1
+   │    ─┬─  
+   │     ╰─── tipo
+───╯

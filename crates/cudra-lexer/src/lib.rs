@@ -1204,7 +1204,7 @@ impl<'a> Lexer<'a> {
             self.pos += 1;
             self.push_error(
                 self.span_from(start),
-                "números complexos não são suportados",
+                "números complexos ainda não são suportados",
             );
             return;
         }

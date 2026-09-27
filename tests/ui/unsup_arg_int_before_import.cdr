@@ -1,0 +1,3 @@
+x = arg_int(1)
+from cudra import arg_int
+print(x)

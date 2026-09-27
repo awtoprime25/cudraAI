@@ -1,9 +1,11 @@
 erro: a função 'f' pode terminar sem return (devolveria None)
-   ╭─[tests/ui/static_maybe_no_return_annotated.cdr:1:1]
+   ╭─[tests/ui/static_maybe_no_return_annotated.cdr:1:5]
    │
- 1 │ ╭─▶ def f(a: int) -> int:
-   ┆ ┆   
- 3 │ ├─▶         return 1
-   │ │                      
-   │ ╰────────────────────── aqui
+ 1 │ def f(a: int) -> int:
+   │     ────────┬───────  
+   │             ╰───────── declarada com '-> int'
+   │ 
+ 3 │         return 1
+   │                  │ 
+   │                  ╰─ a execução pode chegar ao fim aqui
 ───╯

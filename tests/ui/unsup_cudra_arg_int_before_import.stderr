@@ -1,0 +1,7 @@
+erro: 'arg_int' usada antes de ser definida
+   ╭─[tests/ui/unsup_cudra_arg_int_before_import.cdr:1:5]
+   │
+ 1 │ x = cudra.arg_int(1)
+   │     ────────┬───────  
+   │             ╰───────── chamada aqui
+───╯

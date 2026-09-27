@@ -180,7 +180,10 @@ impl<'a> Parser<'a> {
 
     fn check_depth(&mut self, d: u32, span: Span) -> PResult<u32> {
         if d > MAX_DEPTH {
-            Err(self.bail(span, "expressão demasiado aninhada (máximo 1000 níveis)"))
+            Err(self.bail(
+                span,
+                "expressões com mais de 1000 níveis de aninhamento ainda não são suportadas",
+            ))
         } else {
             Ok(d)
         }
@@ -188,7 +191,10 @@ impl<'a> Parser<'a> {
 
     fn depth_bail<T>(&mut self) -> PResult<T> {
         let span = self.span();
-        Err(self.bail(span, "expressão demasiado aninhada (máximo 1000 níveis)"))
+        Err(self.bail(
+            span,
+            "expressões com mais de 1000 níveis de aninhamento ainda não são suportadas",
+        ))
     }
 
     // --- recuperação de erros ---------------------------------------------

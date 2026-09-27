@@ -199,6 +199,10 @@ pub(crate) fn resolve(ctx: &mut CheckCtx, module: &ast::Module) -> ResolvePlan {
     // de dependência): max(def_pos, imports usados, pronta(chamadas)).
     let mut scc_ready: HashMap<Symbol, usize> = HashMap::new();
     for scc in &scc_order {
+        // `scc.contains(...)` seria O(|scc|) por chamada; com um único SCC
+        // grande (ex.: ciclo com 100000 funções) isso é O(n²). Um HashSet
+        // construído uma vez por SCC torna a verificação O(1).
+        let scc_set: HashSet<Symbol> = scc.iter().copied().collect();
         let mut ready = scc
             .iter()
             .map(|s| ctx.functions[s].def_pos)
@@ -213,7 +217,7 @@ pub(crate) fn resolve(ctx: &mut CheckCtx, module: &ast::Module) -> ResolvePlan {
                 }
             }
             for callee in call_edges.get(&name).into_iter().flatten() {
-                if scc.contains(callee) {
+                if scc_set.contains(callee) {
                     continue;
                 }
                 if let Some(&r) = scc_ready.get(callee) {
@@ -250,14 +254,14 @@ fn register_func_name(
     _pos: usize,
 ) {
     let name = f.name.name;
-    let text = ctx.sym(name).to_string();
     if !f.decorators.is_empty() {
         ctx.err(
             Diagnostic::error("decoradores ainda não são suportados na Fase 1".to_string())
                 .with_primary(f.decorators[0].span, "decorador aqui"),
         );
     }
-    if BUILTINS.contains(&text.as_str()) {
+    if BUILTINS.contains(&ctx.sym(name)) {
+        let text = ctx.sym(name).to_string();
         ctx.err(
             Diagnostic::error(format!(
                 "fazer sombra ao builtin '{text}' ainda não é suportado na Fase 1"
@@ -268,6 +272,7 @@ fn register_func_name(
     }
     match top_names.get(&name) {
         Some(TopKind::Func) => {
+            let text = ctx.sym(name).to_string();
             ctx.err(
                 Diagnostic::error(format!(
                     "redefinir a função '{text}' ainda não é suportado na Fase 1"
@@ -276,6 +281,7 @@ fn register_func_name(
             );
         }
         Some(TopKind::Var) => {
+            let text = ctx.sym(name).to_string();
             ctx.err(
                 Diagnostic::error(format!(
                     "redefinir '{text}' (já é uma variável) ainda não é suportado na Fase 1"
@@ -284,6 +290,7 @@ fn register_func_name(
             );
         }
         Some(TopKind::Import) => {
+            let text = ctx.sym(name).to_string();
             ctx.err(
                 Diagnostic::error(format!(
                     "redefinir '{text}' (já é um nome importado) ainda não é suportado na Fase 1"
@@ -404,8 +411,8 @@ fn collect_top_names_in_stmt(
 }
 
 fn declare_top_var(ctx: &mut CheckCtx, top_names: &mut HashMap<Symbol, TopKind>, id: &ast::Ident) {
-    let text = ctx.sym(id.name).to_string();
-    if BUILTINS.contains(&text.as_str()) && !top_names.contains_key(&id.name) {
+    if BUILTINS.contains(&ctx.sym(id.name)) && !top_names.contains_key(&id.name) {
+        let text = ctx.sym(id.name).to_string();
         ctx.err(
             Diagnostic::error(format!(
                 "fazer sombra ao builtin '{text}' ainda não é suportado na Fase 1"
@@ -415,6 +422,7 @@ fn declare_top_var(ctx: &mut CheckCtx, top_names: &mut HashMap<Symbol, TopKind>,
     }
     match top_names.get(&id.name) {
         Some(TopKind::Func) => {
+            let text = ctx.sym(id.name).to_string();
             ctx.err(
                 Diagnostic::error(format!(
                     "redefinir '{text}' (já é uma função) ainda não é suportado na Fase 1"
@@ -423,6 +431,7 @@ fn declare_top_var(ctx: &mut CheckCtx, top_names: &mut HashMap<Symbol, TopKind>,
             );
         }
         Some(TopKind::Import) => {
+            let text = ctx.sym(id.name).to_string();
             ctx.err(
                 Diagnostic::error(format!(
                     "redefinir '{text}' (já é um nome importado) ainda não é suportado na Fase 1"
@@ -448,8 +457,8 @@ fn resolve_params(ctx: &mut CheckCtx, f: &ast::FuncDef) -> Vec<(Symbol, STy)> {
                     .with_primary(p.span, "repetido"),
             );
         }
-        let text = ctx.sym(p.name.name).to_string();
-        if BUILTINS.contains(&text.as_str()) {
+        if BUILTINS.contains(&ctx.sym(p.name.name)) {
+            let text = ctx.sym(p.name.name).to_string();
             ctx.err(
                 Diagnostic::error(format!(
                     "fazer sombra ao builtin '{text}' ainda não é suportado na Fase 1"
@@ -484,29 +493,34 @@ fn resolve_ret(ctx: &mut CheckCtx, f: &ast::FuncDef) -> (STy, bool) {
 pub(crate) fn resolve_type_expr(ctx: &mut CheckCtx, t: &ast::TypeExpr) -> STy {
     match &t.kind {
         ast::TypeExprKind::Name(id) => {
-            let text = ctx.sym(id.name).to_string();
-            match text.as_str() {
-                "int" => STy::Int,
-                "float" => STy::Float,
-                "bool" => STy::Bool,
-                "None" => STy::NoneTy,
-                "str" | "list" | "dict" | "tuple" | "set" | "bytes" => {
-                    ctx.err(
-                        Diagnostic::error(format!(
-                            "o tipo '{text}' ainda não é suportado na Fase 1"
-                        ))
-                        .with_primary(t.span, "tipo"),
-                    );
-                    STy::Error
-                }
-                _ => {
-                    ctx.err(
-                        Diagnostic::error(format!("tipo desconhecido '{text}'"))
-                            .with_primary(t.span, "tipo"),
-                    );
-                    STy::Error
-                }
+            // os tipos válidos comparam-se sem alocar; só os erros
+            // constroem a mensagem.
+            let known = match ctx.sym(id.name) {
+                "int" => Some(STy::Int),
+                "float" => Some(STy::Float),
+                "bool" => Some(STy::Bool),
+                "None" => Some(STy::NoneTy),
+                _ => None,
+            };
+            if let Some(ty) = known {
+                return ty;
             }
+            let text = ctx.sym(id.name).to_string();
+            if matches!(
+                text.as_str(),
+                "str" | "list" | "dict" | "tuple" | "set" | "bytes"
+            ) {
+                ctx.err(
+                    Diagnostic::error(format!("o tipo '{text}' ainda não é suportado na Fase 1"))
+                        .with_primary(t.span, "tipo"),
+                );
+            } else {
+                ctx.err(
+                    Diagnostic::error(format!("tipo desconhecido '{text}'"))
+                        .with_primary(t.span, "tipo"),
+                );
+            }
+            STy::Error
         }
         ast::TypeExprKind::Generic { base, .. } => {
             let text = ctx.sym(base.name).to_string();

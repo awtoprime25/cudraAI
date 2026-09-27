@@ -1,0 +1,4 @@
+if False:
+    f()
+def f():
+    pass

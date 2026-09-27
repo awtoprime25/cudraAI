@@ -257,7 +257,7 @@ fn complex_int_suffix_is_rejected() {
     let src = "x = 1j\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "números complexos não são suportados");
+    assert_eq!(d.message, "números complexos ainda não são suportados");
     let lo = src.find("1j").unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 2));
 }
@@ -267,7 +267,7 @@ fn complex_float_suffix_is_rejected() {
     let src = "x = 1.5J\n";
     let (_, diags) = lex_src(src);
     let d = only_diag(&diags);
-    assert_eq!(d.message, "números complexos não são suportados");
+    assert_eq!(d.message, "números complexos ainda não são suportados");
     let lo = src.find("1.5J").unwrap() as u32;
     assert_eq!(primary_span(d), Span::new(FileId(0), lo, lo + 4));
 }

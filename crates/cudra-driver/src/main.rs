@@ -73,7 +73,11 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    let builder = thread::Builder::new().stack_size(256 << 20);
+    // cadeias de `and`/`or`/operadores binários já não contam para o limite
+    // estrutural de aninhamento do parser (podem ter dezenas de milhares de
+    // termos), mas continuam a ser árvores genuinamente aninhadas que a
+    // sema/TIR percorrem recursivamente — por isso a pilha tem de ser grande.
+    let builder = thread::Builder::new().stack_size(1024 << 20);
     let handle = match builder.spawn(move || run(cli)) {
         Ok(h) => h,
         Err(_) => return ExitCode::from(2),

@@ -1,0 +1,6 @@
+x = a(1)
+def a(n: int) -> int:
+    return b(n)
+def b(n: int) -> int:
+    return n
+print(x)

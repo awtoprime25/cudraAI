@@ -25,7 +25,7 @@ impl<'a> Parser<'a> {
             self.bump();
             let (rhs, dr) = self.parse_and()?;
             let span = lhs.span.to(rhs.span);
-            d = self.check_depth(1 + d.max(dr), span)?;
+            d = d.max(dr);
             lhs = self.mk_expr(
                 ExprKind::Logical {
                     op: LogicOp::Or,
@@ -44,7 +44,7 @@ impl<'a> Parser<'a> {
             self.bump();
             let (rhs, dr) = self.parse_not_expr()?;
             let span = lhs.span.to(rhs.span);
-            d = self.check_depth(1 + d.max(dr), span)?;
+            d = d.max(dr);
             lhs = self.mk_expr(
                 ExprKind::Logical {
                     op: LogicOp::And,
@@ -147,7 +147,7 @@ impl<'a> Parser<'a> {
             self.bump();
             let (rhs, dr) = self.parse_bitxor()?;
             let span = lhs.span.to(rhs.span);
-            d = self.check_depth(1 + d.max(dr), span)?;
+            d = d.max(dr);
             lhs = self.mk_binary(BinOp::BitOr, lhs, rhs, span);
         }
         Ok((lhs, d))
@@ -159,7 +159,7 @@ impl<'a> Parser<'a> {
             self.bump();
             let (rhs, dr) = self.parse_bitand()?;
             let span = lhs.span.to(rhs.span);
-            d = self.check_depth(1 + d.max(dr), span)?;
+            d = d.max(dr);
             lhs = self.mk_binary(BinOp::BitXor, lhs, rhs, span);
         }
         Ok((lhs, d))
@@ -171,7 +171,7 @@ impl<'a> Parser<'a> {
             self.bump();
             let (rhs, dr) = self.parse_shift()?;
             let span = lhs.span.to(rhs.span);
-            d = self.check_depth(1 + d.max(dr), span)?;
+            d = d.max(dr);
             lhs = self.mk_binary(BinOp::BitAnd, lhs, rhs, span);
         }
         Ok((lhs, d))
@@ -188,7 +188,7 @@ impl<'a> Parser<'a> {
             self.bump();
             let (rhs, dr) = self.parse_addsub()?;
             let span = lhs.span.to(rhs.span);
-            d = self.check_depth(1 + d.max(dr), span)?;
+            d = d.max(dr);
             lhs = self.mk_binary(op, lhs, rhs, span);
         }
         Ok((lhs, d))
@@ -205,7 +205,7 @@ impl<'a> Parser<'a> {
             self.bump();
             let (rhs, dr) = self.parse_muldiv()?;
             let span = lhs.span.to(rhs.span);
-            d = self.check_depth(1 + d.max(dr), span)?;
+            d = d.max(dr);
             lhs = self.mk_binary(op, lhs, rhs, span);
         }
         Ok((lhs, d))
@@ -228,7 +228,7 @@ impl<'a> Parser<'a> {
             self.bump();
             let (rhs, dr) = self.parse_factor()?;
             let span = lhs.span.to(rhs.span);
-            d = self.check_depth(1 + d.max(dr), span)?;
+            d = d.max(dr);
             lhs = self.mk_binary(op, lhs, rhs, span);
         }
         Ok((lhs, d))

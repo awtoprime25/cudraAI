@@ -201,11 +201,20 @@ def module_sexpr(m):
 
 
 # ---- profundidade da AST de expressões, com a definição do nosso parser ----
-# (and/or binários associativos à esquerda; parênteses não contam; cada Expr conta 1)
+# Contam só as construções que o parser aninha mesmo por recursão: `-x`,
+# `not x`, `x ** y` (associativo à direita), parênteses, chamadas, atributos,
+# índices e cada comparação em cadeia. As cadeias associativas à esquerda que
+# o parser constrói em ciclo — os operadores binários exceto `**`, tal como
+# `and`/`or` — não contam para o limite de aninhamento: não têm limite de
+# tamanho e são aceites com centenas de milhares de termos.
 def _expr_kids(e):
     if type(e) is ast.BoolOp:
         return list(e.values)
     return [c for c in ast.iter_child_nodes(e) if isinstance(c, ast.expr)]
+
+
+def _left_chain(e):
+    return type(e) is ast.BoolOp or (type(e) is ast.BinOp and not isinstance(e.op, ast.Pow))
 
 
 def depth(root):
@@ -219,10 +228,8 @@ def depth(root):
             stack.extend((c, False) for c in kids)
             continue
         ds = [res[id(c)] for c in kids]
-        if type(e) is ast.BoolOp:
-            d = ds[0]
-            for x in ds[1:]:
-                d = 1 + max(d, x)
+        if _left_chain(e):
+            d = max(ds, default=0)
         else:
             d = 1 + max(ds, default=0)
         res[id(e)] = d

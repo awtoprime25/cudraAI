@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use cudra_ast as ast;
 use cudra_diagnostics::Diagnostic;
-use cudra_span::{Span, Symbol};
+use cudra_span::{FileId, Span, Symbol};
 use cudra_tir::{
     CmpOp, Func as TFunc, FuncId, Intrinsic, Local as TLocal, LocalId, Module as TModule, TCmp,
     TExpr, TExprKind, TStmt, Ty,
@@ -58,6 +58,19 @@ struct FuncChecker {
     defined: Vec<bool>,
     loop_stack: Vec<LoopCtx>,
     top_pos: Option<usize>,
+    block_depth: u32,
+    dead: bool,
+    name_span: Span,
+    ret_annot_span: Option<Span>,
+    body_end: Span,
+}
+
+/// Spans do `def` usados nos diagnósticos que apontam para a assinatura.
+#[derive(Clone, Copy)]
+struct FuncSpans {
+    name: Span,
+    ret_annot: Option<Span>,
+    body_end: Span,
 }
 
 impl FuncChecker {
@@ -67,6 +80,7 @@ impl FuncChecker {
         ret_annotated: bool,
         ret_sty: STy,
         locals_hint: HashSet<Symbol>,
+        spans: FuncSpans,
     ) -> Self {
         FuncChecker {
             is_main,
@@ -80,6 +94,11 @@ impl FuncChecker {
             defined: Vec::new(),
             loop_stack: Vec::new(),
             top_pos: None,
+            block_depth: 0,
+            dead: false,
+            name_span: spans.name,
+            ret_annot_span: spans.ret_annot,
+            body_end: spans.body_end,
         }
     }
 
@@ -311,6 +330,13 @@ impl FuncChecker {
             );
             return error_lexpr(id.span);
         }
+        if text == "cudra" && ctx.imports.cudra_module_pos.is_some() {
+            ctx.err(
+                Diagnostic::error("usar o módulo 'cudra' como valor ainda não é suportado")
+                    .with_primary(id.span, "aqui"),
+            );
+            return error_lexpr(id.span);
+        }
         if !self.is_main && ctx.top_vars.contains(&id.name) {
             ctx.err(
                 Diagnostic::error("variáveis globais não são suportadas na Fase 1")
@@ -536,8 +562,7 @@ impl FuncChecker {
         args: &[ast::Expr],
         call_span: Span,
     ) -> LExpr {
-        let text = ctx.sym(id.name).to_string();
-        match text.as_str() {
+        match ctx.sym(id.name) {
             "print" => {
                 let mut out = Vec::with_capacity(args.len());
                 for a in args {
@@ -555,7 +580,10 @@ impl FuncChecker {
                     },
                 }
             }
-            "int" | "float" | "bool" => self.lower_conv_builtin(ctx, &text, args, call_span),
+            "int" | "float" | "bool" => {
+                let text = ctx.sym(id.name).to_string();
+                self.lower_conv_builtin(ctx, &text, args, call_span)
+            }
             "abs" => self.lower_abs(ctx, args, call_span),
             "range" => {
                 for a in args {
@@ -567,7 +595,7 @@ impl FuncChecker {
                 );
                 error_lexpr(call_span)
             }
-            _ => self.lower_call_generic(ctx, id, &text, args, call_span),
+            _ => self.lower_call_generic(ctx, id, args, call_span),
         }
     }
 
@@ -575,7 +603,6 @@ impl FuncChecker {
         &mut self,
         ctx: &mut CheckCtx,
         id: &ast::Ident,
-        text: &str,
         args: &[ast::Expr],
         call_span: Span,
     ) -> LExpr {
@@ -584,20 +611,24 @@ impl FuncChecker {
                 if !self.defined[lid.0 as usize] {
                     ctx.err(
                         Diagnostic::error(format!(
-                            "a variável '{text}' pode não estar definida aqui"
+                            "a variável '{}' pode não estar definida aqui",
+                            ctx.sym(id.name)
                         ))
                         .with_primary(id.span, "uso aqui"),
                     );
                 } else {
                     ctx.err(
-                        Diagnostic::error(format!("'{text}' não é uma função"))
+                        Diagnostic::error(format!("'{}' não é uma função", ctx.sym(id.name)))
                             .with_primary(id.span, "chamada"),
                     );
                 }
             } else {
                 ctx.err(
-                    Diagnostic::error(format!("a variável '{text}' pode não estar definida aqui"))
-                        .with_primary(id.span, "uso aqui"),
+                    Diagnostic::error(format!(
+                        "a variável '{}' pode não estar definida aqui",
+                        ctx.sym(id.name)
+                    ))
+                    .with_primary(id.span, "uso aqui"),
                 );
             }
             for a in args {
@@ -616,8 +647,21 @@ impl FuncChecker {
             if self.is_main {
                 if let Some(p) = self.top_pos {
                     if ready_pos > p {
+                        let msg = if self.dead {
+                            format!(
+                                "chamar '{}' antes da sua definição em código inalcançável ainda não é suportado",
+                                ctx.sym(id.name)
+                            )
+                        } else if self.block_depth == 0 {
+                            format!("'{}' usada antes de ser definida", ctx.sym(id.name))
+                        } else {
+                            format!(
+                                "chamar '{}' antes da sua definição dentro de um bloco ainda não é suportado",
+                                ctx.sym(id.name)
+                            )
+                        };
                         ctx.err(
-                            Diagnostic::error(format!("'{text}' usada antes de ser definida"))
+                            Diagnostic::error(msg)
                                 .with_primary(call_span, "chamada aqui")
                                 .with_secondary(name_span, "definida aqui"),
                         );
@@ -632,7 +676,8 @@ impl FuncChecker {
             if args.len() != params.len() {
                 ctx.err(
                     Diagnostic::error(format!(
-                        "chamada a '{text}' com {} argumentos, esperavam-se {}",
+                        "chamada a '{}' com {} argumentos, esperavam-se {}",
+                        ctx.sym(id.name),
                         args.len(),
                         params.len()
                     ))
@@ -650,7 +695,8 @@ impl FuncChecker {
                 if *psty != STy::Error && al.sty != STy::Error && al.sty != *psty {
                     ctx.err(
                         Diagnostic::error(format!(
-                            "tipo incompatível no argumento de '{text}': esperava-se {}, veio {}",
+                            "tipo incompatível no argumento de '{}': esperava-se {}, veio {}",
+                            ctx.sym(id.name),
                             psty.name(),
                             al.sty.name()
                         ))
@@ -673,19 +719,21 @@ impl FuncChecker {
         }
 
         if ctx.imports.names.contains_key(&id.name) {
-            return self.lower_arg_intrinsic(ctx, text, args, call_span, id.name);
+            let text = ctx.sym(id.name).to_string();
+            return self.lower_arg_intrinsic(ctx, &text, args, call_span, id.name);
         }
 
-        if resolve::PY_BUILTINS.contains(&text) {
+        if resolve::PY_BUILTINS.contains(&ctx.sym(id.name)) {
             ctx.err(
                 Diagnostic::error(format!(
-                    "o builtin '{text}' ainda não é suportado na Fase 1"
+                    "o builtin '{}' ainda não é suportado na Fase 1",
+                    ctx.sym(id.name)
                 ))
                 .with_primary(id.span, "chamada"),
             );
         } else {
             ctx.err(
-                Diagnostic::error(format!("nome '{text}' não definido"))
+                Diagnostic::error(format!("nome '{}' não definido", ctx.sym(id.name)))
                     .with_primary(id.span, "aqui"),
             );
         }
@@ -757,10 +805,18 @@ impl FuncChecker {
             if let Some(p) = self.top_pos {
                 let pos = resolve::import_position(ctx, import_name);
                 if pos > p {
-                    ctx.err(
-                        Diagnostic::error(format!("'{text}' usada antes de ser definida"))
-                            .with_primary(call_span, "chamada aqui"),
-                    );
+                    let msg = if self.dead {
+                        format!(
+                            "usar '{text}' antes da sua importação em código inalcançável ainda não é suportado"
+                        )
+                    } else if self.block_depth == 0 {
+                        format!("'{text}' usada antes de ser definida")
+                    } else {
+                        format!(
+                            "usar '{text}' antes da sua importação dentro de um bloco ainda não é suportado"
+                        )
+                    };
+                    ctx.err(Diagnostic::error(msg).with_primary(call_span, "chamada aqui"));
                     for a in args {
                         let _ = self.lower_expr(ctx, a);
                     }
@@ -935,6 +991,38 @@ impl FuncChecker {
         }
     }
 
+    // sombra a um builtin nosso (print/int/float/bool/abs/range) ou a um
+    // nome importado (arg_int/arg_float/cudra) dentro do corpo de uma
+    // função; ao nível do topo já é verificado em resolve.rs. Devolve `true`
+    // quando já reportou, para o chamador não somar um segundo diagnóstico.
+    fn check_local_builtin_shadow(&self, ctx: &mut CheckCtx, name: Symbol, span: Span) -> bool {
+        if self.is_main {
+            return false;
+        }
+        let text = ctx.sym(name).to_string();
+        let is_import_name = ctx.imports.names.contains_key(&name)
+            || (text == "cudra" && ctx.imports.cudra_module_pos.is_some());
+        if resolve::BUILTINS.contains(&text.as_str()) {
+            ctx.err(
+                Diagnostic::error(format!(
+                    "fazer sombra ao builtin '{text}' ainda não é suportado na Fase 1"
+                ))
+                .with_primary(span, "sombra aqui"),
+            );
+            true
+        } else if is_import_name {
+            ctx.err(
+                Diagnostic::error(format!(
+                    "fazer sombra ao nome importado '{text}' ainda não é suportado na Fase 1"
+                ))
+                .with_primary(span, "sombra aqui"),
+            );
+            true
+        } else {
+            false
+        }
+    }
+
     fn declare_for_var(&mut self, ctx: &mut CheckCtx, var: &ast::Ident) -> LocalId {
         if let Some((lid, es, _)) = self.locals.get(&var.name).copied() {
             if es != STy::Int {
@@ -949,6 +1037,7 @@ impl FuncChecker {
             }
             lid
         } else {
+            self.check_local_builtin_shadow(ctx, var.name, var.span);
             let lid = self.new_local(ctx, var.name, STy::Int);
             self.locals.insert(var.name, (lid, STy::Int, var.span));
             lid
@@ -1093,7 +1182,9 @@ impl FuncChecker {
             break_snapshots: Vec::new(),
         });
         self.defined[var_id.0 as usize] = true;
+        self.block_depth += 1;
         let (body_stmts, _) = self.lower_block(ctx, &body.stmts);
+        self.block_depth -= 1;
         self.loop_stack.pop();
         definite::pad(&mut pre, self.tir_locals.len());
         self.defined = pre;
@@ -1126,7 +1217,9 @@ impl FuncChecker {
                 kind: LoopKind::Infinite,
                 break_snapshots: Vec::new(),
             });
+            self.block_depth += 1;
             let (body_stmts, _) = self.lower_block(ctx, &body.stmts);
+            self.block_depth -= 1;
             let lc = self.loop_stack.pop().unwrap();
             let terminated = lc.break_snapshots.is_empty();
             if !terminated {
@@ -1150,7 +1243,9 @@ impl FuncChecker {
                 kind: LoopKind::Normal,
                 break_snapshots: Vec::new(),
             });
+            self.block_depth += 1;
             let (body_stmts, _) = self.lower_block(ctx, &body.stmts);
+            self.block_depth -= 1;
             self.loop_stack.pop();
             definite::pad(&mut pre, self.tir_locals.len());
             self.defined = pre;
@@ -1178,7 +1273,9 @@ impl FuncChecker {
         definite::pad(&mut self.defined, self.tir_locals.len());
         let cl = self.lower_expr(ctx, cond);
         let cond_t = self.truthy_bool(ctx, cl, cond.span);
+        self.block_depth += 1;
         let (then_stmts, then_term) = self.lower_block(ctx, &then.stmts);
+        self.block_depth -= 1;
         let then_after = self.defined.clone();
 
         let mut elif_results = Vec::with_capacity(elifs.len());
@@ -1187,7 +1284,9 @@ impl FuncChecker {
             definite::pad(&mut self.defined, self.tir_locals.len());
             let cl2 = self.lower_expr(ctx, c);
             let ct = self.truthy_bool(ctx, cl2, c.span);
+            self.block_depth += 1;
             let (stmts, term) = self.lower_block(ctx, &b.stmts);
+            self.block_depth -= 1;
             let after = self.defined.clone();
             elif_results.push((ct, stmts, term, after));
         }
@@ -1195,7 +1294,9 @@ impl FuncChecker {
         let (orelse_stmts, orelse_term, orelse_after) = if let Some(o) = orelse {
             self.defined = pre.clone();
             definite::pad(&mut self.defined, self.tir_locals.len());
+            self.block_depth += 1;
             let (stmts, term) = self.lower_block(ctx, &o.stmts);
+            self.block_depth -= 1;
             let after = self.defined.clone();
             (stmts, term, after)
         } else {
@@ -1324,13 +1425,15 @@ impl FuncChecker {
                 match target {
                     ast::Target::Name(id) => match self.locals.get(&id.name).copied() {
                         None => {
-                            ctx.err(
-                                Diagnostic::error(format!(
-                                    "a variável '{}' pode não estar definida aqui",
-                                    ctx.sym(id.name)
-                                ))
-                                .with_primary(id.span, "uso aqui"),
-                            );
+                            if !self.check_local_builtin_shadow(ctx, id.name, id.span) {
+                                ctx.err(
+                                    Diagnostic::error(format!(
+                                        "a variável '{}' pode não estar definida aqui",
+                                        ctx.sym(id.name)
+                                    ))
+                                    .with_primary(id.span, "uso aqui"),
+                                );
+                            }
                             (None, false)
                         }
                         Some((lid, es, _)) => {
@@ -1432,7 +1535,7 @@ impl FuncChecker {
         let ann_sty = ann.map(|t| resolve::resolve_type_expr(ctx, t));
         if let Some((lid, es, espan)) = self.locals.get(&id.name).copied() {
             if let Some(a) = ann_sty {
-                if a != es {
+                if a != STy::Error && a != es {
                     ctx.err(
                         Diagnostic::error(format!(
                             "tipo incompatível: '{}' é {}, mas volta a ser declarada como {}",
@@ -1466,9 +1569,14 @@ impl FuncChecker {
             self.defined[lid.0 as usize] = true;
             lid
         } else {
-            let declared = ann_sty.unwrap_or(value_sty);
+            // Uma anotação por resolver (tipo desconhecido → `Error`) já
+            // gerou o seu diagnóstico: o local fica com o tipo do valor.
+            let declared = match ann_sty {
+                Some(STy::Error) | None => value_sty,
+                Some(a) => a,
+            };
             if let Some(a) = ann_sty {
-                if value_sty != STy::Error && a != value_sty {
+                if a != STy::Error && value_sty != STy::Error && a != value_sty {
                     ctx.err(
                         Diagnostic::error(format!(
                             "tipo incompatível: '{}' é {}, mas o valor é {}",
@@ -1480,6 +1588,7 @@ impl FuncChecker {
                     );
                 }
             }
+            self.check_local_builtin_shadow(ctx, id.name, id.span);
             let lid = self.new_local(ctx, id.name, declared);
             self.locals.insert(id.name, (lid, declared, id.span));
             self.defined[lid.0 as usize] = true;
@@ -1487,19 +1596,28 @@ impl FuncChecker {
         }
     }
 
+    // Instruções depois de um terminador continuam a ser verificadas (um
+    // `x = 2.5` morto depois de `x = 1` ainda é um erro de tipos), mas não
+    // entram na TIR. Marcadas como `dead`, também não geram diagnósticos que
+    // só valem para código que corre ("'f' usada antes de ser definida"
+    // implica NameError do CPython).
     fn lower_block(&mut self, ctx: &mut CheckCtx, stmts: &[ast::Stmt]) -> (Vec<TStmt>, bool) {
+        let outer_dead = self.dead;
         let mut out = Vec::new();
         let mut terminated = false;
         for s in stmts {
-            let dead = terminated;
+            if terminated {
+                self.dead = true;
+            }
             let (t, term) = self.lower_stmt(ctx, s);
-            if !dead {
+            if !terminated {
                 if let Some(ts) = t {
                     out.push(ts);
                 }
                 terminated = term;
             }
         }
+        self.dead = outer_dead;
         (out, terminated)
     }
 
@@ -1510,13 +1628,18 @@ impl FuncChecker {
         func_span: Span,
     ) -> STy {
         if self.ret_annotated {
-            if !terminated && self.ret_sty != STy::NoneTy {
+            if !terminated && self.ret_sty != STy::NoneTy && self.ret_sty != STy::Error {
+                let ann = match self.ret_annot_span {
+                    Some(a) => self.name_span.to(a),
+                    None => self.name_span,
+                };
                 ctx.err(
                     Diagnostic::error(format!(
                         "a função '{}' pode terminar sem return (devolveria None)",
                         ctx.sym(self.cur_func_name)
                     ))
-                    .with_primary(func_span, "aqui"),
+                    .with_primary(ann, format!("declarada com '-> {}'", self.ret_sty.name()))
+                    .with_secondary(self.body_end, "a execução pode chegar ao fim aqui"),
                 );
             }
             self.ret_sty
@@ -1571,7 +1694,13 @@ fn process_function(
         )
     };
 
-    let mut fc = FuncChecker::new(false, name, ret_annotated, ret_sty, locals_hint);
+    let body_end = Span::new(f.body.span.file, f.body.span.hi, f.body.span.hi);
+    let spans = FuncSpans {
+        name: f.name.span,
+        ret_annot: f.ret.as_ref().map(|t| t.span),
+        body_end,
+    };
+    let mut fc = FuncChecker::new(false, name, ret_annotated, ret_sty, locals_hint, spans);
     let mut param_ids = Vec::with_capacity(params_sty.len());
     for (i, (pname, psty)) in params_sty.iter().enumerate() {
         let span = f.params[i].span;
@@ -1603,15 +1732,23 @@ fn process_function(
 
 fn process_main(ctx: &mut CheckCtx, module: &ast::Module, main_id: FuncId) -> TFunc {
     let locals_hint = ctx.top_vars.clone();
-    let mut fc = FuncChecker::new(true, Symbol(0), false, STy::NoneTy, locals_hint);
+    let no_span = Span::new(FileId(0), 0, 0);
+    let spans = FuncSpans {
+        name: no_span,
+        ret_annot: None,
+        body_end: no_span,
+    };
+    let mut fc = FuncChecker::new(true, Symbol(0), false, STy::NoneTy, locals_hint, spans);
     let mut out = Vec::new();
     let mut terminated = false;
     for (pos, item) in module.items.iter().enumerate() {
         let ast::Item::Stmt(s) = item else { continue };
         fc.top_pos = Some(pos);
-        let dead = terminated;
+        if terminated {
+            fc.dead = true;
+        }
         let (t, term) = fc.lower_stmt(ctx, s);
-        if !dead {
+        if !terminated {
             if let Some(ts) = t {
                 out.push(ts);
             }
