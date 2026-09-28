@@ -22,7 +22,18 @@ impl FxHasher {
 impl Hasher for FxHasher {
     #[inline]
     fn finish(&self) -> u64 {
-        self.hash
+        // Finalizador de avalanche (murmur3). Sem ele, os bits baixos do
+        // produto final ficam fracos para chaves curtas que só diferem no
+        // fim (ex.: `f0`..`f99999`, que partilham o primeiro byte): as
+        // tabelas degeneram em cadeias de sondagem longas e o interner passa
+        // a custar ordens de grandeza mais do que a procura.
+        let mut h = self.hash;
+        h ^= h >> 33;
+        h = h.wrapping_mul(0xff51_afd7_ed55_8ccd);
+        h ^= h >> 33;
+        h = h.wrapping_mul(0xc4ce_b9fe_1a85_ec53);
+        h ^= h >> 33;
+        h
     }
 
     #[inline]
@@ -393,6 +404,22 @@ mod tests {
         assert_eq!(sm.get_name(FileId(0)), None);
         assert_eq!(sm.get_source(FileId(0)), None);
         assert_eq!(sm.get_line_col(FileId(0), 0), None);
+    }
+
+    // Nomes curtos que só diferem no fim (como `f0`..`f9999`) partilham o
+    // primeiro byte; sem o finalizador de avalanche os bits baixos do hash
+    // colapsavam em pouquíssimos baldes e as tabelas degeneravam.
+    #[test]
+    fn fxhash_distribui_nomes_curtos() {
+        use std::hash::{Hash, Hasher};
+        let mut baldes = vec![0u32; 1 << 17];
+        for i in 0..10_000 {
+            let mut h = FxHasher::default();
+            format!("f{i}").hash(&mut h);
+            baldes[(h.finish() as usize) & 0x1_FFFF] += 1;
+        }
+        let ocupados = baldes.iter().filter(|&&c| c > 0).count();
+        assert!(ocupados > 8_000, "hash concentra-se em {ocupados} baldes");
     }
 
     #[test]
