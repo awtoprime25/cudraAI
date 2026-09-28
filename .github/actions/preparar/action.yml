@@ -21,8 +21,9 @@ runs:
         set -euo pipefail
         sudo apt-get update
         # `llvm-20-dev` traz as bibliotecas e os headers que o `llvm-sys`
-        # liga; o `clang` é o `cc` que o driver usa para linkar o executável
-        # gerado. O `cudrac` não compila sem os dois.
+        # liga. O `clang` fica instalado porque é o compilador C que a
+        # máquina do autor tem a par do `cc`, mas quem liga o executável
+        # gerado é o `cc` — ver a sonda abaixo.
         #
         # E `libpolly-20-dev` não é enfeite: o `llvm-config-20 --link-static
         # --libs` do Ubuntu anuncia `-lPolly -lPollyISL`, mas o Debian separa
@@ -61,7 +62,34 @@ runs:
         # aqui tem precedência e o caminho fica correcto mesmo que o
         # llvm-20-dev instale noutro sítio.
         echo "LLVM_SYS_201_PREFIX=${prefix}" >> "$GITHUB_ENV"
-        echo "CC=clang" >> "$GITHUB_ENV"
+
+    # O driver liga com `$CC`, que por omissão é `cc`. Estas linhas existem
+    # porque a primeira execução mostrou o `clang` desta imagem a não
+    # encontrar a libc (`cannot find -lc`) enquanto o `cc` que o `rustc` usa
+    # ligava sem problema: a sonda fixa por escrito qual dos dois liga, e
+    # quando falha mostra o que o `clang` passa ao `ld`.
+    - name: Sanidade do compilador C
+      shell: bash
+      run: |
+        set -uo pipefail
+        printf 'int main(void){return 0;}\n' > /tmp/s.c
+        for c in cc gcc clang; do
+          command -v "$c" >/dev/null || { echo "$c: ausente"; continue; }
+          echo "=== $c — $("$c" --version 2>&1 | head -1)"
+          "$c" /tmp/s.c -o /tmp/s.out 2>/tmp/s.err \
+            && echo "    ligação simples: ok" \
+            || { echo "    ligação simples: FALHOU"; sed 's/^/      /' /tmp/s.err; }
+          "$c" -c /tmp/s.c -o /tmp/s.o 2>/dev/null
+          if "$c" /tmp/s.o -lgcc_s -lutil -lrt -lpthread -lm -ldl -lc -o /tmp/s2.out 2>/tmp/s2.err; then
+            echo "    ligação como o driver: ok"
+          else
+            echo "    ligação como o driver: FALHOU"
+            sed 's/^/      /' /tmp/s2.err
+            "$c" -### /tmp/s.o -lgcc_s -lutil -lrt -lpthread -lm -ldl -lc -o /tmp/s2.out 2>&1 \
+              | grep -o '\-L[^ ]*' | sort -u | sed 's/^/      procura em /'
+          fi
+        done
+        ls -l /usr/lib/x86_64-linux-gnu/libc.so /usr/lib/x86_64-linux-gnu/libc.a 2>&1 | sed 's/^/  /'
 
     - name: Instalar o Python dos oráculos
       uses: actions/setup-python@v5
