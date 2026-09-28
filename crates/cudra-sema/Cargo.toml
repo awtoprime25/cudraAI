@@ -9,3 +9,7 @@ cudra-span = { path = "../cudra-span" }
 cudra-diagnostics = { path = "../cudra-diagnostics" }
 cudra-ast = { path = "../cudra-ast" }
 cudra-tir = { path = "../cudra-tir" }
+
+[dev-dependencies]
+cudra-lexer = { path = "../cudra-lexer" }
+cudra-parser = { path = "../cudra-parser" }

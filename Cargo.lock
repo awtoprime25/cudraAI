@@ -226,6 +226,8 @@ version = "0.1.0"
 dependencies = [
  "cudra-ast",
  "cudra-diagnostics",
+ "cudra-lexer",
+ "cudra-parser",
  "cudra-span",
  "cudra-tir",
 ]
