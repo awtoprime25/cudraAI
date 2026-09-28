@@ -139,69 +139,123 @@ fn float_hex(v: f64) -> String {
     format!("{:016x}", v.to_bits())
 }
 
-fn flatten_bool(op: LogicOp, e: &Expr, interner: &Interner, out: &mut Vec<String>) {
-    if let ExprKind::Logical { op: op2, lhs, rhs } = &e.kind {
-        if *op2 == op {
-            flatten_bool(op, lhs, interner, out);
-            flatten_bool(op, rhs, interner, out);
-            return;
-        }
-    }
-    out.push(ex(e, interner));
+// Tarefa de impressão pendente: texto já formatado, um nome já resolvido ou
+// uma subárvore ainda por expandir.
+enum Job<'a, 'b> {
+    Lit(&'static str),
+    Name(&'b str),
+    Node(&'a Expr),
 }
 
+// Percorre a expressão com uma pilha explícita, em vez de recursão: cadeias
+// associativas muito profundas (ex.: `a+a+…` com centenas de milhares de
+// termos) esgotariam a pilha, e o `format!` aninhado reescrevia a cadeia
+// acumulada a cada nível, com custo quadrático. A ordem de emissão mantém-se
+// idêntica, byte a byte.
 fn ex(e: &Expr, interner: &Interner) -> String {
-    match &e.kind {
-        ExprKind::Int(v) => format!("(int {v})"),
-        ExprKind::Float(v) => format!("(float {})", float_hex(*v)),
-        ExprKind::Bool(b) => format!("(bool {})", if *b { "True" } else { "False" }),
-        ExprKind::NoneLit => "(none)".to_string(),
-        ExprKind::Name(id) => format!("(name {})", interner.resolve(id.name)),
-        ExprKind::Unary { op, operand } => {
-            format!("(unary {} {})", un_op_str(*op), ex(operand, interner))
-        }
-        ExprKind::Binary { op, lhs, rhs } => format!(
-            "(bin {} {} {})",
-            bin_op_str(*op),
-            ex(lhs, interner),
-            ex(rhs, interner)
-        ),
-        ExprKind::Logical { op, lhs, rhs } => {
-            let mut parts = Vec::new();
-            flatten_bool(*op, lhs, interner, &mut parts);
-            flatten_bool(*op, rhs, interner, &mut parts);
-            let name = match op {
-                LogicOp::And => "and",
-                LogicOp::Or => "or",
-            };
-            format!("({name} {})", parts.join(" "))
-        }
-        ExprKind::Compare { first, rest } => {
-            let mut parts = vec![ex(first, interner)];
-            for (op, c) in rest {
-                parts.push(cmp_op_str(*op).to_string());
-                parts.push(ex(c, interner));
+    let mut out = String::new();
+    let mut stack = vec![Job::Node(e)];
+    while let Some(job) = stack.pop() {
+        let node = match job {
+            Job::Lit(text) => {
+                out.push_str(text);
+                continue;
             }
-            format!("(cmp {})", parts.join(" "))
-        }
-        ExprKind::Call { callee, args } => {
-            let mut parts = vec![ex(callee, interner)];
-            for a in args {
-                parts.push(ex(a, interner));
+            Job::Name(name) => {
+                out.push_str(name);
+                continue;
             }
-            format!("(call {})", parts.join(" "))
-        }
-        ExprKind::Attr { base, attr } => {
-            format!(
-                "(attr {} {})",
-                ex(base, interner),
-                interner.resolve(attr.name)
-            )
-        }
-        ExprKind::Index { base, index } => {
-            format!("(index {} {})", ex(base, interner), ex(index, interner))
+            Job::Node(n) => n,
+        };
+        match &node.kind {
+            ExprKind::Int(v) => out.push_str(&format!("(int {v})")),
+            ExprKind::Float(v) => out.push_str(&format!("(float {})", float_hex(*v))),
+            ExprKind::Bool(b) => out.push_str(if *b { "(bool True)" } else { "(bool False)" }),
+            ExprKind::NoneLit => out.push_str("(none)"),
+            ExprKind::Name(id) => {
+                out.push_str("(name ");
+                out.push_str(interner.resolve(id.name));
+                out.push(')');
+            }
+            ExprKind::Unary { op, operand } => {
+                stack.push(Job::Lit(")"));
+                stack.push(Job::Node(operand));
+                stack.push(Job::Lit(" "));
+                stack.push(Job::Lit(un_op_str(*op)));
+                stack.push(Job::Lit("(unary "));
+            }
+            ExprKind::Binary { op, lhs, rhs } => {
+                stack.push(Job::Lit(")"));
+                stack.push(Job::Node(rhs));
+                stack.push(Job::Lit(" "));
+                stack.push(Job::Node(lhs));
+                stack.push(Job::Lit(" "));
+                stack.push(Job::Lit(bin_op_str(*op)));
+                stack.push(Job::Lit("(bin "));
+            }
+            ExprKind::Logical { op, lhs, rhs } => {
+                // Achata iterativamente a subárvore da mesma operação (mais
+                // à esquerda primeiro), para que `a and b and c` saia como
+                // `(and a b c)`.
+                let mut parts: Vec<&Expr> = Vec::new();
+                let mut pending: Vec<&Expr> = vec![rhs.as_ref(), lhs.as_ref()];
+                while let Some(p) = pending.pop() {
+                    if let ExprKind::Logical { op: op2, lhs, rhs } = &p.kind {
+                        if op2 == op {
+                            pending.push(rhs);
+                            pending.push(lhs);
+                            continue;
+                        }
+                    }
+                    parts.push(p);
+                }
+                stack.push(Job::Lit(")"));
+                for p in parts.iter().rev() {
+                    stack.push(Job::Node(p));
+                    stack.push(Job::Lit(" "));
+                }
+                stack.push(Job::Lit(match op {
+                    LogicOp::And => "(and",
+                    LogicOp::Or => "(or",
+                }));
+            }
+            ExprKind::Compare { first, rest } => {
+                stack.push(Job::Lit(")"));
+                for (op, c) in rest.iter().rev() {
+                    stack.push(Job::Node(c));
+                    stack.push(Job::Lit(" "));
+                    stack.push(Job::Lit(cmp_op_str(*op)));
+                    stack.push(Job::Lit(" "));
+                }
+                stack.push(Job::Node(first));
+                stack.push(Job::Lit("(cmp "));
+            }
+            ExprKind::Call { callee, args } => {
+                stack.push(Job::Lit(")"));
+                for a in args.iter().rev() {
+                    stack.push(Job::Node(a));
+                    stack.push(Job::Lit(" "));
+                }
+                stack.push(Job::Node(callee));
+                stack.push(Job::Lit("(call "));
+            }
+            ExprKind::Attr { base, attr } => {
+                stack.push(Job::Lit(")"));
+                stack.push(Job::Name(interner.resolve(attr.name)));
+                stack.push(Job::Lit(" "));
+                stack.push(Job::Node(base));
+                stack.push(Job::Lit("(attr "));
+            }
+            ExprKind::Index { base, index } => {
+                stack.push(Job::Lit(")"));
+                stack.push(Job::Node(index));
+                stack.push(Job::Lit(" "));
+                stack.push(Job::Node(base));
+                stack.push(Job::Lit("(index "));
+            }
         }
     }
+    out
 }
 
 fn ty(t: &TypeExpr, interner: &Interner) -> String {
