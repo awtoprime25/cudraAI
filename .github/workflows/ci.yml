@@ -71,30 +71,30 @@ jobs:
       - name: diagnóstico da ligação
         if: always()
         run: |
-          set -uo pipefail
+          set +e
           cargo build -p cudra-driver --bin cudrac
-          echo "=== lista embutida no cudrac ==="
-          strings -a target/debug/cudrac | grep -F -- '-lgcc_s' | head -1
-          echo "=== variáveis que mexem no linkeditor ==="
-          env | grep -E '^(CC|TMPDIR|LIBRARY_PATH|LDFLAGS|LD_PRELOAD|LD_LIBRARY_PATH|CPATH|COMPILER_PATH|GCC_EXEC_PREFIX|RUSTFLAGS)=' || echo "  (nenhuma)"
-          echo "=== onde o cc encontra cada biblioteca ==="
-          for l in libc.so libm.so libdl.a libutil.a libgcc_s.so; do printf '  %-12s %s\n' "$l" "$(cc -print-file-name=$l)"; done
-          echo "=== outras libc.so no sistema ==="
-          find / -xdev -name 'libc.so' 2>/dev/null | head
+          echo "=== todas as literais com -lgcc_s no cudrac ==="
+          strings -a target/debug/cudrac | grep -F -- '-lgcc_s' | sort -u | head -5
+          echo "=== .a usada ==="
+          strings -a target/debug/cudrac | grep -oE '/[^ ]*libcudra_runtime\.a' | sort -u | head -3
           echo "=== .a isolada: objecto do cc + .a do runtime ==="
           RT=$(find target -name libcudra_runtime.a | head -1); echo "  RT=$RT"
-          file "$RT"
-          printf 'int main(void){return 0;}\n' > /tmp/s.c && cc -c /tmp/s.c -o /tmp/s.o
+          file "$RT" | head -1
+          printf 'int main(void){return 0;}\n' > /tmp/s.c; cc -c /tmp/s.c -o /tmp/s.o
           cc /tmp/s.o "$RT" -lgcc_s -lutil -lrt -lpthread -lm -ldl -lc -o /tmp/x1 && echo "  ligou" || echo "  FALHOU"
-          echo "=== o driver, com o objecto capturado ==="
+          echo "=== o driver, com o objecto e o rasto do ld ==="
           mkdir -p /tmp/w
-          printf '#!/bin/bash\nprintf "%%s\\n" "$@" > /tmp/w/argv\ncp "$1" /tmp/w/prog.o 2>/dev/null\nexec /usr/bin/cc "$@"\n' > /tmp/w/cc
+          printf '#!/bin/bash\nprintf "%%s\\n" "$@" > /tmp/w/argv\ncp "$1" /tmp/w/prog.o 2>/dev/null\n/usr/bin/cc "$@" -Wl,--verbose >/dev/null 2>/tmp/w/verbose.log\nexec /usr/bin/cc "$@"\n' > /tmp/w/cc
           chmod +x /tmp/w/cc
           printf 'print(1)\n' > /tmp/t.cdr
           PATH=/tmp/w:$PATH ./target/debug/cudrac build /tmp/t.cdr -o /tmp/t.out 2>&1 | head -6
           echo "--- argv ---"; sed 's/^/  /' /tmp/w/argv 2>/dev/null
-          echo "--- secções do objecto ---"; readelf -S /tmp/w/prog.o 2>/dev/null | grep -iE 'linker|llvm|note' | head
-          echo "--- opções dentro do objecto ---"; strings -a /tmp/w/prog.o 2>/dev/null | grep -E '^-[lL]|^--' | sort -u | head
+          echo "--- o objecto é ---"; file /tmp/w/prog.o | head -1
+          echo "--- primeiros bytes ---"; head -c 16 /tmp/w/prog.o | od -c | head -2
+          echo "--- directivas no objecto ---"; strings -a /tmp/w/prog.o 2>/dev/null | grep -aE 'sysroot|OUTPUT_FORMAT|SEARCH_DIR|GROUP|INPUT\(' | head -5
+          echo "--- SEARCH_DIR vistos pelo ld ---"; grep -oa 'SEARCH_DIR("[^"]*")' /tmp/w/verbose.log | sort -u | head -20
+          echo "--- onde o ld procurou libc.so ---"; grep -a 'libc\.so' /tmp/w/verbose.log | head -12
+          echo "--- onde o ld procurou libm.so ---"; grep -a 'libm\.so' /tmp/w/verbose.log | tail -4
 
   oraculos:
     name: oráculos CPython
