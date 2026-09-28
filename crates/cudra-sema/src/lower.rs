@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use cudra_ast as ast;
 use cudra_diagnostics::Diagnostic;
 use cudra_span::{FileId, Span, Symbol};
@@ -75,7 +77,11 @@ enum LoopKind {
 
 struct LoopCtx {
     kind: LoopKind,
-    break_snapshots: Vec<Vec<bool>>,
+    /// Estado no início do ciclo: um `break` de um ciclo infinito mede só o
+    /// que se definiu desde a entrada, não o conjunto todo.
+    pre: definite::Snapshot,
+    /// Locais definidos desde `pre`, um por `break`.
+    break_diffs: Vec<Vec<u32>>,
 }
 
 struct FuncChecker {
@@ -84,10 +90,20 @@ struct FuncChecker {
     ret_annotated: bool,
     ret_sty: STy,
     return_sites: Vec<STy>,
-    locals: Vec<(Symbol, LocalId, STy, Span)>,
+    /// Um registo por nome de `locals_hint` (mesma ordem, procura binária):
+    /// o registo mais recente ganha, como um `HashMap` faria quando o mesmo
+    /// nome é declarado duas vezes. Indexar pela dica evita a procura linear
+    /// que degenerava em O(n²) com dezenas de milhares de variáveis de topo
+    /// no `main`.
+    locals: Vec<Option<(LocalId, STy, Span)>>,
+    /// Nomes declarados fora da dica: acontece quando o `resolve` recusa
+    /// registar um nome de topo por colidir com uma função ou um import
+    /// (ex.: `def f(): ...` seguido de `f = 2`), mas a atribuição continua a
+    /// ser verificada.
+    locals_extra: HashMap<Symbol, (LocalId, STy, Span)>,
     locals_hint: Vec<Symbol>,
     tir_locals: Vec<TLocal>,
-    defined: Vec<bool>,
+    defined: definite::Defined,
     loop_stack: Vec<LoopCtx>,
     top_pos: Option<usize>,
     block_depth: u32,
@@ -120,10 +136,11 @@ impl FuncChecker {
             ret_annotated,
             ret_sty,
             return_sites: Vec::new(),
-            locals: Vec::new(),
+            locals: vec![None; locals_hint.len()],
+            locals_extra: HashMap::new(),
             locals_hint,
             tir_locals: Vec::new(),
-            defined: Vec::new(),
+            defined: definite::Defined::new(),
             loop_stack: Vec::new(),
             top_pos: None,
             block_depth: 0,
@@ -143,11 +160,20 @@ impl FuncChecker {
     /// era declarado duas vezes).
     #[inline]
     fn local(&self, s: Symbol) -> Option<(LocalId, STy, Span)> {
-        self.locals
-            .iter()
-            .rev()
-            .find(|l| l.0 == s)
-            .map(|&(_, id, sty, span)| (id, sty, span))
+        if let Ok(i) = self.locals_hint.binary_search(&s) {
+            return self.locals[i];
+        }
+        self.locals_extra.get(&s).copied()
+    }
+
+    /// Regista um local, sobrepondo o registo anterior do mesmo nome.
+    fn declare_local(&mut self, name: Symbol, id: LocalId, sty: STy, span: Span) {
+        match self.locals_hint.binary_search(&name) {
+            Ok(i) => self.locals[i] = Some((id, sty, span)),
+            Err(_) => {
+                self.locals_extra.insert(name, (id, sty, span));
+            }
+        }
     }
 
     fn new_local(&mut self, ctx: &CheckCtx, name: Symbol, sty: STy) -> LocalId {
@@ -156,7 +182,7 @@ impl FuncChecker {
             name: ctx.sym(name).to_string(),
             ty: sty.to_tir(),
         });
-        self.defined.push(false);
+        self.defined.push_local();
         id
     }
 
@@ -343,7 +369,7 @@ impl FuncChecker {
     fn resolve_read(&mut self, ctx: &mut CheckCtx, id: &ast::Ident) -> LExpr {
         if self.is_local(id.name) {
             if let Some((lid, sty, _)) = self.local(id.name) {
-                if self.defined[lid.0 as usize] {
+                if self.defined.get(lid) {
                     return LExpr {
                         sty,
                         t: TExpr {
@@ -660,7 +686,7 @@ impl FuncChecker {
     ) -> LExpr {
         if self.is_local(id.name) {
             if let Some((lid, _sty, _)) = self.local(id.name) {
-                if !self.defined[lid.0 as usize] {
+                if !self.defined.get(lid) {
                     ctx.err(
                         Diagnostic::error(format!(
                             "a variável '{}' pode não estar definida aqui",
@@ -1107,7 +1133,7 @@ impl FuncChecker {
         } else {
             self.check_local_builtin_shadow(ctx, var.name, var.span);
             let lid = self.new_local(ctx, var.name, STy::Int);
-            self.locals.push((var.name, lid, STy::Int, var.span));
+            self.declare_local(var.name, lid, STy::Int, var.span);
             lid
         }
     }
@@ -1246,26 +1272,26 @@ impl FuncChecker {
         };
 
         let var_id = self.declare_for_var(ctx, var);
-        let mut pre = self.defined.clone();
+        let pre = self.defined.save();
         self.loop_stack.push(LoopCtx {
             kind: LoopKind::Normal,
-            break_snapshots: Vec::new(),
+            pre,
+            break_diffs: Vec::new(),
         });
-        self.defined[var_id.0 as usize] = true;
+        self.defined.set(var_id);
         self.block_depth += 1;
         let (body_stmts, _) = self.lower_block(ctx, &body.stmts);
         self.block_depth -= 1;
         self.loop_stack.pop();
-        definite::pad(&mut pre, self.tir_locals.len());
+        self.defined.restore(pre);
         // regra 14: depois do ciclo a variável fica com o último valor
         // atribuído, mas um ciclo que possa correr 0 vezes deixa-a por definir.
         // Só o `range` de literais com início explícito prova que corre pelo
         // menos uma vez; a forma `range(stop)` conta sempre como podendo
         // correr 0 vezes.
         if explicit_start && const_range_nonempty(&start, &stop, &step) {
-            pre[var_id.0 as usize] = true;
+            self.defined.set(var_id);
         }
-        self.defined = pre;
 
         (
             Some(TStmt::ForRange {
@@ -1291,22 +1317,26 @@ impl FuncChecker {
         let cond_t = self.truthy_bool(ctx, cond_l, cond.span);
 
         if infinite {
+            let pre = self.defined.save();
             self.loop_stack.push(LoopCtx {
                 kind: LoopKind::Infinite,
-                break_snapshots: Vec::new(),
+                pre,
+                break_diffs: Vec::new(),
             });
             self.block_depth += 1;
             let (body_stmts, _) = self.lower_block(ctx, &body.stmts);
             self.block_depth -= 1;
             let lc = self.loop_stack.pop().unwrap();
-            let terminated = lc.break_snapshots.is_empty();
+            let terminated = lc.break_diffs.is_empty();
             if !terminated {
-                let mut merged = lc.break_snapshots[0].clone();
-                for snap in &lc.break_snapshots[1..] {
-                    definite::and_into(&mut merged, snap);
+                // Depois do ciclo vale o que estava definido em todos os
+                // `break` (o resto pode não ter corrido).
+                let mut merged = Vec::new();
+                self.defined.intersect(&lc.break_diffs, &mut merged);
+                self.defined.restore(pre);
+                for &id in &merged {
+                    self.defined.set(LocalId(id));
                 }
-                definite::pad(&mut merged, self.tir_locals.len());
-                self.defined = merged;
             }
             (
                 Some(TStmt::While {
@@ -1316,17 +1346,17 @@ impl FuncChecker {
                 terminated,
             )
         } else {
-            let mut pre = self.defined.clone();
+            let pre = self.defined.save();
             self.loop_stack.push(LoopCtx {
                 kind: LoopKind::Normal,
-                break_snapshots: Vec::new(),
+                pre,
+                break_diffs: Vec::new(),
             });
             self.block_depth += 1;
             let (body_stmts, _) = self.lower_block(ctx, &body.stmts);
             self.block_depth -= 1;
             self.loop_stack.pop();
-            definite::pad(&mut pre, self.tir_locals.len());
-            self.defined = pre;
+            self.defined.restore(pre);
             (
                 Some(TStmt::While {
                     cond: cond_t,
@@ -1345,54 +1375,57 @@ impl FuncChecker {
         elifs: &[(ast::Expr, ast::Block)],
         orelse: &Option<ast::Block>,
     ) -> (Option<TStmt>, bool) {
-        let pre = self.defined.clone();
+        let pre = self.defined.save();
 
-        self.defined = pre.clone();
-        definite::pad(&mut self.defined, self.tir_locals.len());
         let cl = self.lower_expr(ctx, cond);
         let cond_t = self.truthy_bool(ctx, cl, cond.span);
         self.block_depth += 1;
         let (then_stmts, then_term) = self.lower_block(ctx, &then.stmts);
         self.block_depth -= 1;
-        let then_after = self.defined.clone();
+
+        // Um local só fica definido depois do `if` se o tiver sido em todos
+        // os ramos. Como cada ramo parte de `pre` e só acrescenta definições,
+        // basta intersectar o que cada ramo definiu por cima de `pre` — sem
+        // copiar nem percorrer o conjunto todo a cada ramo.
+        let mut branch_diffs: Vec<Vec<u32>> = Vec::with_capacity(elifs.len() + 2);
+        branch_diffs.push(self.defined.since(pre).to_vec());
 
         let mut elif_results = Vec::with_capacity(elifs.len());
         for (c, b) in elifs {
-            self.defined = pre.clone();
-            definite::pad(&mut self.defined, self.tir_locals.len());
+            self.defined.restore(pre);
             let cl2 = self.lower_expr(ctx, c);
             let ct = self.truthy_bool(ctx, cl2, c.span);
             self.block_depth += 1;
             let (stmts, term) = self.lower_block(ctx, &b.stmts);
             self.block_depth -= 1;
-            let after = self.defined.clone();
-            elif_results.push((ct, stmts, term, after));
+            branch_diffs.push(self.defined.since(pre).to_vec());
+            elif_results.push((ct, stmts, term));
         }
 
-        let (orelse_stmts, orelse_term, orelse_after) = if let Some(o) = orelse {
-            self.defined = pre.clone();
-            definite::pad(&mut self.defined, self.tir_locals.len());
+        let (orelse_stmts, orelse_term) = if let Some(o) = orelse {
+            self.defined.restore(pre);
             self.block_depth += 1;
             let (stmts, term) = self.lower_block(ctx, &o.stmts);
             self.block_depth -= 1;
-            let after = self.defined.clone();
-            (stmts, term, after)
+            branch_diffs.push(self.defined.since(pre).to_vec());
+            (stmts, term)
         } else {
-            (Vec::new(), false, pre.clone())
+            // Sem `else` há um caminho que não define nada de novo.
+            branch_diffs.push(Vec::new());
+            (Vec::new(), false)
         };
 
-        let mut merged = then_after;
-        for (_, _, _, after) in &elif_results {
-            definite::and_into(&mut merged, after);
+        let mut merged = Vec::new();
+        self.defined.intersect(&branch_diffs, &mut merged);
+        self.defined.restore(pre);
+        for &id in &merged {
+            self.defined.set(LocalId(id));
         }
-        definite::and_into(&mut merged, &orelse_after);
-        definite::pad(&mut merged, self.tir_locals.len());
-        self.defined = merged;
 
-        let terminated = then_term && elif_results.iter().all(|(_, _, t, _)| *t) && orelse_term;
+        let terminated = then_term && elif_results.iter().all(|(_, _, t)| *t) && orelse_term;
 
         let mut chain = orelse_stmts;
-        for (ct, stmts, _, _) in elif_results.into_iter().rev() {
+        for (ct, stmts, _) in elif_results.into_iter().rev() {
             chain = vec![TStmt::If {
                 cond: ct,
                 then: stmts,
@@ -1452,11 +1485,17 @@ impl FuncChecker {
         if self.loop_stack.is_empty() {
             ctx.err(Diagnostic::error("'break' fora de um ciclo").with_primary(span, "break"));
         } else {
-            let snap = self.defined.clone();
-            if let Some(top) = self.loop_stack.last_mut() {
-                if matches!(top.kind, LoopKind::Infinite) {
-                    top.break_snapshots.push(snap);
-                }
+            let pre = self
+                .loop_stack
+                .last()
+                .and_then(|top| matches!(top.kind, LoopKind::Infinite).then_some(top.pre));
+            if let Some(pre) = pre {
+                let diff = self.defined.since(pre).to_vec();
+                self.loop_stack
+                    .last_mut()
+                    .expect("ciclo verificado acima")
+                    .break_diffs
+                    .push(diff);
             }
         }
         (Some(TStmt::Break), true)
@@ -1517,7 +1556,7 @@ impl FuncChecker {
                             (None, false)
                         }
                         Some((lid, es, _)) => {
-                            if !self.defined[lid.0 as usize] {
+                            if !self.defined.get(lid) {
                                 ctx.err(
                                     Diagnostic::error(format!(
                                         "a variável '{}' pode não estar definida aqui",
@@ -1546,7 +1585,7 @@ impl FuncChecker {
                                     .with_primary(s.span, "aumento aqui"),
                                 );
                             }
-                            self.defined[lid.0 as usize] = true;
+                            self.defined.set(lid);
                             (
                                 Some(TStmt::Store {
                                     local: lid,
@@ -1652,7 +1691,7 @@ impl FuncChecker {
                     ),
                 );
             }
-            self.defined[lid.0 as usize] = true;
+            self.defined.set(lid);
             lid
         } else {
             // Uma anotação por resolver (tipo desconhecido → `Error`) já
@@ -1676,8 +1715,8 @@ impl FuncChecker {
             }
             self.check_local_builtin_shadow(ctx, id.name, id.span);
             let lid = self.new_local(ctx, id.name, declared);
-            self.locals.push((id.name, lid, declared, id.span));
-            self.defined[lid.0 as usize] = true;
+            self.declare_local(id.name, lid, declared, id.span);
+            self.defined.set(lid);
             lid
         }
     }
@@ -1793,8 +1832,8 @@ fn process_function(
     for (i, (pname, psty)) in params_sty.iter().enumerate() {
         let span = f.params[i].span;
         let lid = fc.new_local(ctx, *pname, *psty);
-        fc.locals.push((*pname, lid, *psty, span));
-        fc.defined[lid.0 as usize] = true;
+        fc.declare_local(*pname, lid, *psty, span);
+        fc.defined.set(lid);
         param_ids.push(lid);
     }
 
