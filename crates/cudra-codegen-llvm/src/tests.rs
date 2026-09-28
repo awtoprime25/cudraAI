@@ -1,5 +1,5 @@
 use cudra_span::{FileId, Span};
-use cudra_tir::{Func, FuncId, Module, TExpr, TExprKind, TStmt, Ty};
+use cudra_tir::{CmpOp, Func, FuncId, LocalId, Module, TBinOp, TCmp, TExpr, TExprKind, TStmt, Ty};
 
 use crate::{emit_llvm_ir, emit_object, Options};
 
@@ -117,6 +117,95 @@ fn reachable_end_of_an_annotated_function_is_unreachable() {
     m.funcs[1].body = Vec::new();
     let ir = emit_llvm_ir(&m, &Options { release: false }).unwrap();
     assert!(ir.contains("unreachable"), "{ir}");
+}
+
+fn local(i: usize) -> TExpr {
+    TExpr {
+        ty: Ty::Int,
+        kind: TExprKind::Local(LocalId(i as u32)),
+        span: span(),
+    }
+}
+
+fn bin(op: TBinOp, lhs: TExpr, rhs: TExpr) -> TExpr {
+    TExpr {
+        ty: Ty::Int,
+        kind: TExprKind::Binary {
+            op,
+            lhs: Box::new(lhs),
+            rhs: Box::new(rhs),
+        },
+        span: span(),
+    }
+}
+
+/// `v{i} = v{i-1} + 1` seguido de `if v{i} > 5: v{i} = v{i} - 1`: cada soma e
+/// cada subtracao traz uma verificacao de overflow, e cada `if` nao tem `else`.
+fn module_de_verificacoes(n: usize) -> Module {
+    let locals = (0..n)
+        .map(|i| cudra_tir::Local {
+            name: format!("v{i}"),
+            ty: Ty::Int,
+        })
+        .collect();
+    let mut body = vec![TStmt::Store {
+        local: LocalId(0),
+        value: int_const(1),
+    }];
+    for i in 1..n {
+        body.push(TStmt::Store {
+            local: LocalId(i as u32),
+            value: bin(TBinOp::IAdd, local(i - 1), int_const(1)),
+        });
+    }
+    for i in 0..n {
+        body.push(TStmt::If {
+            cond: TExpr {
+                ty: Ty::Bool,
+                kind: TExprKind::Compare {
+                    first: Box::new(local(i)),
+                    rest: vec![(TCmp::I(CmpOp::Gt), int_const(5))],
+                },
+                span: span(),
+            },
+            then: vec![TStmt::Store {
+                local: LocalId(i as u32),
+                value: bin(TBinOp::ISub, local(i), int_const(1)),
+            }],
+            orelse: Vec::new(),
+        });
+    }
+    Module {
+        funcs: vec![Func {
+            id: FuncId(0),
+            name: "main".to_string(),
+            params: Vec::new(),
+            locals,
+            ret: Ty::NoneTy,
+            body,
+        }],
+        main: FuncId(0),
+    }
+}
+
+/// Os blocos que o codegen cria por instrucao nao podem multiplicar-se: e o
+/// numero de blocos da funcao que faz o pipeline de maquina do LLVM (e a
+/// promocao de allocas) degenerar numa unica funcao grande. Um bloco de panico
+/// por verificacao dava `n` blocos de panico para `n` verificacoes.
+#[test]
+fn um_bloco_de_panico_por_codigo_e_nenhum_else_vazio() {
+    let n = 300;
+    let ir = emit_llvm_ir(&module_de_verificacoes(n), &Options { release: false }).unwrap();
+    let panicos = ir.matches("\npanic").count();
+    assert!(
+        panicos <= 8,
+        "{panicos} blocos de panico para {n} verificacoes (deviam ser um por codigo)"
+    );
+    let elses = ir.matches("if.else").count();
+    assert_eq!(
+        elses, 0,
+        "um `if` sem `else` criou {elses} blocos de ramo vazio"
+    );
 }
 
 #[test]

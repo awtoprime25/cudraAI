@@ -134,6 +134,7 @@ pub(crate) fn emit_module<'ctx>(
         decls: HashMap::new(),
         cur: main,
         slots: Vec::new(),
+        panic_blocks: HashMap::new(),
         for_slots: Vec::new(),
         next_for_slot: 0,
         loops: Vec::new(),
@@ -154,6 +155,12 @@ struct Cg<'ctx> {
     decls: HashMap<String, FunctionValue<'ctx>>,
     cur: FunctionValue<'ctx>,
     slots: Vec<Option<PointerValue<'ctx>>>,
+    /// Bloco de panico por codigo, partilhado por todas as verificacoes da
+    /// funcao. Sem isto ha um bloco por verificacao (`cudra_panic(code)` e
+    /// sempre o mesmo por codigo), e uma funcao de milhares de instrucoes
+    /// passa a ter dezenas de milhares de blocos — o pipeline de maquina do
+    /// LLVM (optimizador de CFG, alocador de registos) e caro nesse numero.
+    panic_blocks: HashMap<u32, BasicBlock<'ctx>>,
     /// Contadores escondidos dos `for`, por ordem de emissao.
     for_slots: Vec<PointerValue<'ctx>>,
     next_for_slot: usize,
@@ -313,11 +320,20 @@ impl<'ctx> Cg<'ctx> {
     /// Se `cond` for verdadeira, chama `cudra_panic(code)`; a execucao
     /// continua no bloco seguinte quando for falsa.
     fn guard(&mut self, cond: IntValue<'ctx>, code: u32) -> R<()> {
-        let panic_bb = self.new_block("panic");
         let cont_bb = self.new_block("cont");
+        let panic_bb = match self.panic_blocks.get(&code).copied() {
+            Some(bb) => bb,
+            None => {
+                let bb = self.new_block("panic");
+                let prev = self.block();
+                self.at(bb);
+                self.emit_panic(code)?;
+                self.at(prev);
+                self.panic_blocks.insert(code, bb);
+                bb
+            }
+        };
         self.br_if(cond, panic_bb, cont_bb)?;
-        self.at(panic_bb);
-        self.emit_panic(code)?;
         self.at(cont_bb);
         Ok(())
     }
@@ -328,6 +344,7 @@ impl<'ctx> Cg<'ctx> {
         self.cur = self.funcs[f.id.0 as usize];
         self.is_main = f.id == m.main;
         self.slots = vec![None; f.locals.len()];
+        self.panic_blocks.clear();
         self.for_slots.clear();
         self.next_for_slot = 0;
         self.loops.clear();
@@ -473,6 +490,20 @@ impl<'ctx> Cg<'ctx> {
     fn emit_if(&mut self, cond: &TExpr, then: &[TStmt], orelse: &[TStmt]) -> R<()> {
         let raw = self.expr(cond)?;
         let c = self.bool_of(raw)?;
+        // sem `else` nao ha um ramo vazio a emitir: o proprio bloco de juncao
+        // serve de destino do caminho falso (poupando um bloco por `if`).
+        if orelse.is_empty() {
+            let then_bb = self.new_block("if.then");
+            let end_bb = self.new_block("if.end");
+            self.br_if(c, then_bb, end_bb)?;
+            self.at(then_bb);
+            self.emit_stmts(then)?;
+            if !self.terminated() {
+                self.goto(end_bb)?;
+            }
+            self.at(end_bb);
+            return Ok(());
+        }
         let then_bb = self.new_block("if.then");
         let else_bb = self.new_block("if.else");
         let end_bb = self.new_block("if.end");
