@@ -65,6 +65,37 @@ jobs:
       - name: scripts/check.sh
         run: bash scripts/check.sh
 
+      # TEMPORÁRIO: porque razão o driver não encontra `-lc` quando é ele a
+      # ligar, se um `cc` igual, com as mesmas `-l`, liga na sonda do
+      # `preparar`? Captura o argv real e o objecto do LLVM.
+      - name: diagnóstico da ligação
+        if: always()
+        run: |
+          set -uo pipefail
+          cargo build -p cudra-driver --bin cudrac
+          echo "=== lista embutida no cudrac ==="
+          strings -a target/debug/cudrac | grep -F -- '-lgcc_s' | head -1
+          echo "=== variáveis que mexem no linkeditor ==="
+          env | grep -E '^(CC|TMPDIR|LIBRARY_PATH|LDFLAGS|LD_PRELOAD|LD_LIBRARY_PATH|CPATH|COMPILER_PATH|GCC_EXEC_PREFIX|RUSTFLAGS)=' || echo "  (nenhuma)"
+          echo "=== onde o cc encontra cada biblioteca ==="
+          for l in libc.so libm.so libdl.a libutil.a libgcc_s.so; do printf '  %-12s %s\n' "$l" "$(cc -print-file-name=$l)"; done
+          echo "=== outras libc.so no sistema ==="
+          find / -xdev -name 'libc.so' 2>/dev/null | head
+          echo "=== .a isolada: objecto do cc + .a do runtime ==="
+          RT=$(find target -name libcudra_runtime.a | head -1); echo "  RT=$RT"
+          file "$RT"
+          printf 'int main(void){return 0;}\n' > /tmp/s.c && cc -c /tmp/s.c -o /tmp/s.o
+          cc /tmp/s.o "$RT" -lgcc_s -lutil -lrt -lpthread -lm -ldl -lc -o /tmp/x1 && echo "  ligou" || echo "  FALHOU"
+          echo "=== o driver, com o objecto capturado ==="
+          mkdir -p /tmp/w
+          printf '#!/bin/bash\nprintf "%%s\\n" "$@" > /tmp/w/argv\ncp "$1" /tmp/w/prog.o 2>/dev/null\nexec /usr/bin/cc "$@"\n' > /tmp/w/cc
+          chmod +x /tmp/w/cc
+          printf 'print(1)\n' > /tmp/t.cdr
+          PATH=/tmp/w:$PATH ./target/debug/cudrac build /tmp/t.cdr -o /tmp/t.out 2>&1 | head -6
+          echo "--- argv ---"; sed 's/^/  /' /tmp/w/argv 2>/dev/null
+          echo "--- secções do objecto ---"; readelf -S /tmp/w/prog.o 2>/dev/null | grep -iE 'linker|llvm|note' | head
+          echo "--- opções dentro do objecto ---"; strings -a /tmp/w/prog.o 2>/dev/null | grep -E '^-[lL]|^--' | sort -u | head
+
   oraculos:
     name: oráculos CPython
     runs-on: ubuntu-24.04
