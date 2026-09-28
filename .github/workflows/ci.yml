@@ -1,0 +1,95 @@
+name: CI
+
+# Os caminhos de CI e de push: o `master` local é publicado no `main` do
+# GitHub, por isso ambos ficam aqui.
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  # Sweep completo todas as noites: os oráculos com muitas sementes e com o
+  # dobro dos casos. Nota: o GitHub desactiva cron em repositórios sem
+  # actividade durante 60 dias.
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+    inputs:
+      n:
+        description: "Casos por modo nos oráculos"
+        required: false
+        default: "1500"
+      seeds:
+        description: "Sementes dos oráculos, separadas por espaço"
+        required: false
+        default: "1 2 3 9 10 11"
+
+# Um push novo cancela o anterior do mesmo ref: push repetido não deve gastar
+# minutos de runner em commits que já ninguém vai ver.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # O target de cache não é reprodutível entre incrementais desligados e não,
+  # e um cache misto dá falhas de linkeditor difíceis de ler.
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+  # O `check.sh` e o `oraculos.sh` respeitam um `CARGO_TARGET_DIR` já definido.
+  # Sem isto o primeiro usaria `~/.cache/cudra-target`, que é a escolha da
+  # máquina do autor e não é sítio que o rust-cache saiba guardar; com `target`
+  # os dois jobs partilham o mesmo directório, que é o que o cache espera.
+  CARGO_TARGET_DIR: target
+  # Parâmetros dos oráculos: estes são os valores de cada push, e o job
+  # `oraculos` sobrescreve-os no sweep noturno e no disparo manual. Um ternário
+  # `cond && a || b` aqui não serviria — o GitHub não tem booleanos, devolve o
+  # operando, e em `schedule` isso resolveria para a string "true".
+  N: "300"
+  SEEDS: "1 2 3"
+
+jobs:
+  check:
+    name: fmt + clippy + testes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: ./.github/actions/preparar
+      # Exactamente o comando que se corre à mão antes de cada commit — de
+      # propósito, e não uma imitação: uma divergência entre o CI e o
+      # `check.sh` é uma falha que só aparece no push. O `set -e` de dentro do
+      # script garante que o primeiro erro derruba o job, e é por isso que o
+      # fmt/clippy não vivem num job separado a correr em paralelo.
+      - name: scripts/check.sh
+        run: bash scripts/check.sh
+
+  oraculos:
+    name: oráculos CPython
+    runs-on: ubuntu-24.04
+    # Os oráculos geram milhares de programas e chamam ao `cudrac` uma vez por
+    # cada um; em `check` são ~N×2 invocações por semente.
+    timeout-minutes: ${{ github.event_name == 'schedule' && 180 || 60 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/preparar
+      # No disparo manual os parâmetros vêm do formulário; no noturno não há
+      # `inputs` e valem os valores por omissão daqui, que são os mesmos que
+      # o formulário traz pré-preenchidos.
+      - name: parâmetros dos oráculos
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          INPUT_N: ${{ inputs.n }}
+          INPUT_SEEDS: ${{ inputs.seeds }}
+        run: |
+          echo "N=${INPUT_N:-1500}" >> "$GITHUB_ENV"
+          echo "SEEDS=${INPUT_SEEDS:-1 2 3 9 10 11}" >> "$GITHUB_ENV"
+      - name: construir o compilador e os exemplos
+        run: |
+          cargo build -p cudra-driver --bin cudrac
+          cargo build -p cudra-lexer --example dump_tokens
+          cargo build -p cudra-parser --example dump_ast
+      - name: correr os oráculos
+        run: bash .github/scripts/oraculos.sh

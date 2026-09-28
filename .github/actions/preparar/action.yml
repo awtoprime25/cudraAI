@@ -1,0 +1,61 @@
+name: Preparar toolchain
+description: >-
+  Instala o LLVM 20, o compilador C e o Python que o projecto exige, e
+  configura o prefixo que o llvm-sys procura. Usado por todos os jobs.
+
+inputs:
+  python-version:
+    description: >-
+      Versão do CPython. NÃO é um detalhe: os oráculos confrontam o `cudrac`
+      com o CPython desta máquina, portanto esta versão tem de ser a mesma
+      contra a qual os oráculos foram calibrados (ver docs/plano-arquitetura-mvp.md).
+    required: false
+    default: "3.13"
+
+runs:
+  using: composite
+  steps:
+    - name: Instalar LLVM 20 e o compilador C
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo apt-get update
+        # `llvm-20-dev` traz as bibliotecas e os headers que o `llvm-sys`
+        # liga; o `clang` é o `cc` que o driver usa para linkar o executável
+        # gerado. O `cudrac` não compila sem os dois.
+        sudo apt-get install -y --no-install-recommends \
+          llvm-20-dev \
+          clang
+
+    - name: Configurar o prefixo do llvm-sys
+      shell: bash
+      run: |
+        set -euo pipefail
+        if ! command -v llvm-config-20 >/dev/null; then
+          echo "::error::llvm-config-20 não encontrado — o llvm-20-dev não foi instalado?"
+          exit 1
+        fi
+        prefix="$(llvm-config-20 --prefix)"
+        if [[ ! -d "$prefix" ]]; then
+          echo "::error::prefixo do LLVM inexistente: $prefix"
+          exit 1
+        fi
+        echo "LLVM 20 em ${prefix}"
+        # O `.cargo/config.toml` define isto via `[env]`, que por omissão NÃO
+        # sobrepõe uma variável já presente no ambiente — por isso exportar
+        # aqui tem precedência e o caminho fica correcto mesmo que o
+        # llvm-20-dev instale noutro sítio.
+        echo "LLVM_SYS_201_PREFIX=${prefix}" >> "$GITHUB_ENV"
+        echo "CC=clang" >> "$GITHUB_ENV"
+
+    - name: Instalar o Python dos oráculos
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Cache do cargo
+      uses: Swatinem/rust-cache@v2
+      with:
+        # Partilhado entre os jobs: compilar o inkwell contra o LLVM 20 é a
+        # parte lenta, e o objecto é válido para os dois.
+        shared-key: cudra
