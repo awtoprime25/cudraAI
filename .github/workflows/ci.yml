@@ -29,6 +29,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Cores no log. Foi isto que fez a ligação falhar em todas as execuções até
+  # aqui: o `build.rs` lê a linha `native-static-libs:` do rustc e o reset de
+  # cor colava-se ao `-lc`. Já está tratado lá, mas o par fica ligado por um
+  # fio — quem mexer em `parse_native_libs` deve lembrar-se deste `always`.
   CARGO_TERM_COLOR: always
   # O target de cache não é reprodutível entre incrementais desligados e não,
   # e um cache misto dá falhas de linkeditor difíceis de ler.
@@ -64,37 +68,6 @@ jobs:
       # fmt/clippy não vivem num job separado a correr em paralelo.
       - name: scripts/check.sh
         run: bash scripts/check.sh
-
-      # TEMPORÁRIO: porque razão o driver não encontra `-lc` quando é ele a
-      # ligar, se um `cc` igual, com as mesmas `-l`, liga na sonda do
-      # `preparar`? Captura o argv real e o objecto do LLVM.
-      - name: diagnóstico da ligação
-        if: always()
-        run: |
-          set +e
-          cargo build -p cudra-driver --bin cudrac
-          echo "=== todas as literais com -lgcc_s no cudrac ==="
-          strings -a target/debug/cudrac | grep -F -- '-lgcc_s' | sort -u | head -5
-          echo "=== .a usada ==="
-          strings -a target/debug/cudrac | grep -oE '/[^ ]*libcudra_runtime\.a' | sort -u | head -3
-          echo "=== .a isolada: objecto do cc + .a do runtime ==="
-          RT=$(find target -name libcudra_runtime.a | head -1); echo "  RT=$RT"
-          file "$RT" | head -1
-          printf 'int main(void){return 0;}\n' > /tmp/s.c; cc -c /tmp/s.c -o /tmp/s.o
-          cc /tmp/s.o "$RT" -lgcc_s -lutil -lrt -lpthread -lm -ldl -lc -o /tmp/x1 && echo "  ligou" || echo "  FALHOU"
-          echo "=== o driver, com o objecto e o rasto do ld ==="
-          mkdir -p /tmp/w
-          printf '#!/bin/bash\nprintf "%%s\\n" "$@" > /tmp/w/argv\ncp "$1" /tmp/w/prog.o 2>/dev/null\n/usr/bin/cc "$@" -Wl,--verbose >/dev/null 2>/tmp/w/verbose.log\nexec /usr/bin/cc "$@"\n' > /tmp/w/cc
-          chmod +x /tmp/w/cc
-          printf 'print(1)\n' > /tmp/t.cdr
-          PATH=/tmp/w:$PATH ./target/debug/cudrac build /tmp/t.cdr -o /tmp/t.out 2>&1 | head -6
-          echo "--- argv ---"; sed 's/^/  /' /tmp/w/argv 2>/dev/null
-          echo "--- o objecto é ---"; file /tmp/w/prog.o | head -1
-          echo "--- primeiros bytes ---"; head -c 16 /tmp/w/prog.o | od -c | head -2
-          echo "--- directivas no objecto ---"; strings -a /tmp/w/prog.o 2>/dev/null | grep -aE 'sysroot|OUTPUT_FORMAT|SEARCH_DIR|GROUP|INPUT\(' | head -5
-          echo "--- SEARCH_DIR vistos pelo ld ---"; grep -oa 'SEARCH_DIR("[^"]*")' /tmp/w/verbose.log | sort -u | head -20
-          echo "--- onde o ld procurou libc.so ---"; grep -a 'libc\.so' /tmp/w/verbose.log | head -12
-          echo "--- onde o ld procurou libm.so ---"; grep -a 'libm\.so' /tmp/w/verbose.log | tail -4
 
   oraculos:
     name: oráculos CPython
