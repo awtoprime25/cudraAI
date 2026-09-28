@@ -23,8 +23,17 @@ runs:
         # `llvm-20-dev` traz as bibliotecas e os headers que o `llvm-sys`
         # liga; o `clang` é o `cc` que o driver usa para linkar o executável
         # gerado. O `cudrac` não compila sem os dois.
+        #
+        # E `libpolly-20-dev` não é enfeite: o `llvm-config-20 --link-static
+        # --libs` do Ubuntu anuncia `-lPolly -lPollyISL`, mas o Debian separa
+        # essas duas bibliotecas do pacote principal. Sem ele o `llvm-sys`
+        # morre com "could not find native static library `Polly`" — que foi
+        # exactamente o que a primeira execução da CI mostrou. O LLVM de
+        # apt.llvm.org, usado no WSL, traz tudo junto e por isso não se vê o
+        # problema no portátil.
         sudo apt-get install -y --no-install-recommends \
           llvm-20-dev \
+          libpolly-20-dev \
           clang
 
     - name: Configurar o prefixo do llvm-sys
@@ -38,6 +47,12 @@ runs:
         prefix="$(llvm-config-20 --prefix)"
         if [[ ! -d "$prefix" ]]; then
           echo "::error::prefixo do LLVM inexistente: $prefix"
+          exit 1
+        fi
+        # Falha aqui, e não num erro de linkeditor a meio de 400 testes, se o
+        # `libpolly-20-dev` voltar a faltar.
+        if [[ ! -e "$prefix/lib/libPolly.a" ]]; then
+          echo "::error::falta $prefix/lib/libPolly.a — instalar libpolly-20-dev"
           exit 1
         fi
         echo "LLVM 20 em ${prefix}"
