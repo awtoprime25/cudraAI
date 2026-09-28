@@ -71,6 +71,10 @@ fn rt_cargo(cargo: &str, manifest: &Path, rt_dir: &Path, probe_libs: bool) -> st
         .arg("--manifest-path")
         .arg(manifest);
     if probe_libs {
+        // A nota do rustc vai para o stderr e, com cor, o reset cola-se ao
+        // ultimo token: o `cc` recebia `-lc\x1b[0m` e a ligacao morria em
+        // "cannot find -lc". Sem cor a linha e texto simples.
+        cmd.arg("--color").arg("never");
         cmd.arg("--").arg("--print=native-static-libs");
     }
     // Sob `cargo clippy` estes apontam para o clippy-driver; o target-dir e o
@@ -92,9 +96,20 @@ fn rt_cargo(cargo: &str, manifest: &Path, rt_dir: &Path, probe_libs: bool) -> st
 fn parse_native_libs(stderr: &str) -> Option<String> {
     for line in stderr.lines() {
         if let Some(idx) = line.find("native-static-libs:") {
-            let libs = line[idx + "native-static-libs:".len()..].trim();
+            // Cada token e uma flag de ligacao. Cortar no primeiro caracter
+            // nao imprimivel deixa o token intacto mesmo que venha decorado,
+            // e o filtro garante que so passam flags.
+            let libs: Vec<String> = line[idx + "native-static-libs:".len()..]
+                .split_whitespace()
+                .map(|t| {
+                    t.chars()
+                        .take_while(char::is_ascii_graphic)
+                        .collect::<String>()
+                })
+                .filter(|t| t.starts_with('-'))
+                .collect();
             if !libs.is_empty() {
-                return Some(libs.to_string());
+                return Some(libs.join(" "));
             }
         }
     }
