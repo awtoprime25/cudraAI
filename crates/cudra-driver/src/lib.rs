@@ -105,7 +105,11 @@ pub fn native_libs() -> Vec<String> {
 
 /// Liga um objeto contra a staticlib do runtime e escreve o executavel.
 pub fn link(object: &[u8], out: &Path) -> Result<(), String> {
-    let dir = tempfile::tempdir()
+    // O prefixo distingue as pastas que ficam para tras quando a ligacao falha
+    // (o objeto guardado vive dentro delas).
+    let dir = tempfile::Builder::new()
+        .prefix("cudra-link-")
+        .tempdir()
         .map_err(|e| format!("erro: não foi possível criar um diretório temporário: {e}"))?;
     let obj = dir.path().join("prog.o");
     fs::write(&obj, object)
@@ -132,23 +136,32 @@ pub fn link(object: &[u8], out: &Path) -> Result<(), String> {
 
     let mut cmd = Command::new(&cc);
     cmd.args(&args);
-    let probe = cmd.output().map_err(|e| {
-        if e.kind() == std::io::ErrorKind::NotFound {
-            format!(
-                "erro: não encontrei o compilador C '{cc}' para ligar o executável\n  comando: {comando}"
-            )
-        } else {
-            format!("erro: falha ao correr '{cc}': {e}\n  comando: {comando}")
-        }
-    })?;
-    if !probe.status.success() {
-        return Err(format!(
-            "erro: a ligação falhou: {}\n  comando: {comando}\n{}",
-            describe_status(&probe.status),
-            String::from_utf8_lossy(&probe.stderr)
-        ));
+    let (falha, stderr) = match cmd.output() {
+        Ok(probe) if probe.status.success() => return Ok(()),
+        Ok(probe) => (
+            format!("erro: a ligação falhou: {}", describe_status(&probe.status)),
+            String::from_utf8_lossy(&probe.stderr).to_string(),
+        ),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => (
+            format!("erro: não encontrei o compilador C '{cc}' para ligar o executável"),
+            String::new(),
+        ),
+        Err(e) => (format!("erro: falha ao correr '{cc}': {e}"), String::new()),
+    };
+
+    // O objeto fica em disco em vez de ser apagado com o diretorio temporario:
+    // e isso que faz o comando impresso poder ser repetido tal e qual, em vez de
+    // apontar para um ficheiro que ja nao existe.
+    let _ = dir.keep();
+    let mut msg = format!(
+        "{falha}\n  comando: {comando}\n  objeto: {} (guardado; o comando acima pode ser repetido)",
+        obj.display()
+    );
+    if !stderr.is_empty() {
+        msg.push('\n');
+        msg.push_str(&stderr);
     }
-    Ok(())
+    Err(msg)
 }
 
 /// Descricao do estado de saida do compilador C, para o erro da ligacao.
