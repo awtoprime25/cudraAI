@@ -27,16 +27,24 @@ for bin in "$CUDRAC" "$DUMP_TOKENS" "$DUMP_AST"; do
   fi
 done
 
-# Corre um oráculo e reporta o tempo. `set -e` garante que a primeira falha
-# derruba o script: um oráculo a falhar no meio não deve parecer verde.
+# Corre um oráculo e reporta o tempo. Uma divergência não derruba o script:
+# fica registada e as suites seguintes correm na mesma, de modo a que uma
+# falha não esconda as restantes. O resumo no fim é que decide o código de
+# saída. (O `if` é o que impede o `set -e` de matar o script aqui dentro.)
+falhas=()
 run() {
   local nome=$1
   shift
   echo
   echo "=== $nome"
   local t0=$SECONDS
-  python3 "$@"
-  echo "--- $nome ok ($((SECONDS - t0))s)"
+  if python3 "$@"; then
+    echo "--- $nome ok ($((SECONDS - t0))s)"
+  else
+    local rc=$?
+    echo "--- $nome FALHOU (rc=$rc, $((SECONDS - t0))s)"
+    falhas+=("$nome")
+  fi
 }
 
 # 1. Ataques ao frontend, com os casos embutidos nos próprios scripts: sem N,
@@ -86,4 +94,13 @@ for seed in $SEEDS; do
 done
 
 echo
+if (( ${#falhas[@]} )); then
+  echo "Resumo: ${#falhas[@]} suite(s) com divergência, num total de N=$N, sementes=$SEEDS"
+  for nome in "${falhas[@]}"; do
+    echo "  - $nome"
+  done
+  echo "::error::oráculos: ${#falhas[@]} suite(s) falharam — ver o resumo acima"
+  exit 1
+fi
+
 echo "Todos os oráculos passaram: N=$N, sementes=$SEEDS"
