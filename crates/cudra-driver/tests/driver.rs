@@ -151,3 +151,109 @@ fn build_emit_ast_error_exits_1_and_prints_nothing_on_stdout() {
     assert!(stdout(&out).is_empty());
     assert!(!out.stderr.is_empty());
 }
+
+/// Linha de comando como o driver a deve mostrar: só os argumentos com espaços
+/// levam aspas.
+#[cfg(unix)]
+fn linha_de_comando(cc: &str, args: &[String]) -> String {
+    let mut linha = cc.to_string();
+    for arg in args {
+        linha.push(' ');
+        if arg.contains(' ') {
+            linha.push('"');
+            linha.push_str(arg);
+            linha.push('"');
+        } else {
+            linha.push_str(arg);
+        }
+    }
+    linha
+}
+
+/// Uma falha de ligação tem de mostrar o comando exacto que o driver pediu ao
+/// compilador C: sem isso, descobri-lo obriga a um wrapper à volta do `cc`.
+#[cfg(unix)]
+#[test]
+fn failed_link_reports_the_exact_command() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = tmp_exe("link_comando");
+    fs::create_dir_all(&dir).unwrap();
+    let argv_path = dir.join("argv.txt");
+    let cc = dir.join("cc_falso.sh");
+    // O `cc` falso grava os argumentos que recebeu e falha, como faria um `ld`
+    // que não encontra uma biblioteca.
+    fs::write(
+        &cc,
+        format!(
+            "#!/bin/sh\nprintf '%s\\n' \"$@\" > '{}'\nexit 1\n",
+            argv_path.display()
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(&cc, fs::Permissions::from_mode(0o755)).unwrap();
+
+    let src = write_tmp("link_comando_src", b"print(1)\n");
+    // Um espaço no caminho da saída obriga a mostrar as aspas.
+    let exe = dir.join("saida com espaço").join("prog");
+    let out = Command::new(bin())
+        .args(["build", src.to_str().unwrap(), "-o"])
+        .arg(&exe)
+        .env("CC", &cc)
+        .output()
+        .unwrap();
+
+    assert_eq!(out.status.code(), Some(2), "{out:?}");
+    let err = String::from_utf8_lossy(&out.stderr).to_string();
+    assert!(err.starts_with("erro: a ligação falhou:"), "{err}");
+    assert!(err.contains("saiu com o código 1"), "{err}");
+
+    // O comando impresso tem de ser, argumento a argumento, o que o `cc`
+    // recebeu — é isso que o torna copiável para a consola.
+    let recebidos: Vec<String> = fs::read_to_string(&argv_path)
+        .unwrap()
+        .lines()
+        .map(str::to_string)
+        .collect();
+    assert!(recebidos[0].ends_with("prog.o"), "{recebidos:?}");
+    assert!(
+        recebidos.contains(&cudra_driver::runtime_lib().display().to_string()),
+        "{recebidos:?}"
+    );
+    assert!(
+        recebidos.contains(&exe.display().to_string()),
+        "{recebidos:?}"
+    );
+    for lib in cudra_driver::native_libs() {
+        assert!(recebidos.contains(&lib), "falta {lib} em {recebidos:?}");
+    }
+    let esperado = linha_de_comando(cc.to_str().unwrap(), &recebidos);
+    assert!(
+        err.contains(&format!("  comando: {esperado}\n")),
+        "stderr inesperado: {err}"
+    );
+
+    let _ = fs::remove_dir_all(&dir);
+}
+
+/// Sem compilador C, o erro também diz qual era o comando.
+#[test]
+fn missing_c_compiler_reports_the_command() {
+    let src = write_tmp("sem_cc_src", b"print(1)\n");
+    let exe = tmp_exe("sem_cc_exe");
+    let cc = tmp_exe("cc_que_nao_existe");
+    let out = Command::new(bin())
+        .args(["build", src.to_str().unwrap(), "-o"])
+        .arg(&exe)
+        .env("CC", &cc)
+        .output()
+        .unwrap();
+
+    assert_eq!(out.status.code(), Some(2), "{out:?}");
+    let err = String::from_utf8_lossy(&out.stderr).to_string();
+    assert!(err.contains("não encontrei o compilador C"), "{err}");
+    assert!(
+        err.contains(&format!("  comando: {} ", cc.display())),
+        "stderr inesperado: {err}"
+    );
+}

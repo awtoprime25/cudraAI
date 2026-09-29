@@ -5,7 +5,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, ExitStatus};
 
 use cudra_diagnostics::render_all;
 use cudra_lexer::lex;
@@ -120,23 +120,60 @@ pub fn link(object: &[u8], out: &Path) -> Result<(), String> {
     }
 
     let cc = std::env::var("CC").unwrap_or_else(|_| "cc".to_string());
+    let mut args: Vec<String> = vec![obj.display().to_string(), lib.display().to_string()];
+    args.extend(native_libs());
+    args.push("-o".to_string());
+    args.push(out.display().to_string());
+
+    // O comando tal como o utilizador o pode copiar para a consola. E isto que
+    // sai no erro quando a ligacao falha, para nao ser preciso um wrapper a
+    // volta do `cc` para descobrir o que o driver lhe pediu.
+    let comando = shell_command(&cc, &args);
+
     let mut cmd = Command::new(&cc);
-    cmd.arg(&obj).arg(&lib).args(native_libs());
-    cmd.arg("-o").arg(out);
+    cmd.args(&args);
     let probe = cmd.output().map_err(|e| {
         if e.kind() == std::io::ErrorKind::NotFound {
-            format!("erro: não encontrei o compilador C '{cc}' para ligar o executável")
+            format!(
+                "erro: não encontrei o compilador C '{cc}' para ligar o executável\n  comando: {comando}"
+            )
         } else {
-            format!("erro: falha ao correr '{cc}': {e}")
+            format!("erro: falha ao correr '{cc}': {e}\n  comando: {comando}")
         }
     })?;
     if !probe.status.success() {
         return Err(format!(
-            "erro: a ligação falhou:\n{}",
+            "erro: a ligação falhou: {}\n  comando: {comando}\n{}",
+            describe_status(&probe.status),
             String::from_utf8_lossy(&probe.stderr)
         ));
     }
     Ok(())
+}
+
+/// Descricao do estado de saida do compilador C, para o erro da ligacao.
+fn describe_status(status: &ExitStatus) -> String {
+    match status.code() {
+        Some(code) => format!("o compilador C saiu com o código {code}"),
+        None => "o compilador C foi terminado por um sinal".to_string(),
+    }
+}
+
+/// Linha de comando pronta a copiar, com quoting suficiente: argumentos vazios
+/// ou com espacos, aspas ou barras invertidas ficam entre aspas duplas.
+fn shell_command(cc: &str, args: &[String]) -> String {
+    let mut linha = cc.to_string();
+    for arg in args {
+        linha.push(' ');
+        if arg.is_empty() || arg.contains([' ', '\t', '"', '\'', '\\']) {
+            linha.push('"');
+            linha.push_str(&arg.replace('\\', "\\\\").replace('"', "\\\""));
+            linha.push('"');
+        } else {
+            linha.push_str(arg);
+        }
+    }
+    linha
 }
 
 /// Compila `src` e liga o executavel em `out`.

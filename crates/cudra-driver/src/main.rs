@@ -130,8 +130,15 @@ fn report_failure(f: BuildFailure) -> ExitCode {
             eprint!("{d}");
             ExitCode::from(1)
         }
-        BuildFailure::Compile(CompileError::Internal(e)) | BuildFailure::Link(e) => {
+        BuildFailure::Compile(CompileError::Internal(e)) => {
             eprintln!("erro interno do compilador: {e}");
+            ExitCode::from(2)
+        }
+        // Falha de ligacao nao e um erro interno: a mensagem ja diz que foi o
+        // compilador C a falhar, qual foi o comando e o que ele escreveu no
+        // stderr, por isso sai tal e qual.
+        BuildFailure::Link(e) => {
+            eprintln!("{e}");
             ExitCode::from(2)
         }
     }
